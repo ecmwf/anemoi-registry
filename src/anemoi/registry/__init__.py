@@ -6,4 +6,18 @@
 # nor does it submit to any jurisdiction.
 
 
+import logging
+
 from ._version import __version__ as __version__
+
+LOG = logging.getLogger(__name__)
+
+
+def config():
+    from anemoi.utils.config import DotDict
+    from anemoi.utils.config import load_config
+
+    config = load_config().get("registry")
+    if not config:
+        LOG.warning(f"No 'registry' section in config. Config is {load_config()}. Limited functionalities.")
+    return DotDict(config)

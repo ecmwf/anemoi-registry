@@ -6,9 +6,17 @@
 # nor does it submit to any jurisdiction.
 
 
-def test_graphs():
+import requests
+
+from anemoi.registry.rest import Rest
+
+# patch requests to intercept all requests
+requests.request = Rest.request
+
+
+def test_rest():
     pass
 
 
 if __name__ == "__main__":
-    test_graphs()
+    test_rest()
