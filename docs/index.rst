@@ -30,6 +30,25 @@ of the *Anemoi* packages.
 
    installing
 
+**Command line tool**
+
+-  :doc:`cli/introduction`
+-  :doc:`cli/list`
+-  :doc:`cli/datasets`
+-  :doc:`cli/weights`
+-  :doc:`cli/experiments`
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Command line tool
+
+   cli/introduction
+   cli/list
+   cli/datasets
+   cli/experiments
+   cli/weights
+
 *********
  Modules
 *********

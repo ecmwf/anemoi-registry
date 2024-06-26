@@ -1,8 +1,0 @@
-####
- s3
-####
-
-.. automodule:: anemoi.registry.s3
-   :members:
-   :no-undoc-members:
-   :show-inheritance:
