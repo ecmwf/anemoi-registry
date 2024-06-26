@@ -9,14 +9,14 @@ import datetime
 import logging
 import os
 import socket
-import sys
 from getpass import getuser
 
 import requests
 from requests.exceptions import HTTPError
 
 from anemoi.registry import config
-from anemoi.registry._version import version
+
+from ._version import __version__
 
 LOG = logging.getLogger(__name__)
 # LOG.setLevel(logging.DEBUG)
@@ -52,51 +52,85 @@ def tidy(d):
     return d
 
 
-class BaseRest:
+def trace_info():
+    trace = {}
+    trace["user"] = getuser()
+    trace["host"] = socket.gethostname()
+    trace["pid"] = os.getpid()
+    trace["version"] = __version__
+    return trace
+
+
+class Rest:
     def __init__(self):
-        self.config = config()
+        self.session = requests.Session()
+        self.session.headers.update({"Authorization": f"Bearer {self.token}"})
+        for k, v in trace_info().items():
+            self.session.headers.update({f"x-anemoi-registry-{k}": str(v)})
 
-    def get(self, collection):
-        LOG.debug(f"GET {collection}")
+    @property
+    def token(self):
+        return config().api_token
+
+    def get(self, path, params=None, errors={}):
+        self.log_debug("GET", path, params)
+
+        kwargs = dict()
+        if params is not None:
+            kwargs["params"] = params
+
+        r = self.session.get(f"{config().api_url}/{path}", **kwargs)
+        self.raise_for_status(r, errors=errors)
+        return r.json()
+
+    def exists(self, *args, **kwargs):
         try:
-            r = requests.get(f"{self.config.api_url}/{collection}", headers={"Authorization": f"Bearer {self.token}"})
-            self.raise_for_status(r)
-            return r.json()
-        except Exception as e:
-            LOG.error(e)
-            raise (e)
+            self.get(*args, **kwargs)
+            return True
+        except HTTPError as e:
+            if e.response.status_code == 404:
+                return False
 
-    def post(self, collection, data):
-        LOG.debug(f"POST {collection} { {k:'...' for k,v in data.items()} }")
+    def put(self, path, data, errors={}):
+        self.log_debug("PUT", path, data)
+        if not data:
+            raise ValueError(f"PUT data must be provided for {path}")
+        r = self.session.put(f"{config().api_url}/{path}", json=tidy(data))
+        self.raise_for_status(r, errors=errors)
+        return r.json()
 
-    def patch(self, collection, data):
-        LOG.debug(f"PATCH {collection} {data}")
+    def patch(self, path, data, errors={}):
+        self.log_debug("PATCH", path, data)
+        if not data:
+            raise ValueError(f"PATCH data must be provided for {path}")
+        r = self.session.patch(f"{config().api_url}/{path}", json=tidy(data))
+        self.raise_for_status(r, errors=errors)
+        return r.json()
 
-    def put(self, collection, data):
-        LOG.debug(f"PUT {collection} {data}")
+    def post(self, path, data, errors={}):
+        r = self.session.post(f"{config().api_url}/{path}", json=tidy(data))
+        self.raise_for_status(r, errors=errors)
+        return r.json()
 
-    def delete(self, collection):
-        LOG.debug(f"DELETE {collection}")
+    def delete(self, path, errors={}):
+        if not config().get("allow_delete"):
+            raise ValueError("Unregister not allowed")
+        r = self.session.delete(f"{config().api_url}/{path}", params=dict(force=True))
+        self.raise_for_status(r, errors=errors)
+        return r.json()
 
-    def trace_info(self):
-        trace = {}
-        trace["tool_path"] = __file__
-        trace["tool_cmd"] = sys.argv
-        trace["user"] = getuser()
-        trace["host"] = socket.gethostname()
-        trace["pid"] = os.getpid()
-        trace["timestamp"] = datetime.datetime.now().isoformat()
-        trace["version"] = version
-        return trace
+    def log_debug(self, verb, collection, data):
+        if len(str(data)) > 100:
+            if isinstance(data, dict):
+                data = {k: "..." for k, v in data.items()}
+            else:
+                data = str(data)[:100] + "..."
+        LOG.debug(f"{verb} {collection} {data}")
 
     def trace_info_dict(self):
         return dict(_trace_info=self.trace_info())
 
-    @property
-    def token(self):
-        return self.config.api_token
-
-    def raise_for_status(self, r):
+    def raise_for_status(self, r, errors={}):
         try:
             r.raise_for_status()
         except HTTPError as e:
@@ -104,82 +138,58 @@ class BaseRest:
             text = r.text
             text = text[:1000] + "..." if len(text) > 1000 else text
             e.args = (f"{e.args[0]} : {text}",)
-            raise e
 
-
-class ReadOnlyRest(BaseRest):
-    pass
-
-
-class Rest(BaseRest):
-    def raise_for_status(self, r):
-        try:
-            r.raise_for_status()
-        except HTTPError as e:
-            # add the response text to the exception message
-            text = r.text
-            text = text[:1000] + "..." if len(text) > 1000 else text
-            e.args = (f"{e.args[0]} : {text}",)
-            raise e
-
-    def post(self, collection, data):
-        super().post(collection, data)
-        try:
-            r = requests.post(
-                f"{self.config.api_url}/{collection}",
-                json=tidy(data),
-                headers={"Authorization": f"Bearer {self.token}"},
-            )
-            self.raise_for_status(r)
-            return r.json()
-        except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 409:
-                raise AlreadyExists(f"{e}Already exists in {collection}")
+            exception_handler = errors.get(e.response.status_code)
+            errcode = e.response.status_code
+            LOG.debug("HTTP error: ", errcode, exception_handler)
+            if exception_handler:
+                raise exception_handler(e)
             else:
-                LOG.error(f"Error in post to {collection} with data:{data}")
-                LOG.error(e)
-                raise
-        except Exception as e:
-            LOG.error(f"Error in post to {collection} with data:{data}")
-            LOG.error(e)
-            raise
+                raise e
 
-    def patch(self, collection, data):
-        super().patch(collection, data)
-        try:
-            r = requests.patch(
-                f"{self.config.api_url}/{collection}",
-                json=tidy(data),
-                headers={"Authorization": f"Bearer {self.token}"},
-            )
-            self.raise_for_status(r)
-            return r.json()
-        except Exception as e:
-            LOG.error(e)
-            raise (e)
 
-    def put(self, collection, data):
-        super().put(collection, data)
-        try:
-            r = requests.put(
-                f"{self.config.api_url}/{collection}",
-                json=tidy(data),
-                headers={"Authorization": f"Bearer {self.token}"},
-            )
-            self.raise_for_status(r)
-            return r.json()
-        except Exception as e:
-            LOG.error(e)
-            raise (e)
+class RestItem:
+    def __init__(self, collection, key):
+        self.collection = collection
+        self.key = key
+        self.rest = Rest()
+        self.path = f"{collection}/{key}"
 
-    def delete(self, collection):
-        super().delete(collection)
+    def exists(self):
         try:
-            r = requests.delete(
-                f"{self.config.api_url}/{collection}", headers={"Authorization": f"Bearer {self.token}"}
-            )
-            self.raise_for_status(r)
-            return r.json()
-        except Exception as e:
-            LOG.error(e)
-            raise (e)
+            self.get()
+            return True
+        except HTTPError as e:
+            if e.response.status_code == 404:
+                return False
+
+    def get(self, params=None, errors={}):
+        return self.rest.get(self.path, params=params, errors=errors)
+
+    def patch(self, data):
+        return self.rest.patch(self.path, data)
+
+    def put(self, data):
+        return self.rest.put(self.path, data)
+
+    def delete(self):
+        return self.rest.delete(self.path)
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.collection}, {self.key})"
+
+
+class RestItemList:
+    def __init__(self, collection):
+        self.collection = collection
+        self.rest = Rest()
+        self.path = collection
+
+    def get(self, params=None, errors={}):
+        return self.rest.get(self.path, params=params, errors=errors)
+
+    def post(self, data):
+        return self.rest.post(self.path, data, errors={409: AlreadyExists})
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.collection})"

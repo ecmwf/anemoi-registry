@@ -51,15 +51,19 @@ dynamic = [
 ]
 dependencies = [
   "anemoi-datasets",
+  "jsonpatch",
+  "requests",
 ]
 
 optional-dependencies.all = [
+  "boto3",
 ]
+
 optional-dependencies.dev = [
+  "boto3",
   "nbsphinx",
   "pandoc",
   "pytest",
-  "requests",
   "sphinx",
   "sphinx-argparse",
   "sphinx-rtd-theme",
@@ -70,12 +74,15 @@ optional-dependencies.dev = [
 optional-dependencies.docs = [
   "nbsphinx",
   "pandoc",
-  "requests",
   "sphinx",
   "sphinx-argparse",
   "sphinx-rtd-theme",
   "termcolor",
   "tomli",
+]
+
+optional-dependencies.s3 = [
+  "boto3",
 ]
 
 optional-dependencies.tests = [

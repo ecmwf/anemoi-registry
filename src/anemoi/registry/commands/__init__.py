@@ -19,6 +19,6 @@ __all__ = ["Command"]
 COMMANDS = register_commands(
     os.path.dirname(__file__),
     __name__,
-    lambda x: x.command(),
+    lambda x: x.command() if hasattr(x, "command") else None,
     lambda name, error: Failed(name, error),
 )

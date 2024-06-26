@@ -12,10 +12,15 @@
 
 """
 
-import json
+import datetime
 import logging
 
-from anemoi.registry.rest import ReadOnlyRest as Rest
+from anemoi.utils.humanize import json_pretty_dump
+from anemoi.utils.humanize import when
+from anemoi.utils.text import table
+
+from anemoi.registry.rest import RestItemList
+from anemoi.registry.utils import list_to_dict
 
 from . import Command
 
@@ -23,15 +28,27 @@ LOG = logging.getLogger(__name__)
 
 
 class List(Command):
+    """List elements in the catalogue."""
+
     internal = True
     timestamp = True
 
     def add_arguments(self, command_parser):
         sub_parser = command_parser.add_subparsers(dest="subcommand")
 
-        experiment = sub_parser.add_parser("experiments")  # noqa: F841
-        checkpoint = sub_parser.add_parser("weights")  # noqa: F841
-        dataset = sub_parser.add_parser("datasets")  # noqa: F841
+        experiment = sub_parser.add_parser("experiments")
+        experiment.add_argument("filter", nargs="*")
+
+        checkpoint = sub_parser.add_parser("weights")
+        checkpoint.add_argument("filter", nargs="*")
+
+        dataset = sub_parser.add_parser("datasets")
+        dataset.add_argument("filter", nargs="*")
+
+    #        tasks = sub_parser.add_parser("tasks")
+    #        tasks.add_argument("filter", nargs="*")
+    #        tasks.add_argument("-l", "--long", help="Details", action="store_true")
+    #        tasks.add_argument("--sort", help="Sort by date", choices=["created", "updated"], default="updated")
 
     def check_arguments(self, args):
         pass
@@ -40,20 +57,46 @@ class List(Command):
         if not args.subcommand:
             raise ValueError("Missing subcommand")
 
-        subcommand = f"run_{args.subcommand.replace('-', '_')}"
-        return getattr(self, subcommand)(args)
+        getattr(self, f"run_{args.subcommand}", self._run_default)(args)
 
-    def run_experiments(self, args):
-        payload = Rest().get("experiments")
-        print(json.dumps(payload, indent=2))
+    def _run_default(self, args):
+        collection = args.subcommand
+        request = list_to_dict(args.filter)
+        payload = RestItemList(collection).get(params=request)
+        print(json_pretty_dump(payload))
 
-    def run_weights(self, args):
-        payload = Rest().get("weights")
-        print(json.dumps(payload, indent=2))
+    def run_tasks(self, args):
+        collection = "tasks"
+        request = list_to_dict(args.filter)
+        data = RestItemList(collection).get(params=request)
+        self.print_tasks(data, long=args.long, sort=args.sort)
 
-    def run_datasets(self, args):
-        payload = Rest().get("datasets")
-        print(json.dumps(payload, indent=2))
+    def print_tasks(self, data, long=False, sort="updated"):
+        data = sorted(data, key=lambda x: x[sort])
+
+        rows = []
+        for v in data:
+            if not isinstance(v, dict):
+                raise ValueError(v)
+            created = datetime.datetime.fromisoformat(v.pop("created"))
+            updated = datetime.datetime.fromisoformat(v.pop("updated"))
+
+            uuid = v.pop("uuid")
+            content = " ".join(f"{k}={v}" for k, v in v.items())
+            if not long:
+                content = content[:20] + "..."
+            rows.append(
+                [
+                    when(created),
+                    when(updated),
+                    v.pop("status"),
+                    v.pop("progress", ""),
+                    content,
+                    uuid,
+                ]
+            )
+        print(table(rows, ["Created", "Updated", "Status", "%", "Details", "UUID"], ["<", "<", "<", "<", "<", "<"]))
+        return
 
 
 command = List

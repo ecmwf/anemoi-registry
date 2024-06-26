@@ -14,13 +14,15 @@
 
 import logging
 
-from ..entry import DatasetCatalogueEntry
-from ._base import BaseCommand
+from ..entry.dataset import DatasetCatalogueEntry
+from .base import BaseCommand
 
 LOG = logging.getLogger(__name__)
 
 
 class Datasets(BaseCommand):
+    """Manage datasets in the catalogue. Register, add locations, set status, etc."""
+
     internal = True
     timestamp = True
     entry_class = DatasetCatalogueEntry
@@ -35,72 +37,26 @@ class Datasets(BaseCommand):
             action="store_true",
         )
         # command_parser.add_argument("--delete", help=f"Delete the {self.kind} from the catalogue and from any other location", action="store_true")
-        command_parser.add_argument("--json", help="Output json record", action="store_true")
-
         command_parser.add_argument("--set-status", help="Set the status to the dataset")
-        command_parser.add_argument("--add-location", nargs="+", help="Add a location to the dataset")
+        command_parser.add_argument("--add-recipe", help="Add a recipe file")
+        command_parser.add_argument(
+            "--add-location",
+            nargs="+",
+            help="Path to add a location to the dataset. Implies --platform",
+        )
+        command_parser.add_argument("--platform", help="Platform to add the location to.")
 
     def check_arguments(self, args):
         pass
 
-    def run_from_identifier(
-        self,
-        identifier,
-        add_location,
-        set_status,
-        unregister,
-        json,
-        remove_location=False,
-        **kwargs,
-    ):
-        self.warn_unused_arguments(kwargs)
-
-        entry = self.entry_class(key=identifier)
-
-        if unregister:
-            entry.unregister()
-        if add_location:
-            entry.add_location(**add_location)
-        if remove_location:
-            entry.remove_location(**remove_location)
-        if set_status:
-            entry.set_status(set_status)
-
-        if json:
-            print(entry.as_json())
-
-    def run_from_path(
-        self,
-        path,
-        register,
-        unregister,
-        add_location,
-        json,
-        set_status,
-        # remove_location,
-        # upload,
-        # upload_uri_pattern,
-        **kwargs,
-    ):
-        self.warn_unused_arguments(kwargs)
-
-        entry = self.entry_class(path=path)
-
-        if register:
-            entry.register()
-        if unregister:
-            entry.unregister()
-        if add_location:
-            entry.add_location(**add_location)
-        # if remove_location:
-        #    entry.remove_location(**remove_location)
-        if set_status:
-            entry.set_status(set_status)
-        # if delete:
-        #    entry.delete()
-
-        if json:
-            print(entry.as_json())
+    def _run(self, entry, args):
+        # order matters
+        self.process_task(entry, args, "unregister")
+        self.process_task(entry, args, "register")
+        # self.process_task(entry, args, "remove_location")
+        self.process_task(entry, args, "add_location", platform=args.platform)
+        self.process_task(entry, args, "add_recipe")
+        self.process_task(entry, args, "set_status")
 
 
 command = Datasets

@@ -15,13 +15,15 @@
 import logging
 import os
 
-from ..entry import ExperimentCatalogueEntry
-from ._base import BaseCommand
+from ..entry.experiment import ExperimentCatalogueEntry
+from .base import BaseCommand
 
 LOG = logging.getLogger(__name__)
 
 
 class Experiments(BaseCommand):
+    """Manage experiments in the catalogue. Register, unregister, add weights, add plots, etc."""
+
     internal = True
     timestamp = True
     entry_class = ExperimentCatalogueEntry
@@ -35,7 +37,6 @@ class Experiments(BaseCommand):
             help="Remove from catalogue (without deleting all)",
             action="store_true",
         )
-        command_parser.add_argument("--json", help="Output json record", action="store_true")
         # command_parser.add_argument("--delete", help=f"Delete the {self.kind} from the catalogue and from any other location", action="store_true")
 
         command_parser.add_argument("--add-weights", nargs="+", help="Add weights to the experiment")
@@ -52,67 +53,11 @@ class Experiments(BaseCommand):
             return False
         return True
 
-    def run_from_identifier(
-        self,
-        identifier,
-        json,
-        add_weights,
-        add_plots,
-        unregister,
-        overwrite,
-        **kwargs,
-    ):
-        self.warn_unused_arguments(kwargs)
-
-        entry = self.entry_class(key=identifier)
-
-        if add_weights:
-            for w in add_weights:
-                entry.add_weights(w)
-        if add_plots:
-            for p in add_plots:
-                entry.add_plots(p)
-
-        if unregister:
-            entry.unregister()
-
-        # if delete:
-        #    entry.delete()
-
-        if json:
-            print(entry.as_json())
-
-    def run_from_path(
-        self,
-        path,
-        register,
-        unregister,
-        add_weights,
-        add_plots,
-        overwrite,
-        json,
-        **kwargs,
-    ):
-        self.warn_unused_arguments(kwargs)
-
-        entry = self.entry_class(path=path)
-
-        if unregister:
-            entry.unregister()
-        if register:
-            entry.register()
-        if add_weights:
-            for w in add_weights:
-                entry.add_weights(w)
-        if add_plots:
-            for p in add_plots:
-                entry.add_plots(p)
-
-        # if delete:
-        #    entry.delete()
-
-        if json:
-            print(entry.as_json())
+    def _run(self, entry, args):
+        self.process_task(entry, args, "unregister")
+        self.process_task(entry, args, "register", overwrite=args.overwrite)
+        self.process_task(entry, args, "add_weights")
+        self.process_task(entry, args, "add_plots")
 
 
 command = Experiments

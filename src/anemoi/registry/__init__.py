@@ -14,10 +14,13 @@ LOG = logging.getLogger(__name__)
 
 
 def config():
-    from anemoi.utils.config import DotDict
     from anemoi.utils.config import load_config
 
-    config = load_config().get("registry")
+    config = load_config(secrets=["api_token"])
     if not config:
-        LOG.warning(f"No 'registry' section in config. Config is {load_config()}. Limited functionalities.")
-    return DotDict(config)
+        raise ValueError("Anemoi config is required.")
+
+    config = config.get("registry")
+    if not config:
+        raise ValueError("Section 'registry' is missing in config.")
+    return config
