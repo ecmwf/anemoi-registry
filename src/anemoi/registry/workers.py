@@ -32,7 +32,7 @@ class Worker:
         wait=60,
         stop_if_finished=True,
         target_dir=".",
-        publish_target_dir=None,
+        published_target_dir=None,
         auto_register=True,
         threads=1,
         heartbeat=60,
@@ -54,7 +54,7 @@ class Worker:
 
         self.destination = destination
         self.target_dir = target_dir
-        self.publish_target_dir = publish_target_dir or target_dir
+        self.published_target_dir = published_target_dir or target_dir
         self.request = request
         self.threads = threads
         self.heartbeat = heartbeat
@@ -212,7 +212,7 @@ class Worker:
             os.rename(target_tmp_path, target_path)
 
         if self.auto_register:
-            published_target_path = os.path.join(self.publish_target_dir, basename)
+            published_target_path = os.path.join(self.published_target_dir, basename)
             dataset_entry.add_location(platform=destination, path=published_target_path)
 
     @classmethod
