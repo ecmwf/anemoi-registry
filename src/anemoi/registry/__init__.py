@@ -7,6 +7,7 @@
 
 
 import logging
+import os
 
 from ._version import __version__ as __version__
 
@@ -21,11 +22,6 @@ except ImportError:
 def config():
     from anemoi.utils.config import load_config
 
-    config = load_config(secrets=["api_token"])
-    if not config:
-        raise ValueError("Anemoi config is required.")
-
-    config = config.get("registry")
-    if not config:
-        raise ValueError("Section 'registry' is missing in config.")
-    return config
+    default_config = os.path.join(os.path.dirname(__file__), "config.yaml")
+    config = load_config(secrets=["api_token"], defaults=default_config)
+    return config.get("registry")
