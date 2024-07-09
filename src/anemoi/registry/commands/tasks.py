@@ -103,14 +103,16 @@ class Tasks(BaseCommand):
             print(f"Do you really want to delete these {len(cat)} entries? (y/n)", end=" ")
             if input("").lower() != "y":
                 return
+        count = 0
         while cat:
             try:
                 entry = cat[0]
                 entry.unregister()
+                count += 1
                 LOG.info(f"Task {entry.key} deleted.")
             except CatalogueEntryNotFound:
                 LOG.warning(f"Task {entry.key} not found.")
-        LOG.info(f"{len(cat)} tasks deleted.")
+        LOG.info(f"{count} tasks deleted.")
 
     def run_take_one(self, args):
         cat = TaskCatalogueEntryList(*args.take_one, status="queued", sort=args.sort)

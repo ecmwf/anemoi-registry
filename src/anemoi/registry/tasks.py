@@ -85,18 +85,29 @@ class TaskCatalogueEntryList:
             status = v.pop("status")
             progress = v.pop("progress", "")
             action = v.pop("action", "")
-            if not long:
-                if "worker" in v:
-                    v["worker"] = v["worker"].get("host")
-            content = " ".join(f"{k}={v}" for k, v in v.items())
-            rows.append(
-                [action, when(created, use_utc=True), when(updated, use_utc=True), status, progress, content, uuid]
-            )
-        return table(
-            rows,
-            ["Action", "Created", "Updated", "Status", "%", "Details", "UUID"],
-            ["<", "<", "<", "<", "<", "<", "<"],
-        )
+            source = v.pop("source", "")
+            destination = v.pop("destination", "")
+            dataset = v.pop("dataset", "")
+            row = [
+                when(created, use_utc=True),
+                when(updated, use_utc=True),
+                status,
+                action,
+                source,
+                destination,
+                dataset,
+                progress,
+                uuid,
+            ]
+            rows.append(row)
+            if long:
+                content = " ".join(f"{k}={v}" for k, v in v.items())
+                row.append(content)
+        cols = ["Created", "Updated", "Status", "Action", "Src", "Dest", "Dataset", "%", "UUID"]
+        if long:
+            cols.append("More")
+
+        return table(rows, cols, "<" * len(cols))
 
 
 class TaskCatalogueEntry(CatalogueEntry):

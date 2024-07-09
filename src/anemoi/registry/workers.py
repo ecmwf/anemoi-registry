@@ -202,7 +202,7 @@ class Worker:
             source_path = source_path + "/" if not source_path.endswith("/") else source_path
 
         if target_path.startswith("s3://"):
-            # untested
+            LOG.warning("Uploading to S3 is experimental and has not been tested yet.")
             download(source_path, target_path, resume=True, threads=self.threads)
             return
         else:
