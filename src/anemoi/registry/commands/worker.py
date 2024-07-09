@@ -17,7 +17,7 @@ import logging
 from anemoi.registry.commands.base import BaseCommand
 from anemoi.registry.tasks import TaskCatalogueEntry
 from anemoi.registry.utils import list_to_dict
-from anemoi.registry.workers import Worker
+from anemoi.registry.workers import TransferDatasetWorker
 
 LOG = logging.getLogger(__name__)
 
@@ -38,8 +38,7 @@ class WorkerCommand(BaseCommand):
         command_parser.add_argument(
             "action",
             help="Action to perform",
-            choices=["transfer-dataset"],
-            default="transfer-dataset",
+            choices=["transfer-dataset", "delete-dataset"],
             nargs="?",
         )
         command_parser.add_argument(
@@ -70,7 +69,7 @@ class WorkerCommand(BaseCommand):
         kwargs.pop("debug")
         kwargs.pop("version")
 
-        Worker(**kwargs).run()
+        TransferDatasetWorker(**kwargs).run()
 
 
 command = WorkerCommand

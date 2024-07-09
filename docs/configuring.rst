@@ -6,21 +6,22 @@ The following configuration files are used to store the registry
 configuration. These files allow configuring the catalogue urls, s3
 buckets, API token and object storage credentials.
 
-The first config file is ``~/.config/anemoi/config.toml``.
+The first config file is ``~/.config/anemoi/config.toml``. All keys in
+this file are optional and have default values.
 
 .. code::
 
    [registry]
-   api_url = "https://anemoi.ecmwf.int/api/v1"                 # Required
+   api_url = "https://anemoi.ecmwf.int/api/v1"
 
-   plots_uri_pattern = "s3://ml-artefacts/{expver}/{basename}" # Optional
-   datasets_uri_pattern = "s3://ml-datasets/{name}"            # Optional
-   weights_uri_pattern = "s3://ml-weights/{uuid}.ckpt"         # Optional
-   weights_platform = "ewc"                                    # Optional
+   plots_uri_pattern = "s3://ml-artefacts/{expver}/{basename}"
+   datasets_uri_pattern = "s3://ml-datasets/{name}"
+   weights_uri_pattern = "s3://ml-weights/{uuid}.ckpt"
+   weights_platform = "ewc"
 
 The second config file is ``~/.config/anemoi/config.secret.toml``. This
-file should have the right permissions set to avoid unauthorized access
-(`chmod 600 <filename>`). All keys are required.
+file must have the right permissions set to avoid unauthorized access
+(`chmod 600 <filename>`). All keys in this file have no default values.
 
 .. code::
 
