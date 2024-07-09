@@ -45,6 +45,7 @@ class Experiments(BaseCommand):
 
         command_parser.add_argument("--add-weights", nargs="+", help="Add weights to the experiment.")
         command_parser.add_argument("--add-plots", nargs="+", help="Add plots to the experiment.")
+        command_parser.add_argument("--add-artefacts", nargs="+", help="Add artefacts to the experiment.")
         command_parser.add_argument("--overwrite", help="Overwrite if already exists.", action="store_true")
 
     def check_arguments(self, args):
@@ -61,6 +62,7 @@ class Experiments(BaseCommand):
         self.process_task(entry, args, "unregister")
         self.process_task(entry, args, "register", overwrite=args.overwrite)
         self.process_task(entry, args, "add_weights")
+        self.process_task(entry, args, "add_artefacts")
         self.process_task(entry, args, "add_plots")
 
 

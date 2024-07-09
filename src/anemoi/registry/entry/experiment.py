@@ -41,12 +41,24 @@ class ExperimentCatalogueEntry(CatalogueEntry):
             self._add_one_plot(path, **kwargs)
 
     def _add_one_plot(self, path, **kwargs):
-        """target is a pattern: s3://bucket/{expver}/{basename}"""
+        return self._add_one_plot_or_artefact("plot", path, **kwargs)
 
+    def add_weights(self, *paths, **kwargs):
+        for path in paths:
+            self._add_one_weights(path, **kwargs)
+
+    def add_artefacts(self, *paths, **kwargs):
+        for path in paths:
+            self._add_one_artefact(path, **kwargs)
+
+    def _add_one_artefact(self, path, **kwargs):
+        return self._add_one_plot_or_artefact("artefact", path, **kwargs)
+
+    def _add_one_plot_or_artefact(self, kind, path, **kwargs):
         if not os.path.exists(path):
-            raise FileNotFoundError(f"Could not find plot at {path}")
+            raise FileNotFoundError(f"Could not find {kind} to upload at {path}")
 
-        target = config()["plots_uri_pattern"]
+        target = config()[f"{kind}s_uri_pattern"]
         basename = os.path.basename(path)
         target = target.format(expver=self.key, basename=basename, filename=basename)
 
@@ -54,11 +66,7 @@ class ExperimentCatalogueEntry(CatalogueEntry):
         upload(path, target, overwrite=True)
 
         dic = dict(url=target, name=basename, path=path)
-        self.rest_item.patch([{"op": "add", "path": "/plots/-", "value": dic}])
-
-    def add_weights(self, *paths, **kwargs):
-        for path in paths:
-            self._add_one_weights(path, **kwargs)
+        self.rest_item.patch([{"op": "add", "path": "/{kind}s/-", "value": dic}])
 
     def _add_one_weights(self, path, **kwargs):
         weights = WeightCatalogueEntry(path=path)
