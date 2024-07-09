@@ -29,16 +29,16 @@ class Datasets(BaseCommand):
     kind = "dataset"
 
     def add_arguments(self, command_parser):
-        command_parser.add_argument("NAME_OR_PATH", help=f"The name or the path of the {self.kind}")
-        command_parser.add_argument("--register", help=f"Register the {self.kind}", action="store_true")
+        command_parser.add_argument("NAME_OR_PATH", help=f"The name or the path of a {self.kind}.")
+        command_parser.add_argument("--register", help=f"Register a {self.kind} in the catalogue.", action="store_true")
         command_parser.add_argument(
             "--unregister",
-            help="Remove from catalogue (without deleting all)",
+            help=f"Remove a {self.kind} from catalogue (without deleting it from its locations)",
             action="store_true",
         )
         # command_parser.add_argument("--delete", help=f"Delete the {self.kind} from the catalogue and from any other location", action="store_true")
-        command_parser.add_argument("--set-status", help="Set the status to the dataset")
-        command_parser.add_argument("--add-recipe", help="Add a recipe file")
+        command_parser.add_argument("--set-status", help="Set the status to the {self.kind}.")
+        command_parser.add_argument("--add-recipe", help="Add the recipe file to [re-]build the {self.kind}.")
         command_parser.add_argument(
             "--add-location",
             nargs="+",

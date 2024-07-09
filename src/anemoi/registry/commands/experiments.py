@@ -30,18 +30,22 @@ class Experiments(BaseCommand):
     kind = "experiment"
 
     def add_arguments(self, command_parser):
-        command_parser.add_argument("NAME_OR_PATH", help=f"The name or the path of the {self.kind}")
-        command_parser.add_argument("--register", help=f"Register the {self.kind}", action="store_true")
+        command_parser.add_argument(
+            "NAME_OR_PATH", help="Name of an experiment of a path of an experiment config file."
+        )
+        command_parser.add_argument(
+            "--register", help=f"Register the {self.kind} in the catalogue.", action="store_true"
+        )
         command_parser.add_argument(
             "--unregister",
-            help="Remove from catalogue (without deleting all)",
+            help="Remove from catalogue (without deleting the experiment from other locations)",
             action="store_true",
         )
         # command_parser.add_argument("--delete", help=f"Delete the {self.kind} from the catalogue and from any other location", action="store_true")
 
-        command_parser.add_argument("--add-weights", nargs="+", help="Add weights to the experiment")
-        command_parser.add_argument("--add-plots", nargs="+", help="Add plots to the experiment")
-        command_parser.add_argument("--overwrite", help="Overwrite if already exists", action="store_true")
+        command_parser.add_argument("--add-weights", nargs="+", help="Add weights to the experiment.")
+        command_parser.add_argument("--add-plots", nargs="+", help="Add plots to the experiment.")
+        command_parser.add_argument("--overwrite", help="Overwrite if already exists.", action="store_true")
 
     def check_arguments(self, args):
         pass

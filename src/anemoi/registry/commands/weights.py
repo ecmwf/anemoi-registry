@@ -29,18 +29,20 @@ class Weights(BaseCommand):
     kind = "weights"
 
     def add_arguments(self, command_parser):
-        command_parser.add_argument("NAME_OR_PATH", help=f"The name or the path of the {self.kind}")
-        command_parser.add_argument("--register", help=f"Register the {self.kind}", action="store_true")
+        command_parser.add_argument("NAME_OR_PATH", help=f"Name or path of a {self.kind}.")
+        command_parser.add_argument(
+            "--register", help=f"Register the {self.kind} in the catalogue.", action="store_true"
+        )
         command_parser.add_argument(
             "--unregister",
-            help="Remove from catalogue (without deleting all)",
+            help="Remove from catalogue (without deleting it from its actual locations).",
             action="store_true",
         )
         # command_parser.add_argument("--delete", help=f"Delete the {self.kind} from the catalogue and from any other location", action="store_true")
 
         command_parser.add_argument("--add-location", help="Add a location to the weights.")
         command_parser.add_argument("--platform", help="Platform where to add the location.")
-        command_parser.add_argument("--overwrite", help="Overwrite any existing weights", action="store_true")
+        command_parser.add_argument("--overwrite", help="Overwrite any existing weights.", action="store_true")
 
     def check_arguments(self, args):
         pass

@@ -36,14 +36,21 @@ class List(Command):
     def add_arguments(self, command_parser):
         sub_parser = command_parser.add_subparsers(dest="subcommand")
 
-        experiment = sub_parser.add_parser("experiments")
-        experiment.add_argument("filter", nargs="*")
+        experiment = sub_parser.add_parser(
+            "experiments",
+            help="List experiments in the catalogue, for admin and debug purposes Current output is JSON and may change.",
+        )
+        experiment.add_argument(
+            "filter", nargs="*", help="Filter experiments with a list of key=value.", metavar="key=value"
+        )
 
-        checkpoint = sub_parser.add_parser("weights")
-        checkpoint.add_argument("filter", nargs="*")
+        checkpoint = sub_parser.add_parser("weights", help="List weights in the catalogue.")
+        checkpoint.add_argument(
+            "filter", nargs="*", help="Filter experiments with a list of key=value.", metavar="key=value"
+        )
 
-        dataset = sub_parser.add_parser("datasets")
-        dataset.add_argument("filter", nargs="*")
+        dataset = sub_parser.add_parser("datasets", help="List datasets in the catalogue.")
+        dataset.add_argument("filter", nargs="*", help="Filter datasets with a list of key=value.", metavar="key=value")
 
     #        tasks = sub_parser.add_parser("tasks")
     #        tasks.add_argument("filter", nargs="*")
