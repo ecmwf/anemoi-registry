@@ -45,7 +45,8 @@ jobs:
         pip freeze
 
     - name: Tests
-      run: pytest
+      run: |
+        cd tests && python3 test_all.py
 
   deploy:
 
