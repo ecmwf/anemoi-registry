@@ -66,7 +66,7 @@ class ExperimentCatalogueEntry(CatalogueEntry):
         upload(path, target, overwrite=True)
 
         dic = dict(url=target, name=basename, path=path)
-        self.rest_item.patch([{"op": "add", "path": "/{kind}s/-", "value": dic}])
+        self.rest_item.patch([{"op": "add", "path": f"/{kind}s/-", "value": dic}])
 
     def _add_one_weights(self, path, **kwargs):
         weights = WeightCatalogueEntry(path=path)
