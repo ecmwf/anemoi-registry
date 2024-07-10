@@ -21,44 +21,44 @@ def run(*args):
 
 
 def setup_module():
-    run("anemoi-registry", "experiments", "./config.yaml", "--register")
-    run("anemoi-registry", "weights", "./test-checkpoint.ckpt", "--register")
+    teardown_module(raise_if_error=False)
+    run("anemoi-registry", "experiments", "./dummy-recipe-experiment.yaml", "--register")
+    run("anemoi-registry", "weights", "./dummy-checkpoint.ckpt", "--register")
 
     if not os.path.exists(DATASET_PATH):
-        run("anemoi-datasets", "create", "dataset_recipe.yaml", DATASET_PATH, "--overwrite")
+        run("anemoi-datasets", "create", "./dummy-recipe-dataset.yaml", DATASET_PATH, "--overwrite")
     assert os.path.exists(DATASET_PATH)
 
     os.symlink(DATASET_PATH, TMP_DATASET_PATH)
     run("anemoi-registry", "datasets", TMP_DATASET_PATH, "--register")
-    print("✅ Setup done")
+    print("# Setup done")
 
 
-def teardown_module():
-    print("✅ Start teardown")
-    e = None
+def teardown_module(raise_if_error=True):
+    error = None
     try:
         run("anemoi-registry", "weights", "a5275e04-0000-0000-a0f6-be19591b09fe", "--unregister")
     except Exception as e:
-        print(e)
+        error = e
 
     try:
-        run("anemoi-registry", "experiments", "./config.yaml", "--unregister")
+        run("anemoi-registry", "experiments", "./dummy-recipe-experiment.yaml", "--unregister")
     except Exception as e:
-        print(e)
+        error = e
 
     try:
         run("anemoi-registry", "datasets", TMP_DATASET, "--unregister")
         os.remove(TMP_DATASET_PATH)
     except Exception as e:
-        print(e)
-    if e:
-        raise e
+        error = e
+    if error and raise_if_error:
+        raise error
 
 
 def test_datasets():
     # assert run("anemoi-registry", "datasets", TMP_DATASET) == 1
     run("anemoi-registry", "datasets", TMP_DATASET)
-    run("anemoi-registry", "datasets", TMP_DATASET, "--add-recipe", "./recipe.yaml")
+    run("anemoi-registry", "datasets", TMP_DATASET, "--add-recipe", "./dummy-recipe-dataset.yaml")
     run("anemoi-registry", "datasets", TMP_DATASET, "--set-status", "testing")
     run("anemoi-registry", "datasets", TMP_DATASET, "--add-location", "/the/dataset/path", "--platform", "atos")
     run("anemoi-registry", "datasets", TMP_DATASET, "--add-location", "/other/path", "--platform", "leonardo")
@@ -70,7 +70,7 @@ def test_weights():
     run(
         "anemoi-registry",
         "weights",
-        "./test-checkpoint.ckpt",
+        "./dummy-checkpoint.ckpt",
         "--add-location",
         "s3://ml-weights/a5275e04-0000-0000-a0f6-be19591b09fe.ckpt",
         "--platform",
@@ -79,10 +79,9 @@ def test_weights():
 
 
 def test_experiments():
-    # assert run("anemoi-registry", "experiments", "i4df") == 1
     run("anemoi-registry", "experiments", "i4df")
-    run("anemoi-registry", "experiments", "i4df", "--add-plots", "./quaver.pdf")
-    run("anemoi-registry", "experiments", "i4df", "--add-weights", "./test-checkpoint.ckpt")
+    run("anemoi-registry", "experiments", "i4df", "--add-plots", "./dummy-quaver.pdf")
+    run("anemoi-registry", "experiments", "i4df", "--add-weights", "./dummy-checkpoint.ckpt")
 
 
 def test_list_commands():
@@ -93,11 +92,18 @@ def test_list_commands():
 
 if __name__ == "__main__":
     test_list_commands()
+    print()
 
+    print("# Start setup")
     setup_module()
     try:
+        print()
         test_datasets()
+        print()
         test_weights()
+        print()
         test_experiments()
+        print()
     finally:
+        print("# Start teardown")
         teardown_module()
