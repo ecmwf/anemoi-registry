@@ -200,9 +200,12 @@ class Entry(Command):
             LOG.info(f"Entry in {collection} has been created : {res}.")
 
     def remove(self, args):
+        path = args.path
+        if not path.startswith("/"):
+            path = "/" + path
         rest = Rest()
-        rest.delete(args.path)
-        LOG.info(f"{args.path} has been deleted.")
+        rest.delete(path)
+        LOG.info(f"{path} has been deleted.")
 
 
 command = Entry
