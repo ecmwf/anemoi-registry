@@ -26,7 +26,7 @@ class DatasetCatalogueEntry(CatalogueEntry):
     def add_location(self, path, platform):
         self.rest_item.patch([{"op": "add", "path": f"/locations/{platform}", "value": {"path": path}}])
 
-    def add_recipe(self, file):
+    def set_recipe(self, file):
         if not os.path.exists(file):
             raise FileNotFoundError(f"Recipe file not found: {file}")
         if not file.endswith(".yaml"):

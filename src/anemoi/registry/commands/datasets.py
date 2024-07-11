@@ -38,7 +38,7 @@ class Datasets(BaseCommand):
         )
         # command_parser.add_argument("--delete", help=f"Delete the {self.kind} from the catalogue and from any other location", action="store_true")
         command_parser.add_argument("--set-status", help="Set the status to the {self.kind}.")
-        command_parser.add_argument("--add-recipe", help="Add the recipe file to [re-]build the {self.kind}.")
+        command_parser.add_argument("--set-recipe", help="Set the recipe file to [re-]build the {self.kind}.")
         command_parser.add_argument(
             "--add-location",
             nargs="+",
@@ -55,7 +55,7 @@ class Datasets(BaseCommand):
         self.process_task(entry, args, "register")
         # self.process_task(entry, args, "remove_location")
         self.process_task(entry, args, "add_location", platform=args.platform)
-        self.process_task(entry, args, "add_recipe")
+        self.process_task(entry, args, "set_recipe")
         self.process_task(entry, args, "set_status")
 
 

@@ -58,7 +58,7 @@ def teardown_module(raise_if_error=True):
 def test_datasets():
     # assert run("anemoi-registry", "datasets", TMP_DATASET) == 1
     run("anemoi-registry", "datasets", TMP_DATASET)
-    run("anemoi-registry", "datasets", TMP_DATASET, "--add-recipe", "./dummy-recipe-dataset.yaml")
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-recipe", "./dummy-recipe-dataset.yaml")
     run("anemoi-registry", "datasets", TMP_DATASET, "--set-status", "testing")
     run("anemoi-registry", "datasets", TMP_DATASET, "--add-location", "/the/dataset/path", "--platform", "atos")
     run("anemoi-registry", "datasets", TMP_DATASET, "--add-location", "/other/path", "--platform", "leonardo")
