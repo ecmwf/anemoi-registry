@@ -36,8 +36,3 @@ input:
         template: ${input.join.0.mars}
         param:
           - cos_latitude
-
-naming_scheme: "{param}_{levelist}{level_units}_{accumultion_period}"
-
-statistics:
-  end: 2021
