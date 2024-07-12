@@ -57,9 +57,6 @@ class List(Command):
     #        tasks.add_argument("-l", "--long", help="Details", action="store_true")
     #        tasks.add_argument("--sort", help="Sort by date", choices=["created", "updated"], default="updated")
 
-    def check_arguments(self, args):
-        pass
-
     def run(self, args):
         if not args.subcommand:
             raise ValueError("Missing subcommand")

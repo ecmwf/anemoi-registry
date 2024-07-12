@@ -43,13 +43,34 @@ class Experiments(BaseCommand):
         )
         # command_parser.add_argument("--delete", help=f"Delete the {self.kind} from the catalogue and from any other location", action="store_true")
 
-        command_parser.add_argument("--add-weights", nargs="+", help="Add weights to the experiment.")
+        command_parser.add_argument(
+            "--add-weights",
+            nargs="+",
+            help=(
+                "Add weights to the experiment and upload them do s3."
+                "Skip upload if these weights are already uploaded."
+            ),
+        )
         command_parser.add_argument("--add-plots", nargs="+", help="Add plots to the experiment.")
-        command_parser.add_argument("--add-artefacts", nargs="+", help="Add artefacts to the experiment.")
-        command_parser.add_argument("--overwrite", help="Overwrite if already exists.", action="store_true")
 
-    def check_arguments(self, args):
-        pass
+        command_parser.add_argument(
+            "--set-archive", help="Input file to register as an archive metadata file to the catalogue."
+        )
+        command_parser.add_argument(
+            "--get-archive", help="Output file to save the archive metadata file from the catalogue."
+        )
+        command_parser.add_argument(
+            "--archive-platform",
+            help="Archive platform. Only relevant for --set-archive and --get-archive.",
+        )
+        command_parser.add_argument(
+            "--run-number", help="The run number of the experiment. Relevant --set-archive and --get-archive."
+        )
+        command_parser.add_argument(
+            "--archive-extra-metadata", help="Extra metadata. A list of key=value pairs.", nargs="+"
+        )
+
+        command_parser.add_argument("--overwrite", help="Overwrite if already exists.", action="store_true")
 
     def is_path(self, name_or_path):
         if not os.path.exists(name_or_path):
@@ -62,8 +83,23 @@ class Experiments(BaseCommand):
         self.process_task(entry, args, "unregister")
         self.process_task(entry, args, "register", overwrite=args.overwrite)
         self.process_task(entry, args, "add_weights")
-        self.process_task(entry, args, "add_artefacts")
         self.process_task(entry, args, "add_plots")
+        self.process_task(
+            entry,
+            args,
+            "set_archive",
+            run_number=args.run_number,
+            platform=args.archive_platform,
+            overwrite=args.overwrite,
+            extras=args.archive_extra_metadata,
+        )
+        self.process_task(
+            entry,
+            args,
+            "get_archive",
+            run_number=args.run_number,
+            platform=args.archive_platform,
+        )
 
 
 command = Experiments

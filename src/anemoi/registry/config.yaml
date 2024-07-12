@@ -1,8 +1,10 @@
 registry:
   api_url: "https://anemoi.ecmwf.int/api/v1"
+  web_url: "https://anemoi.ecmwf.int"
+
+  artefacts_uri_base: "s3://ml-artefacts"
 
   plots_uri_pattern: "s3://ml-artefacts/{expver}/{basename}"
-  artefacts_uri_pattern: "s3://ml-artefacts/{expver}/{basename}"
   datasets_uri_pattern: "s3://ml-datasets/{name}"
   weights_uri_pattern: "s3://ml-weights/{uuid}.ckpt"
   weights_platform: "ewc"

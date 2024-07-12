@@ -5,8 +5,8 @@ common:
     grid: 20./20.
 
 dates:
-  start: 2020-12-30 00:00:00
-  end: 2021-01-03 18:00:00
+  start: 1979-01-01 00:00:00
+  end: 1979-01-03 18:00:00
   frequency: 6h
 
 input:
