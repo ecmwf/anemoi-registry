@@ -8,6 +8,7 @@
 import datetime
 import logging
 import os
+from getpass import getuser
 
 import yaml
 from anemoi.utils.s3 import download
@@ -23,6 +24,12 @@ LOG = logging.getLogger(__name__)
 class ExperimentCatalogueEntry(CatalogueEntry):
     collection = "experiments"
     main_key = "expver"
+
+    def create_from_new_key(self, key):
+        assert self.key_exists(key) is False, f"{self.collection} with key={key} already exists"
+        metadata = dict(expver=key, user=getuser())
+        self.key = key
+        self.record = dict(expver=key, metadata=metadata, runs={})
 
     def load_from_path(self, path):
         assert os.path.exists(path), f"{path} does not exist"
