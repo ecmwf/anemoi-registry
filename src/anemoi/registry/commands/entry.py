@@ -83,9 +83,6 @@ class Entry(Command):
             "--yaml", action="store_true", help="Use the YAML format with ``--dump`` and ``--edit``."
         )
 
-    def check_arguments(self, args):
-        pass
-
     def run(self, args):
         path = args.path
         if "/" not in path[1:] or not path.startswith("/"):

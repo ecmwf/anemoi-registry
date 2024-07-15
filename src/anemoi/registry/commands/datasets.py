@@ -46,9 +46,6 @@ class Datasets(BaseCommand):
         )
         command_parser.add_argument("--platform", help="Platform to add the location to.")
 
-    def check_arguments(self, args):
-        pass
-
     def _run(self, entry, args):
         # order matters
         self.process_task(entry, args, "unregister")

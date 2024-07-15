@@ -31,18 +31,26 @@ class CatalogueEntry:
     path = None
     key = None
 
-    def __init__(self, key=None, path=None):
+    def __init__(self, key=None, path=None, must_exist=True):
         assert key is not None or path is not None, "key or path must be provided"
 
         if path is not None:
             assert key is None
             self.load_from_path(path)
-            assert self.record is not None
-        else:
-            assert key is not None
-            self.load_from_key(key)
-            assert self.record is not None
 
+        if key is not None:
+            assert path is None
+            if self.key_exists(key):
+                # found in catalogue so load it
+                self.load_from_key(key)
+            else:
+                # not found in catalogue, so create a new one
+                if must_exist:
+                    raise CatalogueEntryNotFound(f"Could not find any {self.collection} with key={key}")
+                else:
+                    self.create_from_new_new(key)
+
+        assert self.record is not None
         assert self.key is not None, "key must be provided"
 
         self.rest_item = RestItem(self.collection, self.key)
@@ -54,6 +62,9 @@ class CatalogueEntry:
     @classmethod
     def key_exists(cls, key):
         return RestItem(cls.collection, key).exists()
+
+    def exists(self):
+        return self.rest_item.exists()
 
     def load_from_key(self, key):
         rest_item = RestItem(self.collection, key)

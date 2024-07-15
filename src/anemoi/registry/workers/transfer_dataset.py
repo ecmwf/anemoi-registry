@@ -5,6 +5,7 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 
+import datetime
 import logging
 import os
 
@@ -13,6 +14,32 @@ from anemoi.registry.entry.dataset import DatasetCatalogueEntry
 from . import Worker
 
 LOG = logging.getLogger(__name__)
+
+
+class Progress:
+    latest_progress = None
+
+    def __init__(self, task, frequency=60):
+        self.task = task
+        self.frequency = frequency
+
+    def __call__(self, number_of_files, total_size, total_transferred, transfering, **kwargs):
+        now = datetime.datetime.utcnow()
+
+        if self.latest_progress is not None and (now - self.latest_progress).seconds < self.frequency:
+            # already updated recently
+            return
+
+        p = dict(
+            number_of_files=number_of_files,
+            total_size=total_size,
+            total_transferred=total_transferred,
+            transfering=transfering,
+            **kwargs,
+        )
+        p["percentage"] = 100 * total_transferred / total_size if total_size and transfering else 0
+
+        self.task.set_progress(p)
 
 
 class TransferDatasetWorker(Worker):
@@ -83,14 +110,16 @@ class TransferDatasetWorker(Worker):
         if source_path.startswith("s3://"):
             source_path = source_path + "/" if not source_path.endswith("/") else source_path
 
+        progress = Progress(task, frequency=60)
+
         if target_path.startswith("s3://"):
             LOG.warning("Uploading to S3 is experimental and has not been tested yet.")
-            download(source_path, target_path, resume=True, threads=self.threads)
+            download(source_path, target_path, resume=True, threads=self.threads, progress=progress)
             return
         else:
             target_tmp_path = os.path.join(self.target_dir + "-downloading", basename)
             os.makedirs(os.path.dirname(target_tmp_path), exist_ok=True)
-            download(source_path, target_tmp_path, resume=True, threads=self.threads)
+            download(source_path, target_tmp_path, resume=True, threads=self.threads, progress=progress)
             os.rename(target_tmp_path, target_path)
 
         if self.auto_register:

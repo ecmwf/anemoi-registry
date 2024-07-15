@@ -44,9 +44,6 @@ class Weights(BaseCommand):
         command_parser.add_argument("--platform", help="Platform where to add the location.")
         command_parser.add_argument("--overwrite", help="Overwrite any existing weights.", action="store_true")
 
-    def check_arguments(self, args):
-        pass
-
     def _run(self, entry, args):
         self.process_task(entry, args, "unregister")
         self.process_task(entry, args, "register", overwrite=args.overwrite)

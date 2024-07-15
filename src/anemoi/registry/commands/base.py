@@ -25,9 +25,6 @@ class BaseCommand(Command):
     internal = True
     timestamp = True
 
-    def check_arguments(self, args):
-        pass
-
     def is_path(self, name_or_path):
         return os.path.exists(name_or_path)
 

@@ -142,8 +142,10 @@ class TaskCatalogueEntry(CatalogueEntry):
         )
 
     def set_progress(self, progress):
-        assert isinstance(progress, int), progress
-        if not (0 <= progress <= 100):
-            raise ValueError("Progress must be between 0 and 100")
+        # progress can be a dict or an int
+        if isinstance(progress, int):
+            if not (0 <= progress <= 100):
+                raise ValueError("Progress must be between 0 and 100")
+            progress = dict(percent=progress)
         patch = [{"op": "add", "path": "/progress", "value": progress}]
         self.rest_item.patch(patch)

@@ -1,7 +1,15 @@
-description: Minimal config
 dates:
-  start: 2023-06-01 00:00:00
-  end: 2023-06-03 00:00:00
+  end: 2023-08-31 00:00:00
   frequency: 24
-evaluation:
-  name: quaver-basic
+  start: 2023-06-01 00:00:00
+description: Minimal config
+input:
+  name: mars
+metadata:
+  config_home: /home/user/prepml/i4df
+  expver: i4df
+  input: scorecard.yaml
+  owner: user
+  prepml_command: /home/user/venvs/user-dev24-02/bin/python3 -m prepml
+  prepml_module_version: '0.1'
+  time: '2024-02-22T17:10:31.433359'
