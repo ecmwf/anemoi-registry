@@ -53,14 +53,48 @@ class ExperimentCatalogueEntry(CatalogueEntry):
         for path in paths:
             self._add_one_weights(path, **kwargs)
 
-    def set_archive(self, path, platform, run_number, overwrite, extras):
-        if run_number is None:
-            raise ValueError("run_number must be set")
-        if platform is None:
-            raise ValueError("platform must be set")
+    def set_run_status(self, run_number, status):
+        self.rest_item.patch([{"op": "add", "path": f"/runs/{run_number}/status", "value": status}])
+
+    def create_new_run(self, **kwargs):
+        runs = self.record.get("runs", {})
+        numbers = [int(k) for k in runs.keys()]
+        new = max(numbers) + 1 if numbers else 1
+        self._ensure_run_exists(new, **kwargs)
+        return new
+
+    def _ensure_run_exists(self, run_number, **kwargs):
+        e = self.__class__(key=self.key)
+
+        if "runs" not in e.record:
+            # for backwards compatibility, create '/runs' if it does not exist
+            e.rest_item.patch([{"op": "add", "path": "/runs", "value": {}}])
+            e.record["runs"] = {}
+
+        # add run_number if it does not exist
+        if str(run_number) not in self.record["runs"]:
+            e.rest_item.patch(
+                [
+                    {"op": "test", "path": "/runs", "value": e.record["runs"]},
+                    {"op": "add", "path": f"/runs/{run_number}", "value": dict(archives={}, **kwargs)},
+                ]
+            )
+            e.record["runs"] = {str(run_number): dict(archives={}, **kwargs)}
+        self.record = e.record
+
+    def set_archive(self, path, platform, run_number, overwrite=True, extras={}):
         if not os.path.exists(path):
             raise FileNotFoundError(f"Could not find archive to upload at {path}")
-        extras = {v.split("=")[0]: v.split("=")[1] for v in extras}
+
+        if run_number is None:
+            raise ValueError("run_number must be set")
+        run_number = str(run_number)
+
+        if platform is None:
+            raise ValueError("platform must be set")
+
+        if isinstance(extras, list):
+            extras = {v.split("=")[0]: v.split("=")[1] for v in extras}
 
         _, ext = os.path.splitext(path)
         target = config()["artefacts_uri_base"] + f"/{self.key}/runs/{run_number}/{platform}{ext}"
@@ -69,33 +103,26 @@ class ExperimentCatalogueEntry(CatalogueEntry):
 
         dic = dict(url=target, path=path, updated=datetime.datetime.utcnow().isoformat(), **extras)
 
-        if "runs" not in self.record:
-            # for backwards compatibility, create '/runs' if it does not exist
-            e = self.__class__(key=self.key)
-            if "runs" not in e.record:
-                e.rest_item.patch([{"op": "add", "path": "/runs", "value": {}}])
-                self.record["runs"] = {}
-
-        if str(run_number) not in self.record["runs"]:
-            # add run_number if it does not exist
-            self.rest_item.patch(
-                [
-                    {"op": "add", "path": "/runs", "value": self.record["runs"]},
-                    {"op": "add", "path": f"/runs/{run_number}", "value": dict(archives={})},
-                ]
-            )
+        self._ensure_run_exists(run_number)
 
         self.rest_item.patch([{"op": "add", "path": f"/runs/{run_number}/archives/{platform}", "value": dic}])
 
-    def get_archive(self, path, run_number, platform):
+    def get_archive(self, path, *, platform, run_number):
         if os.path.exists(path):
             raise FileExistsError(f"Path {path} already exists")
+
+        run_number = str(run_number)
+        if run_number == "latest":
+            run_number = str(max([int(k) for k in self.record["runs"].keys()]))
+            LOG.info(f"Using latest run number {run_number}")
         if run_number not in self.record["runs"]:
             raise ValueError(f"Run number {run_number} not found")
+
         if platform not in self.record["runs"][run_number]["archives"]:
             raise ValueError(f"Platform {platform} not found")
+
         url = self.record["runs"][run_number]["archives"][platform]["url"]
-        print(url)
+        LOG.info(f"Downloading {url} to {path}.")
         download(url, path)
 
     def _add_one_plot(self, path, **kwargs):
