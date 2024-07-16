@@ -33,6 +33,7 @@ class Progress:
         if self.latest is not None and (now - self.latest).seconds < self.frequency:
             # already updated recently
             return
+        self.latest = now
 
         timestamp = now.isoformat()
         if not timestamp.endswith("Z"):
