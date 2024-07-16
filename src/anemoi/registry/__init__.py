@@ -13,11 +13,6 @@ from ._version import __version__ as __version__
 
 LOG = logging.getLogger(__name__)
 
-try:
-    import boto3
-except ImportError:
-    LOG.warning("boto3 package is not available. To have S3 support, reinstall with : pip install anemoi-registry[s3]")
-
 
 def config():
     from anemoi.utils.config import load_config

@@ -49,6 +49,7 @@ classifiers = [
 dynamic = [
   "version",
 ]
+
 dependencies = [
   "anemoi-datasets",
   "jsonpatch",
@@ -65,7 +66,7 @@ optional-dependencies.dev = [
   "pandoc",
   "pytest",
   "sphinx",
-  "sphinx-argparse",
+  "sphinx-argparse<0.5",
   "sphinx-rtd-theme",
   "termcolor",
   "tomli",
@@ -75,7 +76,7 @@ optional-dependencies.docs = [
   "nbsphinx",
   "pandoc",
   "sphinx",
-  "sphinx-argparse",
+  "sphinx-argparse<0.5",
   "sphinx-rtd-theme",
   "termcolor",
   "tomli",

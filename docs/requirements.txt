@@ -2,7 +2,7 @@
 sphinx
 sphinx_rtd_theme
 nbsphinx
-sphinx_argparse
+sphinx_argparse<0.5.0
 
 # Also requires `brew install pandoc` on Mac
 pandoc
