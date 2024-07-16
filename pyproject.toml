@@ -68,8 +68,6 @@ optional-dependencies.dev = [
   "sphinx",
   "sphinx-argparse<0.5",
   "sphinx-rtd-theme",
-  "termcolor",
-  "tomli",
 ]
 
 optional-dependencies.docs = [
@@ -78,8 +76,6 @@ optional-dependencies.docs = [
   "sphinx",
   "sphinx-argparse<0.5",
   "sphinx-rtd-theme",
-  "termcolor",
-  "tomli",
 ]
 
 optional-dependencies.s3 = [
