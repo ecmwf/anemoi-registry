@@ -83,7 +83,7 @@ class TaskCatalogueEntryList:
 
             uuid = v.pop("uuid")
             status = v.pop("status")
-            progress = v.pop("progress", "")
+            progress = v.pop("progress", {}).get("percentage", "")
             action = v.pop("action", "")
             source = v.pop("source", "")
             destination = v.pop("destination", "")

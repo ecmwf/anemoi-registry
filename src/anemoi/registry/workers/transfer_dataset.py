@@ -34,12 +34,16 @@ class Progress:
             # already updated recently
             return
 
+        timestamp = now.isoformat()
+        if not timestamp.endswith("Z"):
+            timestamp += "Z"
+
         progress = dict(
             number_of_files=number_of_files,
             total_size=total_size,
             total_transferred=total_transferred,
             transfering=transfering,
-            timestamp=now.isoformat(),
+            timestamp=timestamp,
             percentage=100 * total_transferred / total_size if total_size and transfering else 0,
             **kwargs,
         )
