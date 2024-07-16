@@ -8,6 +8,7 @@
 import datetime
 import logging
 import os
+from copy import deepcopy
 
 from anemoi.registry.entry.dataset import DatasetCatalogueEntry
 
@@ -17,29 +18,44 @@ LOG = logging.getLogger(__name__)
 
 
 class Progress:
-    latest_progress = None
+    latest = None
 
     def __init__(self, task, frequency=60):
         self.task = task
         self.frequency = frequency
+        self.first_progress = None
+        self.first_transfer_progress = None
+        self.previous_progress = None
 
     def __call__(self, number_of_files, total_size, total_transferred, transfering, **kwargs):
         now = datetime.datetime.utcnow()
 
-        if self.latest_progress is not None and (now - self.latest_progress).seconds < self.frequency:
+        if self.latest is not None and (now - self.latest).seconds < self.frequency:
             # already updated recently
             return
 
-        p = dict(
+        progress = dict(
             number_of_files=number_of_files,
             total_size=total_size,
             total_transferred=total_transferred,
             transfering=transfering,
+            timestamp=now.isoformat(),
+            percentage=100 * total_transferred / total_size if total_size and transfering else 0,
             **kwargs,
         )
-        p["percentage"] = 100 * total_transferred / total_size if total_size and transfering else 0
 
+        if self.first_progress is None:
+            self.first_progress = progress
+        if self.first_transfer_progress is None and transfering:
+            self.first_transfer_progress = progress
+
+        p = deepcopy(progress)
+        p["first_progress"] = self.first_progress
+        p["first_transfer_progress"] = self.first_transfer_progress
+        p["previous_progress"] = self.previous_progress
         self.task.set_progress(p)
+
+        self.previous_progress = progress
 
 
 class TransferDatasetWorker(Worker):
