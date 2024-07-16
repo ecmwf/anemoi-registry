@@ -44,7 +44,7 @@ class Datasets(BaseCommand):
             nargs="+",
             help="Path to add a location to the dataset. Implies --platform",
         )
-        command_parser.add_argument("--platform", help="Platform to add the location to.")
+        command_parser.add_argument("--platform", help="Platform to add the location to. Implies --add-location")
 
     def _run(self, entry, args):
         # order matters

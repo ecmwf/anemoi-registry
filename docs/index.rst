@@ -36,7 +36,6 @@ of the *Anemoi* packages.
 
 -  :doc:`cli/datasets`
 -  :doc:`cli/weights`
--  :doc:`cli/experiments`
 -  :doc:`cli/list`
 
 .. toctree::
@@ -45,7 +44,6 @@ of the *Anemoi* packages.
    :caption: Command line tool
 
    cli/datasets
-   cli/experiments
    cli/weights
    cli/list
 
