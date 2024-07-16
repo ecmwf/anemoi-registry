@@ -46,7 +46,8 @@ jobs:
 
     - name: Tests
       run: |
-        cd tests && python3 test_all.py
+        # disable tests on github to avoid giving away the token
+        # cd tests && python3 test_all.py
 
   deploy:
 
