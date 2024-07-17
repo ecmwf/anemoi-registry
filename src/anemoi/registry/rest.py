@@ -19,7 +19,6 @@ from anemoi.registry import config
 from ._version import __version__
 
 LOG = logging.getLogger(__name__)
-# LOG.setLevel(logging.DEBUG)
 
 """~/.aws/credentials
 

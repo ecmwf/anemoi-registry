@@ -11,6 +11,7 @@ import os
 from getpass import getuser
 
 import yaml
+from anemoi.utils.s3 import delete
 from anemoi.utils.s3 import download
 from anemoi.utils.s3 import upload
 
@@ -125,12 +126,35 @@ class ExperimentCatalogueEntry(CatalogueEntry):
         LOG.info(f"Downloading {url} to {path}.")
         download(url, path)
 
-    def _add_one_plot(self, path, **kwargs):
-        kind = "plot"
-        if not os.path.exists(path):
-            raise FileNotFoundError(f"Could not find {kind} to upload at {path}")
+    def delete_artefacts(self):
+        self.delete_all_plots()
+        # self.delete_weights()
+        # self.delete_archives()
 
-        target = config()[f"{kind}s_uri_pattern"]
+    def delete_all_plots(self):
+        plots = self.record.get("plots", [])
+        for plot in plots:
+            url = plot["url"]
+            LOG.info(f"Deleting {url}")
+            if not url.startswith("s3://"):
+                LOG.warning(f"Skipping deletion of {url} because it is not an s3 url")
+                continue
+            if f"/{self.key}/" not in url:
+                LOG.warning(f"Skipping deletion of {url} because it does not belong to this experiment")
+                continue
+            delete(url)
+        self.rest_item.patch(
+            [
+                {"op": "test", "path": "/plots", "value": plots},
+                {"op": "add", "path": "/plots", "value": []},
+            ]
+        )
+
+    def _add_one_plot(self, path, **kwargs):
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"Could not find plot to upload at {path}")
+
+        target = config()["plots_uri_pattern"]
         basename = os.path.basename(path)
         target = target.format(expver=self.key, basename=basename, filename=basename)
 
@@ -138,7 +162,7 @@ class ExperimentCatalogueEntry(CatalogueEntry):
         upload(path, target, overwrite=True)
 
         dic = dict(url=target, name=basename, path=path)
-        self.rest_item.patch([{"op": "add", "path": f"/{kind}s/-", "value": dic}])
+        self.rest_item.patch([{"op": "add", "path": "/plots/-", "value": dic}])
 
     def _add_one_weights(self, path, **kwargs):
         weights = WeightCatalogueEntry(path=path)

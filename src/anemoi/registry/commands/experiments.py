@@ -41,6 +41,11 @@ class Experiments(BaseCommand):
             help="Remove from catalogue (without deleting the experiment from other locations)",
             action="store_true",
         )
+        command_parser.add_argument(
+            "--delete-artefacts",
+            help="Remove experiments artefacts (such as plots)",
+            action="store_true",
+        )
         # command_parser.add_argument("--delete", help=f"Delete the {self.kind} from the catalogue and from any other location", action="store_true")
 
         command_parser.add_argument(
@@ -80,6 +85,7 @@ class Experiments(BaseCommand):
         return True
 
     def _run(self, entry, args):
+        self.process_task(entry, args, "delete_artefacts")
         self.process_task(entry, args, "unregister")
         self.process_task(entry, args, "register", overwrite=args.overwrite)
         self.process_task(entry, args, "add_weights")

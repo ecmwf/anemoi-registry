@@ -36,8 +36,6 @@ class Progress:
         self.latest = now
 
         timestamp = now.isoformat()
-        if not timestamp.endswith("Z"):
-            timestamp += "Z"
 
         progress = dict(
             number_of_files=number_of_files,
