@@ -42,6 +42,9 @@ class DeleteDatasetWorker(Worker):
         if platform not in locations:
             LOG.warning(f"Dataset {dataset} has no locations on '{platform}'. Ignoring delete request.")
             return
+        if self.dry_run:
+            LOG.warning(f"Would delete {locations[platform]['path']} from '{platform}' but this is only a dry run.")
+            return
 
         path = locations[platform]["path"]
         LOG.warning(f"Deleting {path} from '{platform}'")

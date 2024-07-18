@@ -91,7 +91,7 @@ class TransferDatasetWorker(Worker):
         if not self.destination:
             raise ValueError("No destination platform specified")
 
-        if not os.path.exists(self.target_dir):
+        if not os.path.exists(self.target_dir) and not self.target_dir.startswith("s3://"):
             raise ValueError(f"Target directory {self.target_dir} must already exist")
 
     def worker_process_task(self, task):
@@ -126,6 +126,7 @@ class TransferDatasetWorker(Worker):
             return
 
         from anemoi.utils.s3 import download
+        from anemoi.utils.s3 import upload
 
         LOG.info(f"Source path: {source_path}")
         LOG.info(f"Target path: {target_path}")
@@ -133,13 +134,18 @@ class TransferDatasetWorker(Worker):
         if source_path.startswith("s3://"):
             source_path = source_path + "/" if not source_path.endswith("/") else source_path
 
+        if self.dry_run:
+            LOG.warning(f"Would tranfer {source_path} to {target_path} but this is only a dry run.")
+            return
+
         progress = Progress(task, frequency=10)
 
         if target_path.startswith("s3://"):
-            LOG.warning("Uploading to S3 is experimental and has not been tested yet.")
-            download(source_path, target_path, resume=True, threads=self.threads, progress=progress)
-            return
+            # upload to S3 uses function upload()
+            LOG.info(f"Upload('{source_path}','{target_path}', resume=True, threads={self.threads})")
+            upload(source_path, target_path, resume=True, threads=self.threads, progress=progress)
         else:
+            # download to local uses function download() and a temporary path
             target_tmp_path = os.path.join(self.target_dir + "-downloading", basename)
             os.makedirs(os.path.dirname(target_tmp_path), exist_ok=True)
             download(source_path, target_tmp_path, resume=True, threads=self.threads, progress=progress)

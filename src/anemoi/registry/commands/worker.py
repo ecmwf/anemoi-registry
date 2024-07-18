@@ -66,6 +66,7 @@ class WorkerCommand(BaseCommand):
                 help="See if there are tasks for this worker and exit with 0 if there are task to do.",
                 action="store_true",
             )
+            subparser.add_argument("--dry-run", help="Dry run, do not actually do anything", action="store_true")
 
     def run(self, args):
         kwargs = vars(args)

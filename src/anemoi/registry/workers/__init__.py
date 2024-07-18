@@ -33,6 +33,7 @@ class Worker:
         loop=False,
         check_todo=False,
         timeout=None,
+        dry_run=False,
     ):
         """Run a worker that will process tasks in the queue.
         timeout: Kill itself after `timeout` seconds.
@@ -42,6 +43,7 @@ class Worker:
         self.max_no_heartbeat = max_no_heartbeat
         self.loop = loop
         self.check_todo = check_todo
+        self.dry_run = dry_run
 
         self.wait = wait
         if timeout:
@@ -87,16 +89,16 @@ class Worker:
         LOG.info(f"Processing task {uuid}: {task}")
         self.parse_task(task)  # for checking only
 
-        task.take_ownership()
+        self.take_ownership(task)
         try:
             self.process_task_with_heartbeat(task)
         except Exception as e:
             LOG.error(f"Error for task {task}: {e}")
             LOG.exception("Exception occurred during task processing:", exc_info=e)
-            task.release_ownership()
+            self.release_ownership(task)
             return
         LOG.info(f"Task {uuid} completed.")
-        task.unregister()
+        self.unregister(task)
         LOG.info(f"Task {uuid} deleted.")
 
     def process_task_with_heartbeat(self, task):
@@ -106,7 +108,7 @@ class Worker:
         def send_heartbeat():
             while True:
                 try:
-                    task.set_status("running")
+                    self.set_status(task, "running")
                 except Exception:
                     return
                 for _ in range(self.heartbeat):
@@ -145,7 +147,7 @@ class Worker:
         for task in TaskCatalogueEntryList(status="queued", **self.filter_tasks):
             LOG.info("Found task")
             return task
-        LOG.info("No queued tasks found")
+        LOG.info(f"No queued tasks found with filter_tasks={self.filter_tasks}")
 
         if self.max_no_heartbeat == 0:
             return None
@@ -167,7 +169,31 @@ class Worker:
                 LOG.warning(
                     f"Task {task.key} has been running for more than {self.max_no_heartbeat} seconds, freeing it."
                 )
-                task.release_ownership()
+                self.release_ownership(task)
+
+    def take_ownership(self, task):
+        if self.dry_run:
+            LOG.warning(f"Would take ownership of task {task.key} but this is only a dry run.")
+            return
+        task.take_ownership()
+
+    def release_ownership(self, task):
+        if self.dry_run:
+            LOG.warning(f"Would release ownership of task {task.key} but this is only a dry run.")
+            return
+        task.release_ownership()
+
+    def unregister(self, task):
+        if self.dry_run:
+            LOG.warning(f"Would unregister task {task.key} but this is only a dry run.")
+            return
+        task.unregister()
+
+    def set_status(self, task, status):
+        if self.dry_run:
+            LOG.warning(f"Would set status of task {task.key} to {status} but this is only a dry run.")
+            return
+        task.set_status(status)
 
     def worker_process_task(self, task):
         raise NotImplementedError("Subclasses must implement this method.")
