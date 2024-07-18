@@ -131,7 +131,7 @@ class TransferDatasetWorker(Worker):
         if source_path.startswith("s3://"):
             source_path = source_path + "/" if not source_path.endswith("/") else source_path
 
-        progress = Progress(task, frequency=60)
+        progress = Progress(task, frequency=10)
 
         if target_path.startswith("s3://"):
             LOG.warning("Uploading to S3 is experimental and has not been tested yet.")
