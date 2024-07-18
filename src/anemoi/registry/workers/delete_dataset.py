@@ -33,7 +33,7 @@ class DeleteDatasetWorker(Worker):
         self.filter_tasks.update(filter_tasks)
         self.filter_tasks["platform"] = self.platform
 
-    def process_task(self, task):
+    def worker_process_task(self, task):
         platform, dataset = self.parse_task(task)
         entry = DatasetCatalogueEntry(key=dataset)
         assert platform == self.platform, (platform, self.platform)

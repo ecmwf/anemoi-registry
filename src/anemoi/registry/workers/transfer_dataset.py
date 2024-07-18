@@ -78,21 +78,25 @@ class TransferDatasetWorker(Worker):
     ):
         super().__init__(**kwargs)
 
-        if not destination:
-            raise ValueError("No destination platform specified")
-
-        if not os.path.exists(target_dir):
-            raise ValueError(f"Target directory {target_dir} must already exist")
-
         self.destination = destination
         self.target_dir = target_dir
-        self.published_target_dir = published_target_dir or target_dir
+        self.published_target_dir = published_target_dir
         self.threads = threads
-        self.filter_tasks.update(filter_tasks)
-        self.filter_tasks["destination"] = self.destination
         self.auto_register = auto_register
 
-    def process_task(self, task):
+        if self.published_target_dir is None:
+            self.published_target_dir = self.target_dir
+
+        self.filter_tasks.update(filter_tasks)
+        self.filter_tasks["destination"] = self.destination
+
+        if not self.destination:
+            raise ValueError("No destination platform specified")
+
+        if not os.path.exists(self.target_dir):
+            raise ValueError(f"Target directory {self.target_dir} must already exist")
+
+    def worker_process_task(self, task):
         destination, source, dataset = self.parse_task(task)
         entry = DatasetCatalogueEntry(key=dataset)
 

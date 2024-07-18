@@ -17,7 +17,7 @@ import logging
 from anemoi.registry.commands.base import BaseCommand
 from anemoi.registry.tasks import TaskCatalogueEntry
 from anemoi.registry.utils import list_to_dict
-from anemoi.registry.workers import get_worker_class
+from anemoi.registry.workers import run_worker
 
 LOG = logging.getLogger(__name__)
 
@@ -32,8 +32,6 @@ class WorkerCommand(BaseCommand):
     collection = "tasks"
 
     def add_arguments(self, command_parser):
-        command_parser.add_argument("--timeout", help="Die with timeout (SIGALARM) after TIMEOUT seconds.", type=int)
-        command_parser.add_argument("--wait", help="Check for new task every WAIT seconds.", type=int, default=60)
 
         subparsers = command_parser.add_subparsers(dest="action", help="Action to perform")
 
@@ -43,21 +41,24 @@ class WorkerCommand(BaseCommand):
         )
         transfer.add_argument("--published-target-dir", help="The target directory published in the catalogue.")
         transfer.add_argument("--destination", help="Platform destination (e.g. leonardo, lumi, marenostrum)")
-        transfer.add_argument("--threads", help="Number of threads to use", type=int, default=1)
+        transfer.add_argument("--threads", help="Number of threads to use", type=int)
+        transfer.add_argument("--filter-tasks", help="Filter tasks to process (key=value list)", nargs="*", default=[])
 
         delete = subparsers.add_parser("delete-dataset", help="Delete dataset")
         delete.add_argument("--platform", help="Platform destination (e.g. leonardo, lumi, marenostrum)")
+        delete.add_argument("--filter-tasks", help="Filter tasks to process (key=value list)", nargs="*", default=[])
 
-        for subparser in [transfer, delete]:
-            subparser.add_argument(
-                "--filter-tasks", help="Filter tasks to process (key=value list)", nargs="*", default=[]
-            )
-            subparser.add_argument("--heartbeat", help="Heartbeat interval", type=int, default=60)
+        dummy = subparsers.add_parser("dummy", help="Dummy worker for test purposes")
+        dummy.add_argument("--arg")
+
+        for subparser in [transfer, delete, dummy]:
+            subparser.add_argument("--timeout", help="Die with timeout (SIGALARM) after TIMEOUT seconds.", type=int)
+            subparser.add_argument("--wait", help="Check for new task every WAIT seconds.", type=int)
+            subparser.add_argument("--heartbeat", help="Heartbeat interval", type=int)
             subparser.add_argument(
                 "--max-no-heartbeat",
                 help="Max interval without heartbeat before considering task needs to be freed.",
                 type=int,
-                default=0,
             )
             subparser.add_argument("--loop", help="Run in a loop", action="store_true")
             subparser.add_argument(
@@ -68,11 +69,14 @@ class WorkerCommand(BaseCommand):
 
     def run(self, args):
         kwargs = vars(args)
-        kwargs["filter_tasks"] = list_to_dict(kwargs["filter_tasks"])
+        if "filter_tasks" in kwargs:
+            kwargs["filter_tasks"] = list_to_dict(kwargs["filter_tasks"])
         kwargs.pop("command")
         kwargs.pop("debug")
         kwargs.pop("version")
-        get_worker_class(kwargs.pop("action"))(**kwargs).run()
+        action = kwargs.pop("action")
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+        run_worker(action, **kwargs)
 
 
 command = WorkerCommand

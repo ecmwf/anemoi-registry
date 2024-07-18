@@ -14,6 +14,7 @@ import time
 
 from anemoi.utils.humanize import when
 
+from anemoi.registry import config
 from anemoi.registry.tasks import TaskCatalogueEntryList
 
 # from anemoi.utils.provenance import trace_info
@@ -26,13 +27,12 @@ class Worker:
 
     def __init__(
         self,
-        heartbeat=60,
-        max_no_heartbeat=0,
+        heartbeat,
+        max_no_heartbeat,
+        wait,
         loop=False,
         check_todo=False,
         timeout=None,
-        wait=60,
-        stop_if_finished=True,
     ):
         """Run a worker that will process tasks in the queue.
         timeout: Kill itself after `timeout` seconds.
@@ -44,7 +44,6 @@ class Worker:
         self.check_todo = check_todo
 
         self.wait = wait
-        self.stop_if_finished = stop_if_finished
         if timeout:
             signal.alarm(timeout)
         self.filter_tasks = {"action": self.name}
@@ -66,14 +65,15 @@ class Worker:
         if self.loop:
             # Process tasks in a loop for ever
             while True:
-                res = self.process_one_task()
+                try:
+                    self.process_one_task()
+                    LOG.info(f"Waiting {self.wait} seconds before checking again.")
+                    time.sleep(self.wait)
+                except Exception as e:
+                    LOG.error(f"Error for task {task}: {e}")
+                    LOG.error("Waiting 60 seconds after this error before checking again.")
+                    time.sleep(60)
 
-                if self.stop_if_finished and res is None:
-                    LOG.info("All tasks have been processed, stopping.")
-                    return
-
-                LOG.info(f"Waiting {self.wait} seconds before checking again.")
-                time.sleep(self.wait)
         else:
             # Process one task
             self.process_one_task()
@@ -114,7 +114,7 @@ class Worker:
         thread.start()
 
         try:
-            self.process_task(task)
+            self.worker_process_task(task)
         finally:
             STOP.append(1)  # stop the heartbeat thread
             thread.join()
@@ -155,21 +155,47 @@ class Worker:
         for task in cat:
             updated = datetime.datetime.fromisoformat(task.record["updated"])
             LOG.info(f"Task {task.key} is already running, last update {when(updated, use_utc=True)}.")
-            if (datetime.datetime.utcnow() - updated).total_seconds() > self.max_no_heartbeat:
+            if (
+                self.max_no_heartbeat >= 0
+                and (datetime.datetime.utcnow() - updated).total_seconds() > self.max_no_heartbeat
+            ):
                 LOG.warning(
                     f"Task {task.key} has been running for more than {self.max_no_heartbeat} seconds, freeing it."
                 )
                 task.release_ownership()
 
-    def process_task(self, task):
+    def worker_process_task(self, task):
         raise NotImplementedError("Subclasses must implement this method.")
 
 
-def get_worker_class(action):
+def run_worker(action, **kwargs):
+    from anemoi.registry.workers.dummy import DummyWorker
+
     from .delete_dataset import DeleteDatasetWorker
     from .transfer_dataset import TransferDatasetWorker
 
-    return {
+    workers_config = config().get("workers", {})
+    worker_config = workers_config.get(action, {})
+
+    LOG.debug(kwargs)
+
+    for k, v in worker_config.items():
+        if k not in kwargs:
+            kwargs[k] = v
+
+    LOG.debug(kwargs)
+
+    for k, v in workers_config.items():
+        if isinstance(v, dict):
+            continue
+        if k not in kwargs:
+            kwargs[k] = v
+
+    LOG.info(f"Running worker {action} with kwargs {kwargs}")
+
+    cls = {
         "transfer-dataset": TransferDatasetWorker,
         "delete-dataset": DeleteDatasetWorker,
+        "dummy": DummyWorker,
     }[action]
+    cls(**kwargs).run()
