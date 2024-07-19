@@ -30,6 +30,11 @@ class CatalogueEntry:
     record = None
     path = None
     key = None
+    collection = None
+
+    @property
+    def url(self):
+        return f"{config()['web_url']}/{self.collection}/{self.key}"
 
     def __init__(self, key=None, path=None, must_exist=True):
         assert key is not None or path is not None, "key or path must be provided"

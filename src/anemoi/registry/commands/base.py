@@ -81,11 +81,11 @@ class BaseCommand(Command):
 
     def get_entry(self, name_or_path):
         if self.is_path(name_or_path):
-            LOG.info(f"Found local {self.kind} at {name_or_path}")
+            LOG.debug(f"Found local {self.kind} at {name_or_path}")
             return self.entry_class(path=name_or_path)
 
         if self.is_identifier(name_or_path):
-            LOG.info(f"Processing {self.kind} with identifier '{name_or_path}'")
+            LOG.debug(f"Processing {self.kind} with identifier '{name_or_path}'")
             return self.entry_class(key=name_or_path)
 
     def run_from_identifier(self, *args, **kwargs):

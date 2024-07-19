@@ -23,7 +23,10 @@ def run(*args):
 def setup_module():
     teardown_module(raise_if_error=False)
     run("anemoi-registry", "experiments", "./dummy-recipe-experiment.yaml", "--register")
+    run("anemoi-registry", "experiments", "./dummy-recipe-experiment.yaml")
+
     run("anemoi-registry", "weights", "./dummy-checkpoint.ckpt", "--register")
+    run("anemoi-registry", "weights", "./dummy-checkpoint.ckpt")
 
     if not os.path.exists(DATASET_PATH):
         run("anemoi-datasets", "create", "./dummy-recipe-dataset.yaml", DATASET_PATH, "--overwrite")
@@ -31,6 +34,7 @@ def setup_module():
 
     os.symlink(DATASET_PATH, TMP_DATASET_PATH)
     run("anemoi-registry", "datasets", TMP_DATASET_PATH, "--register")
+    run("anemoi-registry", "datasets", TMP_DATASET_PATH)
     print("# Setup done")
 
 
@@ -60,8 +64,25 @@ def test_datasets():
     run("anemoi-registry", "datasets", TMP_DATASET)
     run("anemoi-registry", "datasets", TMP_DATASET, "--set-recipe", "./dummy-recipe-dataset.yaml")
     run("anemoi-registry", "datasets", TMP_DATASET, "--set-status", "testing")
-    run("anemoi-registry", "datasets", TMP_DATASET, "--add-location", "/the/dataset/path", "--platform", "atos")
-    run("anemoi-registry", "datasets", TMP_DATASET, "--add-location", "/other/path", "--platform", "leonardo")
+    run(
+        "anemoi-registry",
+        "datasets",
+        TMP_DATASET,
+        "--add-location",
+        "atos",
+        "--uri-pattern",
+        "/the/dataset/path/{name}",
+    )
+    run(
+        "anemoi-registry",
+        "datasets",
+        TMP_DATASET,
+        "--add-location",
+        "leonardo",
+        "--uri-pattern",
+        "https://other/{name}/path",
+    )
+    run("anemoi-registry", "datasets", TMP_DATASET, "--add-location", "ewc")
 
 
 def test_weights():
@@ -72,9 +93,9 @@ def test_weights():
         "weights",
         "./dummy-checkpoint.ckpt",
         "--add-location",
-        "s3://ml-weights/a5275e04-0000-0000-a0f6-be19591b09fe.ckpt",
-        "--platform",
         "ewc",
+        "--location-path",
+        "s3://ml-weights/a5275e04-0000-0000-a0f6-be19591b09fe.ckpt",
     )
 
 

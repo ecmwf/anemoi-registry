@@ -35,19 +35,24 @@ class Weights(BaseCommand):
         )
         command_parser.add_argument(
             "--unregister",
-            help="Remove from catalogue (without deleting it from its actual locations).",
+            help="Remove from catalogue (without deleting it from its actual locations). Ignore all other options.",
             action="store_true",
         )
         # command_parser.add_argument("--delete", help=f"Delete the {self.kind} from the catalogue and from any other location", action="store_true")
 
-        command_parser.add_argument("--add-location", help="Add a location to the weights.")
-        command_parser.add_argument("--platform", help="Platform where to add the location.")
+        command_parser.add_argument("--add-location", help="Platform to add location to the weights.")
+        command_parser.add_argument("--location-path", help="Path of the new location using {{uuid}}.", metavar="PATH")
         command_parser.add_argument("--overwrite", help="Overwrite any existing weights.", action="store_true")
+        command_parser.add_argument("--url", help="Print the URL of the dataset.", action="store_true")
 
     def _run(self, entry, args):
-        self.process_task(entry, args, "unregister")
+        if args.unregister:
+            entry.unregister()
+            return
         self.process_task(entry, args, "register", overwrite=args.overwrite)
-        self.process_task(entry, args, "add_location", platform=args.platform)
+        self.process_task(entry, args, "add_location", path=args.location_path)
+        if args.url:
+            print(entry.url)
 
 
 command = Weights

@@ -5,11 +5,15 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 
+import datetime
 import logging
 import os
 
 import yaml
 from anemoi.datasets import open_dataset
+from anemoi.utils.humanize import when
+
+from anemoi.registry import config
 
 from . import CatalogueEntry
 
@@ -23,11 +27,74 @@ class DatasetCatalogueEntry(CatalogueEntry):
     def set_status(self, status):
         self.rest_item.patch([{"op": "add", "path": "/status", "value": status}])
 
-    def add_location(self, path, platform):
+    def build_location_path(self, platform, uri_pattern=None):
+        if uri_pattern is None:
+            assert platform == config()["datasets_platform"]
+            uri_pattern = config()["datasets_uri_pattern"]
+            LOG.debug(f"Using uri pattern from config: {uri_pattern}")
+        else:
+            LOG.debug(f"Using uri pattern: {uri_pattern}")
+        return uri_pattern.format(name=self.key)
+
+    def add_location(self, platform, path):
+        LOG.debug(f"Adding location to {platform}: {path}")
         self.rest_item.patch([{"op": "add", "path": f"/locations/{platform}", "value": {"path": path}}])
+        return path
 
     def remove_location(self, platform):
         self.rest_item.patch([{"op": "remove", "path": f"/locations/{platform}"}])
+
+    def upload(self, source, target, platform="unknown", resume=True):
+        LOG.info(f"Uploading from {source} to {target} ")
+        assert target.startswith("s3://"), target
+
+        source_path = os.path.abspath(source)
+        kwargs = dict(
+            action="transfer-dataset",
+            source="cli",
+            source_path=source_path,
+            destination=platform,
+            target_path=target,
+            dataset=self.key,
+        )
+        LOG.info(f"Task: {kwargs}")
+
+        from anemoi.utils.s3 import upload
+
+        from anemoi.registry.tasks import TaskCatalogueEntry
+        from anemoi.registry.tasks import TaskCatalogueEntryList
+        from anemoi.registry.workers.transfer_dataset import Progress
+
+        def find_or_create_task(**kwargs):
+            lst = TaskCatalogueEntryList(**kwargs)
+
+            if not lst:
+                LOG.info("No runnning transfer found, starting one.")
+                uuid = TaskCatalogueEntryList().add_new_task(**kwargs)
+                task = TaskCatalogueEntry(key=uuid)
+                return task
+
+            lst = TaskCatalogueEntryList(**kwargs)
+            task = lst[0]
+            updated = datetime.datetime.fromisoformat(task.record["updated"])
+            if resume:
+                LOG.info(f"Resuming from previous transfer (last update {when(updated)})")
+            else:
+                raise ValueError(f"Transfer already in progress (last update {when(updated)})")
+            return task
+
+        task = find_or_create_task(**kwargs)
+        task.set_status("running")
+
+        progress = Progress(task, frequency=10)
+        LOG.info(f"Upload('{source_path}','{target}', resume=True, threads=2)")
+        try:
+            upload(source_path, target, resume=True, threads=2, progress=progress)
+        except:
+            task.set_status("stopped")
+            raise
+
+        task.unregister()
 
     def set_recipe(self, file):
         if not os.path.exists(file):

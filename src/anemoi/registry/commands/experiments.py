@@ -41,6 +41,7 @@ class Experiments(BaseCommand):
             help="Remove from catalogue (without deleting the experiment from other locations)",
             action="store_true",
         )
+        command_parser.add_argument("--url", help="Print the URL of the experiment.", action="store_true")
         command_parser.add_argument(
             "--delete-artefacts",
             help="Remove experiments artefacts (such as plots)",
@@ -106,6 +107,8 @@ class Experiments(BaseCommand):
             run_number=args.run_number,
             platform=args.archive_platform,
         )
+        if args.url:
+            print(entry.url)
 
 
 command = Experiments

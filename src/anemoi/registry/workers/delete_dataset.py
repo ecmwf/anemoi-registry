@@ -50,7 +50,12 @@ class DeleteDatasetWorker(Worker):
         LOG.warning(f"Deleting {path} from '{platform}'")
 
         tmp_path = path + ".deleting"
+        i = 0
+        while os.path.exists(tmp_path):
+            i += 1
+            tmp_path = path + ".deleting." + str(i)
         os.rename(path, tmp_path)
+
         # shutil.rmtree(tmp_path)
         LOG.warning(f"Deleted {path} from '{platform}'")
 

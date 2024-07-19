@@ -21,8 +21,9 @@ class WeightCatalogueEntry(CatalogueEntry):
     collection = "weights"
     main_key = "uuid"
 
-    def add_location(self, path, platform):
+    def add_location(self, platform, path):
         self.rest_item.patch([{"op": "add", "path": f"/locations/{platform}", "value": {"path": path}}])
+        return path
 
     def default_location(self, **kwargs):
         uri = config()["weights_uri_pattern"]
