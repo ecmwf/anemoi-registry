@@ -59,11 +59,8 @@ class DatasetCatalogueEntry(CatalogueEntry):
         )
         LOG.info(f"Task: {kwargs}")
 
-        from anemoi.utils.s3 import upload
-
         from anemoi.registry.tasks import TaskCatalogueEntry
         from anemoi.registry.tasks import TaskCatalogueEntryList
-        from anemoi.registry.workers.transfer_dataset import Progress
 
         def find_or_create_task(**kwargs):
             lst = TaskCatalogueEntryList(**kwargs)
@@ -84,16 +81,21 @@ class DatasetCatalogueEntry(CatalogueEntry):
             return task
 
         task = find_or_create_task(**kwargs)
-        task.set_status("running")
+        self.transfer(task, source_path, target, resume=True, threads=2)
+
+    def transfer(self, task, source_path, target, resume, threads):
+        from anemoi.utils.s3 import upload
+
+        from anemoi.registry.workers.transfer_dataset import Progress
 
         progress = Progress(task, frequency=10)
         LOG.info(f"Upload('{source_path}','{target}', resume=True, threads=2)")
+        task.set_status("running")
         try:
-            upload(source_path, target, resume=True, threads=2, progress=progress)
+            upload(source_path, target, resume=resume, threads=threads, progress=progress)
         except:
             task.set_status("stopped")
             raise
-
         task.unregister()
 
     def set_recipe(self, file):

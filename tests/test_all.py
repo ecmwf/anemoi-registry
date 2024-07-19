@@ -84,6 +84,9 @@ def test_datasets():
     )
     run("anemoi-registry", "datasets", TMP_DATASET, "--add-location", "ewc")
 
+    # do not upload the dataset to avoid polluting the s3 bucket, until we have a way to clean it up automatically
+    # run("anemoi-registry", "datasets", TMP_DATASET_PATH, "--add-location", "ewc", "--upload")
+
 
 def test_weights():
     # assert run("anemoi-registry", "weights", "a5275e04-0000-0000-a0f6-be19591b09fe") == 1
