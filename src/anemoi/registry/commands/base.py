@@ -35,7 +35,7 @@ class BaseCommand(Command):
         except CatalogueEntryNotFound:
             return False
 
-    def process_task(self, entry, args, k, func_name=None, /, **kwargs):
+    def process_task(self, entry, args, k, func_name=None, /, _skip_if_not_found=False, **kwargs):
         """
         Call the method `k` on the entry object.
         The args/kwargs given to the method are extracted from from the argument `k` in the `args` object.
@@ -46,6 +46,9 @@ class BaseCommand(Command):
         The provided **kwargs are also passed to the method.
         The method name can be changed by providing the `func_name` argument.
         """
+        if entry is None and _skip_if_not_found:
+            LOG.warning(f"Cannot find entry {args.NAME_OR_PATH}. Skipping {k}.")
+            return
 
         assert isinstance(k, str), k
         if func_name is None:

@@ -15,15 +15,28 @@ from anemoi.utils.s3 import delete
 from anemoi.utils.s3 import download
 from anemoi.utils.s3 import upload
 
+from anemoi.registry.rest import RestItemList
+
 from .. import config
 from . import CatalogueEntry
 from .weights import WeightCatalogueEntry
 
+COLLECTION = "experiments"
+
 LOG = logging.getLogger(__name__)
 
 
+class ExperimentCatalogueEntryList(RestItemList):
+    def __init__(self, **kwargs):
+        super().__init__(COLLECTION, **kwargs)
+
+    def __iter__(self):
+        for v in self.get():
+            yield ExperimentCatalogueEntry(key=v["expver"])
+
+
 class ExperimentCatalogueEntry(CatalogueEntry):
-    collection = "experiments"
+    collection = COLLECTION
     main_key = "expver"
 
     def create_from_new_key(self, key):

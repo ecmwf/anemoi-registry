@@ -20,3 +20,24 @@ def config():
     default_config = os.path.join(os.path.dirname(__file__), "config.yaml")
     config = load_config(secrets=["api_token"], defaults=default_config)
     return config.get("registry")
+
+
+from .entry.dataset import DatasetCatalogueEntry as Dataset
+from .entry.dataset import DatasetCatalogueEntryList as DatasetsList
+from .entry.experiment import ExperimentCatalogueEntry as Experiment
+from .entry.experiment import ExperimentCatalogueEntryList as ExperimentsList
+from .entry.weights import WeightCatalogueEntry as Weights
+from .entry.weights import WeightsCatalogueEntryList as WeightsList
+from .tasks import TaskCatalogueEntry as Task
+from .tasks import TaskCatalogueEntryList as TasksList
+
+__all__ = [
+    "Weights",
+    "WeightsList",
+    "Experiment",
+    "ExperimentsList",
+    "Dataset",
+    "DatasetsList",
+    "Task",
+    "TasksList",
+]

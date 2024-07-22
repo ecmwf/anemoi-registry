@@ -86,8 +86,8 @@ class Experiments(BaseCommand):
         return True
 
     def _run(self, entry, args):
-        self.process_task(entry, args, "delete_artefacts")
-        self.process_task(entry, args, "unregister")
+        self.process_task(entry, args, "delete_artefacts", _skip_if_not_found=True)
+        self.process_task(entry, args, "unregister", _skip_if_not_found=True)
         self.process_task(entry, args, "register", overwrite=args.overwrite)
         self.process_task(entry, args, "add_weights")
         self.process_task(entry, args, "add_plots")

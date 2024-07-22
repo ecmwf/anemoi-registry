@@ -11,14 +11,27 @@ import os
 from anemoi.utils.checkpoints import load_metadata as load_checkpoint_metadata
 from anemoi.utils.s3 import upload
 
+from anemoi.registry.rest import RestItemList
+
 from .. import config
 from . import CatalogueEntry
+
+COLLECTION = "weights"
 
 LOG = logging.getLogger(__name__)
 
 
+class WeightsCatalogueEntryList(RestItemList):
+    def __init__(self, **kwargs):
+        super().__init__(COLLECTION, **kwargs)
+
+    def __iter__(self):
+        for v in self.get():
+            yield WeightCatalogueEntry(key=v["uuid"])
+
+
 class WeightCatalogueEntry(CatalogueEntry):
-    collection = "weights"
+    collection = COLLECTION
     main_key = "uuid"
 
     def add_location(self, platform, path):

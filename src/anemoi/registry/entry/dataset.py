@@ -14,14 +14,26 @@ from anemoi.datasets import open_dataset
 from anemoi.utils.humanize import when
 
 from anemoi.registry import config
+from anemoi.registry.rest import RestItemList
 
 from . import CatalogueEntry
 
 LOG = logging.getLogger(__name__)
 
+COLLECTION = "datasets"
+
+
+class DatasetCatalogueEntryList(RestItemList):
+    def __init__(self, **kwargs):
+        super().__init__(COLLECTION, **kwargs)
+
+    def __iter__(self):
+        for v in self.get():
+            yield DatasetCatalogueEntry(key=v["name"])
+
 
 class DatasetCatalogueEntry(CatalogueEntry):
-    collection = "datasets"
+    collection = COLLECTION
     main_key = "name"
 
     def set_status(self, status):
