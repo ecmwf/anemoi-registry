@@ -73,7 +73,7 @@ class Experiments(BaseCommand):
             "--run-number", help="The run number of the experiment. Relevant --set-archive and --get-archive."
         )
         command_parser.add_argument(
-            "--archive-extra-metadata", help="Extra metadata. A list of key=value pairs.", nargs="+"
+            "--archive-extra-metadata", help="Extra metadata. A list of key=value pairs.", nargs="+", default={}
         )
 
         command_parser.add_argument("--overwrite", help="Overwrite if already exists.", action="store_true")
