@@ -18,7 +18,7 @@ requires = [
 [project]
 name = "anemoi-registry"
 
-description = "A package to manahe a registry or data-driven forecasts."
+description = "A package to manage a registry or data-driven forecasts."
 keywords = [
   "ai",
   "registry",
@@ -91,6 +91,11 @@ urls.Homepage = "https://github.com/ecmwf/anemoi-registry/"
 urls.Issues = "https://github.com/ecmwf/anemoi-registry/issues"
 urls.Repository = "https://github.com/ecmwf/anemoi-registry/"
 scripts.anemoi-registry = "anemoi.registry.__main__:main"
+
+[tool.setuptools.package-data]
+"anemoi.registry" = [
+  "*.yaml",
+]
 
 [tool.setuptools_scm]
 version_file = "src/anemoi/registry/_version.py"
