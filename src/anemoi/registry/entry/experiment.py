@@ -110,8 +110,9 @@ class ExperimentCatalogueEntry(CatalogueEntry):
         if isinstance(extras, list):
             extras = {v.split("=")[0]: v.split("=")[1] for v in extras}
 
-        _, ext = os.path.splitext(path)
-        target = config()["artefacts_uri_base"] + f"/{self.key}/runs/{run_number}/{platform}{ext}"
+        base = os.path.basename(path)
+        ext = base.split(os.extsep, 1)[-1]  # everything after the first dot, to support multiple ext like tar.gz
+        target = config()["artefacts_uri_base"] + f"/{self.key}/runs/{run_number}/{platform}.{ext}"
         LOG.info(f"Uploading {path} to {target}.")
         upload(path, target, overwrite=overwrite)
 
