@@ -86,7 +86,7 @@ class ExperimentCatalogueEntry(CatalogueEntry):
             e.record["runs"] = {}
 
         # add run_number if it does not exist
-        if str(run_number) not in self.record["runs"]:
+        if str(run_number) not in self.record.get("runs", {}):
             e.rest_item.patch(
                 [
                     {"op": "test", "path": "/runs", "value": e.record["runs"]},
