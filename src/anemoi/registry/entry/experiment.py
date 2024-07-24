@@ -197,8 +197,8 @@ class ExperimentCatalogueEntry(CatalogueEntry):
                 url = run_record["archives"][platform]["url"]
                 LOG.info(f"Downloading {url} to {tmp_path}.")
                 download(url, tmp_path)
-                with open(path, "a+") as f:
-                    with open(tmp_path, "r") as tmp:
+                with open(path, "ba+") as f:
+                    with open(tmp_path, "br") as tmp:
                         f.write(tmp.read())
 
     def delete_artefacts(self):
