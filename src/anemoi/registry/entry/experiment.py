@@ -8,6 +8,7 @@
 import datetime
 import logging
 import os
+import tempfile
 from getpass import getuser
 
 import yaml
@@ -123,33 +124,82 @@ class ExperimentCatalogueEntry(CatalogueEntry):
         self.rest_item.patch([{"op": "add", "path": f"/runs/{run_number}/archives/{platform}", "value": dic}])
 
     def remove_archive(self, platform, run_number):
-        if run_number is None:
-            raise ValueError("run_number must be set")
-        run_number = str(run_number)
-
         if platform is None:
             raise ValueError("platform must be set")
 
-        LOG.info(f"Removing archive for run {run_number} and platform {platform}")
-        self.rest_item.patch([{"op": "remove", "path": f"/runs/{run_number}/archives/{platform}"}])
+        run_numbers = self._parse_run_number(run_number)
+
+        for run_number in run_numbers:
+            LOG.info(f"Removing archive for run {run_number} and platform {platform}")
+            if run_number not in self.record["runs"]:
+                LOG.info(f"Archive: skipping run {run_number} because it does not exist")
+                continue
+            run_record = self.record["runs"][run_number]
+
+            if platform not in run_record.get("archives", {}):
+                LOG.info(f"Archive: skipping {platform} for run {run_number} because it does not exist")
+                continue
+
+            url = run_record["archives"][platform]["url"]
+            delete(url)
+            self.rest_item.patch([{"op": "remove", "path": f"/runs/{run_number}/archives/{platform}"}])
+
+    def _list_run_numbers(self):
+        return [int(k) for k in self.record.get("runs", {}).keys()]
+
+    def _parse_run_number(self, run_number):
+        assert isinstance(run_number, (str, int)), "run_number must be a string or an integer"
+        run_number = str(run_number)
+
+        if run_number.lower() == "all":
+            return [str(i) for i in self._list_run_numbers()]
+
+        if run_number == "latest":
+            run_number = str(max(self._list_run_numbers()))
+            LOG.info(f"Using latest run number {run_number}")
+
+        if run_number not in self.record["runs"]:
+            raise ValueError(f"Run number {run_number} not found")
+
+        return [run_number]
+
+    def archive_moved(self, old, new, run_number, overwrite=None):
+        run_numbers = self._parse_run_number(run_number)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            print(tmpdir)
+            for run_number in run_numbers:
+                tmp_path = os.path.join(tmpdir, str(run_number))
+                self.get_archive(tmp_path, platform=old, run_number=run_number)
+                self.set_archive(tmp_path, platform=new, run_number=run_number, overwrite=overwrite)
+                self.remove_archive(old, run_number)
+
+    def _get_run_record(self, run_number):
+        print(self.record.get("runs", {}), run_number, type(run_number))
+        print(self.record.get("runs", {}).get(run_number, {}))
+        return self.record.get("runs", {}).get(run_number, {})
 
     def get_archive(self, path, *, platform, run_number):
         if os.path.exists(path):
             raise FileExistsError(f"Path {path} already exists")
 
-        run_number = str(run_number)
-        if run_number == "latest":
-            run_number = str(max([int(k) for k in self.record["runs"].keys()]))
-            LOG.info(f"Using latest run number {run_number}")
-        if run_number not in self.record["runs"]:
-            raise ValueError(f"Run number {run_number} not found")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            run_numbers = self._parse_run_number(run_number)
+            for run_number in run_numbers:
+                run_record = self._get_run_record(run_number)
 
-        if platform not in self.record["runs"][run_number]["archives"]:
-            raise ValueError(f"Platform {platform} not found")
+                if platform not in run_record.get("archives", {}):
+                    LOG.info(f"Archive: skipping {platform} for run {run_number} because it does not exist")
+                    continue
 
-        url = self.record["runs"][run_number]["archives"][platform]["url"]
-        LOG.info(f"Downloading {url} to {path}.")
-        download(url, path)
+                tmp_path = os.path.join(tmpdir, str(run_number))
+
+                url = run_record["archives"][platform]["url"]
+                LOG.info(f"Downloading {url} to {tmp_path}.")
+                download(url, tmp_path)
+                with open(path, "a+") as f:
+                    with open(tmp_path, "r") as tmp:
+                        f.write(tmp.read())
 
     def delete_artefacts(self):
         self.delete_all_plots()

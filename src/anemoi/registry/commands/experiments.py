@@ -56,25 +56,35 @@ class Experiments(BaseCommand):
                 "Add weights to the experiment and upload them do s3."
                 "Skip upload if these weights are already uploaded."
             ),
+            metavar="FILE",
         )
-        command_parser.add_argument("--add-plots", nargs="+", help="Add plots to the experiment.")
+        command_parser.add_argument("--add-plots", nargs="+", help="Add plots to the experiment.", metavar="FILE")
 
         command_parser.add_argument(
-            "--set-archive", help="Input file to register as an archive metadata file to the catalogue."
+            "--set-archive", help="Input file to register as an archive metadata file to the catalogue.", metavar="FILE"
         )
         command_parser.add_argument(
-            "--get-archive", help="Output file to save the archive metadata file from the catalogue."
+            "--get-archive",
+            help="Output file to save the archive metadata file from the catalogue. Merge metadata file if there are multiple run numbers.",
+            metavar="FILE",
         )
+        command_parser.add_argument("--remove-archive", help="Delete the archive metadata.", action="store_true")
         command_parser.add_argument(
-            "--remove-archive", help="Remove the archive metadata file from the catalogue.", action="store_true"
+            "--archive-moved",
+            help="When archive moved to a new location, move the metadata file and update the catalogue.",
+            nargs=2,
+            metavar=("OLD", "NEW"),
         )
+
         command_parser.add_argument(
             "--archive-platform",
             help="Archive platform. Only relevant for --set-archive and --get-archive and --remove-archive.",
+            metavar="PLATFORM",
         )
         command_parser.add_argument(
             "--run-number",
-            help="The run number of the experiment. Relevant --set-archive and --get-archive and --remove-archive.",
+            help="The run number of the experiment. Relevant --set-archive and --get-archive and --remove-archive. Can be 'all' or 'latest' when applicable.",
+            metavar="N",
         )
         command_parser.add_argument(
             "--archive-extra-metadata", help="Extra metadata. A list of key=value pairs.", nargs="+", default={}
@@ -106,6 +116,7 @@ class Experiments(BaseCommand):
         )
         self.process_task(entry, args, "get_archive", run_number=args.run_number, platform=args.archive_platform)
         self.process_task(entry, args, "remove_archive", run_number=args.run_number, platform=args.archive_platform)
+        self.process_task(entry, args, "archive_moved", run_number=args.run_number)
         if args.url:
             print(entry.url)
 
