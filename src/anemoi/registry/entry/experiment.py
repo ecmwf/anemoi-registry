@@ -122,6 +122,17 @@ class ExperimentCatalogueEntry(CatalogueEntry):
 
         self.rest_item.patch([{"op": "add", "path": f"/runs/{run_number}/archives/{platform}", "value": dic}])
 
+    def remove_archive(self, platform, run_number):
+        if run_number is None:
+            raise ValueError("run_number must be set")
+        run_number = str(run_number)
+
+        if platform is None:
+            raise ValueError("platform must be set")
+
+        LOG.info(f"Removing archive for run {run_number} and platform {platform}")
+        self.rest_item.patch([{"op": "remove", "path": f"/runs/{run_number}/archives/{platform}"}])
+
     def get_archive(self, path, *, platform, run_number):
         if os.path.exists(path):
             raise FileExistsError(f"Path {path} already exists")

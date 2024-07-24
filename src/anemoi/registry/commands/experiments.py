@@ -66,11 +66,15 @@ class Experiments(BaseCommand):
             "--get-archive", help="Output file to save the archive metadata file from the catalogue."
         )
         command_parser.add_argument(
-            "--archive-platform",
-            help="Archive platform. Only relevant for --set-archive and --get-archive.",
+            "--remove-archive", help="Remove the archive metadata file from the catalogue.", action="store_true"
         )
         command_parser.add_argument(
-            "--run-number", help="The run number of the experiment. Relevant --set-archive and --get-archive."
+            "--archive-platform",
+            help="Archive platform. Only relevant for --set-archive and --get-archive and --remove-archive.",
+        )
+        command_parser.add_argument(
+            "--run-number",
+            help="The run number of the experiment. Relevant --set-archive and --get-archive and --remove-archive.",
         )
         command_parser.add_argument(
             "--archive-extra-metadata", help="Extra metadata. A list of key=value pairs.", nargs="+", default={}
@@ -100,13 +104,8 @@ class Experiments(BaseCommand):
             overwrite=args.overwrite,
             extras=args.archive_extra_metadata,
         )
-        self.process_task(
-            entry,
-            args,
-            "get_archive",
-            run_number=args.run_number,
-            platform=args.archive_platform,
-        )
+        self.process_task(entry, args, "get_archive", run_number=args.run_number, platform=args.archive_platform)
+        self.process_task(entry, args, "remove_archive", run_number=args.run_number, platform=args.archive_platform)
         if args.url:
             print(entry.url)
 
