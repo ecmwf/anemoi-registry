@@ -171,6 +171,9 @@ class ExperimentCatalogueEntry(CatalogueEntry):
             for run_number in run_numbers:
                 tmp_path = os.path.join(tmpdir, str(run_number))
                 self.get_archive(tmp_path, platform=old, run_number=run_number)
+                if not os.path.exists(tmp_path):
+                    LOG.info(f"Skipping {old} -> {new} for run {run_number} because it does not exist")
+                    continue
                 self.set_archive(tmp_path, platform=new, run_number=run_number, overwrite=overwrite)
                 self.remove_archive(old, run_number)
 
