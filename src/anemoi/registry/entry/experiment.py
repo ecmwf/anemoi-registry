@@ -242,6 +242,18 @@ class ExperimentCatalogueEntry(CatalogueEntry):
         dic = dict(url=target, name=basename, path=path)
         self.rest_item.patch([{"op": "add", "path": "/plots/-", "value": dic}])
 
+    def set_key_json(self, key, file, run_number):
+        with open(file, "r") as f:
+            value = yaml.safe_load(f)
+        return self.set_key(key, value, run_number)
+
+    def set_key(self, key, value, run_number):
+        if run_number is None:
+            self.rest_item.patch([{"op": "add", "path": f"/{key}", "value": value}])
+        else:
+            self._ensure_run_exists(run_number)
+            self.rest_item.patch([{"op": "add", "path": f"/runs/{run_number}/{key}", "value": value}])
+
     def _add_one_weights(self, path, **kwargs):
         weights = WeightCatalogueEntry(path=path)
 

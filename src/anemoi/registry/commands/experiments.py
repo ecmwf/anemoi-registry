@@ -59,6 +59,18 @@ class Experiments(BaseCommand):
             metavar="FILE",
         )
         command_parser.add_argument("--add-plots", nargs="+", help="Add plots to the experiment.", metavar="FILE")
+        command_parser.add_argument(
+            "--set-key",
+            nargs=2,
+            help="Set VALUE in the KEY to the experiment catalogue. Replace existing value.",
+            metavar=("KEY", "VALUE"),
+        )
+        command_parser.add_argument(
+            "--set-key-json",
+            nargs=2,
+            help="Set the content of a FILE in the KEY to the experiment catalogue. Replace existing value.",
+            metavar=("KEY", "FILE"),
+        )
 
         command_parser.add_argument(
             "--set-archive", help="Input file to register as an archive metadata file to the catalogue.", metavar="FILE"
@@ -105,6 +117,8 @@ class Experiments(BaseCommand):
         self.process_task(entry, args, "register", overwrite=args.overwrite)
         self.process_task(entry, args, "add_weights")
         self.process_task(entry, args, "add_plots")
+        self.process_task(entry, args, "set_key", run_number=args.run_number)
+        self.process_task(entry, args, "set_key_json", run_number=args.run_number)
         self.process_task(
             entry,
             args,
