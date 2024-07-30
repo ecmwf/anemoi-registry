@@ -53,8 +53,25 @@ class DatasetCatalogueEntry(CatalogueEntry):
         self.rest_item.patch([{"op": "add", "path": f"/locations/{platform}", "value": {"path": path}}])
         return path
 
-    def remove_location(self, platform):
+    def remove_location(self, platform, *, delete):
+        if delete:
+            self.delete(platform)
         self.rest_item.patch([{"op": "remove", "path": f"/locations/{platform}"}])
+
+    def delete(self, platform):
+        if not config().get("allow_delete"):
+            raise ValueError("Delete not allowed by configuration")
+
+        path = self.record.get("locations", {}).get(platform, {}).get("path")
+        if path is None:
+            LOG.warning(f"Nothing to delete for {self.key} on platform {platform}")
+            return
+        if path.startswith("s3://"):
+            from anemoi.utils.s3 import delete
+
+            return delete(path + "/")
+        else:
+            LOG.warning(f"Location is not an s3 path: {path}. Delete not implemented.")
 
     def upload(self, source, target, platform="unknown", resume=True):
         LOG.info(f"Uploading from {source} to {target} ")

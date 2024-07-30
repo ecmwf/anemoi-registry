@@ -43,14 +43,17 @@ class List(Command):
         experiment.add_argument(
             "filter", nargs="*", help="Filter experiments with a list of key=value.", metavar="key=value"
         )
+        experiment.add_argument("--json", help="Output as JSON", action="store_true")
 
         checkpoint = sub_parser.add_parser("weights", help="List weights in the catalogue.")
         checkpoint.add_argument(
             "filter", nargs="*", help="Filter experiments with a list of key=value.", metavar="key=value"
         )
+        checkpoint.add_argument("--json", help="Output as JSON", action="store_true")
 
         dataset = sub_parser.add_parser("datasets", help="List datasets in the catalogue.")
         dataset.add_argument("filter", nargs="*", help="Filter datasets with a list of key=value.", metavar="key=value")
+        dataset.add_argument("--json", help="Output as JSON", action="store_true")
 
     #        tasks = sub_parser.add_parser("tasks")
     #        tasks.add_argument("filter", nargs="*")
@@ -67,7 +70,41 @@ class List(Command):
         collection = args.subcommand
         request = list_to_dict(args.filter)
         payload = RestItemList(collection).get(params=request)
-        print(json_pretty_dump(payload))
+        if args.json:
+            print(json_pretty_dump(payload))
+        else:
+            for v in payload:
+                print(v["name"])
+
+    def run_datasets(self, args):
+        collection = args.subcommand
+        request = list_to_dict(args.filter)
+        payload = RestItemList(collection).get(params=request)
+        if args.json:
+            print(json_pretty_dump(payload))
+        else:
+            for v in payload:
+                print(v["name"])
+
+    def run_weights(self, args):
+        collection = args.subcommand
+        request = list_to_dict(args.filter)
+        payload = RestItemList(collection).get(params=request)
+        if args.json:
+            print(json_pretty_dump(payload))
+        else:
+            for v in payload:
+                print(v["uuid"])
+
+    def run_experiments(self, args):
+        collection = args.subcommand
+        request = list_to_dict(args.filter)
+        payload = RestItemList(collection).get(params=request)
+        if args.json:
+            print(json_pretty_dump(payload))
+        else:
+            for v in payload:
+                print(v["expver"])
 
     def run_tasks(self, args):
         collection = "tasks"

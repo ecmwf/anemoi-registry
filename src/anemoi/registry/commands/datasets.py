@@ -39,7 +39,6 @@ class Datasets(BaseCommand):
             action="store_true",
         )
         command_parser.add_argument("--url", help="Print the URL of the dataset.", action="store_true")
-        # command_parser.add_argument("--delete", help=f"Delete the dataset from the catalogue and from any other location", action="store_true")
         command_parser.add_argument("--set-status", help="Set the status to the dataset.", metavar="STATUS")
         command_parser.add_argument(
             "--set-recipe", help="Set the recipe file to [re-]build the dataset.", metavar="FILE"
@@ -64,6 +63,11 @@ class Datasets(BaseCommand):
         )
 
         command_parser.add_argument("--remove-location", help="Platform name to remove.", metavar="PLATFORM")
+        command_parser.add_argument(
+            "--DELETE",
+            help="Delete the dataset when removing a location. Requires --remove-location.",
+            action="store_true",
+        )
 
     def _run(self, entry, args):
         if entry is None:
@@ -92,7 +96,7 @@ class Datasets(BaseCommand):
         self.process_task(entry, args, "register")
         self.process_task(entry, args, "set_recipe")
         self.process_task(entry, args, "set_status")
-        self.process_task(entry, args, "remove_location")
+        self.process_task(entry, args, "remove_location", delete=args.DELETE)
 
         if args.add_local:
             entry.add_location(args.add_local, path=args.NAME_OR_PATH)
