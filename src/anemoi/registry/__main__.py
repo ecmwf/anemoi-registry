@@ -24,5 +24,11 @@ def main():
     cli_main(__version__, __doc__, COMMANDS)
 
 
+def main_PYTHON_ARGCOMPLETE_OK():
+    # this is a workaround for argcomplete
+    # to make sure the srting "PYTHON_ARGCOMPLETE_OK" is in the final executable script
+    return main()
+
+
 if __name__ == "__main__":
     main()
