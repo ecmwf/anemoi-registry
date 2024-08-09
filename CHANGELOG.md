@@ -32,4 +32,4 @@ Keep it human-readable, your future self will thank you!
 
 ## Git Diffs:
 [0.1.0]: https://github.com/ecmwf/anemoi-registry/compare/0.0.1...0.1.0
-[0.0.1]: https://github.com/ecmwf/anemoi-registry/releases/tag/0.1.0
+[0.0.1]: https://github.com/ecmwf/anemoi-registry/releases/tag/0.0.1
