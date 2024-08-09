@@ -54,10 +54,10 @@ class WeightCatalogueEntry(CatalogueEntry):
         upload(path, target, overwrite=overwrite, resume=not overwrite)
         return target
 
-    def register(self, overwrite=False):
+    def register(self, **kwargs):
         assert self.path is not None, "path must be provided"
 
-        super().register(overwrite=overwrite)
+        super().register(**kwargs)
 
         platform = self.default_platform()
         target = self.upload(self.path)
