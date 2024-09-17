@@ -114,6 +114,9 @@ class Rest:
     def delete(self, path, errors={}):
         if not config().get("allow_delete"):
             raise ValueError("Unregister not allowed")
+        return self.unprotected_delete(path, errors=errors)
+
+    def unprotected_delete(self, path, errors={}):
         r = self.session.delete(f"{config().api_url}/{path}", params=dict(force=True))
         self.raise_for_status(r, errors=errors)
         return r.json()

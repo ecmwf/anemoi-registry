@@ -119,7 +119,8 @@ class TaskCatalogueEntry(CatalogueEntry):
         self.rest_item.patch(patch)
 
     def unregister(self):
-        return self.rest_item.delete()
+        # deleting a task is unprotected because non-admin should be able to delete their tasks
+        return self.rest_item.unprotected_delete()
 
     def take_ownership(self):
         trace = trace_info()
