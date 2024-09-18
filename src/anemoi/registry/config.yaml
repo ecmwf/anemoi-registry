@@ -1,0 +1,27 @@
+registry:
+  api_url: "https://anemoi.ecmwf.int/api/v1"
+  web_url: "https://anemoi.ecmwf.int"
+
+  artefacts_uri_base: "s3://ml-artefacts"
+
+  plots_uri_pattern: "s3://ml-artefacts/{expver}/{basename}"
+
+  datasets_uri_pattern: "s3://ml-datasets/{name}.zarr"
+  datasets_platform: "ewc"
+
+  weights_uri_pattern: "s3://ml-weights/{uuid}.ckpt"
+  weights_platform: "ewc"
+
+  workers:
+    # These are the default values for the workers
+    # the are experimental and can change in the future
+    heartbeat: 60
+    max_no_heartbeat: -1
+    wait: 10
+    transfer-dataset:
+      target_dir: "."
+      published_target_dir: null
+      threads: 1
+      auto_register: true
+    dummy:
+      arg: default_value
