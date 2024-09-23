@@ -177,6 +177,9 @@ class RestItem:
     def delete(self):
         return self.rest.delete(self.path)
 
+    def unprotected_delete(self):
+        return self.rest.unprotected_delete(self.path)
+
     def __repr__(self):
         return f"{self.__class__.__name__}({self.collection}, {self.key})"
 
