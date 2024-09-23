@@ -22,6 +22,8 @@ LOG = logging.getLogger(__name__)
 
 
 class WeightsCatalogueEntryList(RestItemList):
+    """List of weights catalogue entries."""
+
     def __init__(self, **kwargs):
         super().__init__(COLLECTION, **kwargs)
 

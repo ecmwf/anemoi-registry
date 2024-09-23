@@ -20,6 +20,8 @@ LOG = logging.getLogger(__name__)
 
 
 class TaskCatalogueEntryList:
+    """List of task catalogue entries."""
+
     collection = "tasks"
     main_key = "uuid"
 
