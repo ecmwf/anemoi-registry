@@ -10,20 +10,13 @@
 # https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
 
 [build-system]
-requires = [
-  "setuptools>=60",
-  "setuptools-scm>=8",
-]
+requires = [ "setuptools>=60", "setuptools-scm>=8" ]
 
 [project]
 name = "anemoi-registry"
 
 description = "A package to manage a registry or data-driven forecasts."
-keywords = [
-  "ai",
-  "registry",
-  "tools",
-]
+keywords = [ "ai", "registry", "tools" ]
 
 license = { file = "LICENSE" }
 authors = [
@@ -46,29 +39,13 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 
-dynamic = [
-  "version",
-]
+dynamic = [ "version" ]
 
-dependencies = [
-  "anemoi-datasets",
-  "jsonpatch",
-  "requests",
-]
+dependencies = [ "anemoi-datasets", "jsonpatch", "requests" ]
 
-optional-dependencies.all = [
-  "boto3",
-]
+optional-dependencies.all = [ "anemoi-registry[s3]" ]
 
-optional-dependencies.dev = [
-  "boto3",
-  "nbsphinx",
-  "pandoc",
-  "pytest",
-  "sphinx",
-  "sphinx-argparse<0.5",
-  "sphinx-rtd-theme",
-]
+optional-dependencies.dev = [ "anemoi-registry[docs,tests,s3]" ]
 
 optional-dependencies.docs = [
   "nbsphinx",
@@ -78,13 +55,9 @@ optional-dependencies.docs = [
   "sphinx-rtd-theme",
 ]
 
-optional-dependencies.s3 = [
-  "boto3",
-]
+optional-dependencies.s3 = [ "boto3" ]
 
-optional-dependencies.tests = [
-  "pytest",
-]
+optional-dependencies.tests = [ "pytest" ]
 
 urls.Documentation = "https://anemoi-registry.readthedocs.io/"
 urls.Homepage = "https://github.com/ecmwf/anemoi-registry/"
@@ -93,9 +66,7 @@ urls.Repository = "https://github.com/ecmwf/anemoi-registry/"
 scripts.anemoi-registry = "anemoi.registry.__main__:main_PYTHON_ARGCOMPLETE_OK"
 
 [tool.setuptools.package-data]
-"anemoi.registry" = [
-  "*.yaml",
-]
+"anemoi.registry" = [ "*.yaml" ]
 
 [tool.setuptools_scm]
 version_file = "src/anemoi/registry/_version.py"

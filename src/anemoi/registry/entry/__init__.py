@@ -27,6 +27,8 @@ class CatalogueEntryNotFound(Exception):
 
 
 class CatalogueEntry:
+    """Base class for a Anemoi catalogue entry."""
+
     record = None
     path = None
     key = None
@@ -36,7 +38,7 @@ class CatalogueEntry:
     def url(self):
         return f"{config()['web_url']}/{self.collection}/{self.key}"
 
-    def __init__(self, key=None, path=None, must_exist=True):
+    def __init__(self, key=None, path=None, must_exist=True) -> None:
         assert key is not None or path is not None, "key or path must be provided"
         assert key is None or path is None, "key and path are mutually exclusive"
 

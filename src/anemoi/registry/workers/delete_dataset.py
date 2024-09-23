@@ -16,6 +16,8 @@ LOG = logging.getLogger(__name__)
 
 
 class DeleteDatasetWorker(Worker):
+    """Worker to delete a dataset from a platform."""
+
     name = "delete-dataset"
 
     def __init__(

@@ -121,6 +121,7 @@ celerybeat.pid
 
 # Environments
 .env
+.envrc
 .venv
 env/
 venv/
@@ -186,3 +187,12 @@ _build/
 *.sync
 _version.py
 *.code-workspace
+
+
+# Environments
+.envrc
+.envrc
+
+
+# Environments
+.envrc

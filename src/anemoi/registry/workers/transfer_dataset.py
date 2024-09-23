@@ -18,6 +18,8 @@ LOG = logging.getLogger(__name__)
 
 
 class Progress:
+    """Progress reporter for transfer tasks."""
+
     latest = None
 
     def __init__(self, task, frequency=60):
@@ -62,6 +64,8 @@ class Progress:
 
 
 class TransferDatasetWorker(Worker):
+    """Worker to transfer a dataset from one platform to another."""
+
     name = "transfer-dataset"
 
     def __init__(
