@@ -36,6 +36,25 @@ class DatasetCatalogueEntry(CatalogueEntry):
     collection = COLLECTION
     main_key = "name"
 
+    @classmethod
+    def publish(cls, path):
+        PLATFORM = config()["datasets_platform"]
+        STATUS = "experimental"
+
+        entry = DatasetCatalogueEntry(path=path)
+        entry.register()
+        entry.set_status(STATUS)
+
+        recipe = entry.record["metadata"].get("recipe", {})
+        if recipe:
+            entry.set_recipe(recipe)
+        else:
+            LOG.warning("No recipe found in metadata.")
+
+        target = entry.build_location_path(PLATFORM)
+        entry.upload(path, target, platform=PLATFORM)
+        entry.add_location(PLATFORM, target)
+
     def set_status(self, status):
         self.rest_item.patch([{"op": "add", "path": "/status", "value": status}])
 
@@ -127,13 +146,20 @@ class DatasetCatalogueEntry(CatalogueEntry):
             raise
         task.unregister()
 
-    def set_recipe(self, file):
-        if not os.path.exists(file):
-            raise FileNotFoundError(f"Recipe file not found: {file}")
-        if not file.endswith(".yaml"):
-            LOG.warning("Recipe file extension is not .yaml")
-        with open(file) as f:
-            recipe = yaml.safe_load(f)
+    def set_recipe(self, recipe):
+        # only for backward compatibility
+        # to support old datasets where the recipe was not stored in the metadata
+        # this is not needed for new datasets and will be removed in the future
+        if not isinstance(recipe, dict):
+            if not os.path.exists(recipe):
+                raise FileNotFoundError(f"Recipe file not found: {recipe}")
+            if not recipe.endswith(".yaml"):
+                LOG.warning("Recipe file extension is not .yaml")
+            with open(recipe) as f:
+                recipe = yaml.safe_load(f)
+                assert isinstance(recipe, dict), f"Recipe must be a dictionary, got {type(recipe)}"
+        # end of backward compatibility
+
         self.rest_item.patch([{"op": "add", "path": "/recipe", "value": recipe}])
 
     def load_from_path(self, path):
@@ -142,9 +168,9 @@ class DatasetCatalogueEntry(CatalogueEntry):
         if not path.startswith("/") and not path.startswith("s3://"):
             LOG.warning(f"Dataset path is not absolute: {path}")
         if not os.path.exists(path) and not path.startswith("s3://"):
-            LOG.warning(f"Dataset path does not exist: {path}")
+            raise ValueError(f"Dataset path does not exist: {path}")
         if not path.endswith(".zarr") or path.endswith(".zip"):
-            LOG.warning("Dataset path extension is neither .zarr nor .zip")
+            raise ValueError(f"Dataset path extension is not supported ({path})")
 
         name, _ = os.path.splitext(os.path.basename(path))
 

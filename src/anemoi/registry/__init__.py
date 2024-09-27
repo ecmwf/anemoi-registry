@@ -22,6 +22,10 @@ def config():
     return config.get("registry")
 
 
+def publish_dataset(*args, **kwargs):
+    return Dataset.publish(*args, **kwargs)
+
+
 from .entry.dataset import DatasetCatalogueEntry as Dataset
 from .entry.dataset import DatasetCatalogueEntryList as DatasetsList
 from .entry.experiment import ExperimentCatalogueEntry as Experiment
