@@ -11,6 +11,8 @@ Keep it human-readable, your future self will thank you!
 ## [Unreleased]
 
 ### Added
+
+- Add anemoi-transform link to documentation
 - CI workflows to check for updates in the changelog and the documentation.
 - Added set from file (python only)
 
