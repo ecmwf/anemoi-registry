@@ -37,7 +37,7 @@ class DatasetCatalogueEntry(CatalogueEntry):
     main_key = "name"
 
     def set_status(self, status):
-        self.rest_item.patch([{"op": "add", "path": "/status", "value": status}])
+        self.patch([{"op": "add", "path": "/status", "value": status}])
 
     def build_location_path(self, platform, uri_pattern=None):
         if uri_pattern is None:
@@ -50,13 +50,13 @@ class DatasetCatalogueEntry(CatalogueEntry):
 
     def add_location(self, platform, path):
         LOG.debug(f"Adding location to {platform}: {path}")
-        self.rest_item.patch([{"op": "add", "path": f"/locations/{platform}", "value": {"path": path}}])
+        self.patch([{"op": "add", "path": f"/locations/{platform}", "value": {"path": path}}])
         return path
 
     def remove_location(self, platform, *, delete):
         if delete:
             self.delete(platform)
-        self.rest_item.patch([{"op": "remove", "path": f"/locations/{platform}"}])
+        self.patch([{"op": "remove", "path": f"/locations/{platform}"}])
 
     def delete(self, platform):
         if not config().get("allow_delete"):
@@ -134,7 +134,7 @@ class DatasetCatalogueEntry(CatalogueEntry):
             LOG.warning("Recipe file extension is not .yaml")
         with open(file) as f:
             recipe = yaml.safe_load(f)
-        self.rest_item.patch([{"op": "add", "path": "/recipe", "value": recipe}])
+        self.patch([{"op": "add", "path": "/recipe", "value": recipe}])
 
     def load_from_path(self, path):
         import zarr

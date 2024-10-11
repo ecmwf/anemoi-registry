@@ -12,6 +12,7 @@ Keep it human-readable, your future self will thank you!
 
 ### Added
 - CI workflows to check for updates in the changelog and the documentation.
+- Added set from file (python only)
 
 ### Changed
 - Replaces the deploy workflow with cd-pypi
