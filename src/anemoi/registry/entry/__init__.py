@@ -9,6 +9,7 @@ import json
 import logging
 from functools import cached_property
 
+from anemoi.utils.config import load_any_dict_format
 from anemoi.utils.humanize import json_pretty_dump
 
 from anemoi.registry import config
@@ -106,6 +107,15 @@ class CatalogueEntry:
 
     def unregister(self):
         return self.rest_item.delete()
+
+    def set_value_from_file(self, key, file):
+        value = load_any_dict_format(file)
+        self.set_value(key, value)
+
+    def set_value(self, key, value):
+        if not key.startswith("/"):
+            key = "/" + key
+        self.patch([{"op": "add", "path": key, "value": value}])
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.rest_collection}, {self.key})"
