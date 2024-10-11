@@ -160,7 +160,7 @@ class DatasetCatalogueEntry(CatalogueEntry):
                 assert isinstance(recipe, dict), f"Recipe must be a dictionary, got {type(recipe)}"
         # end of backward compatibility
 
-        self..patch([{"op": "add", "path": "/recipe", "value": recipe}])
+        self.patch([{"op": "add", "path": "/recipe", "value": recipe}])
 
     def load_from_path(self, path):
         import zarr
