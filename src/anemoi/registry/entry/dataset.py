@@ -49,6 +49,10 @@ class DatasetCatalogueEntry(CatalogueEntry):
         return uri_pattern.format(name=self.key)
 
     def add_location(self, platform, path):
+        if not path.startswith("s3://"):
+            path = os.path.abspath(path)
+            path = os.path.normpath(path)
+
         LOG.debug(f"Adding location to {platform}: {path}")
         self.patch([{"op": "add", "path": f"/locations/{platform}", "value": {"path": path}}])
         return path
@@ -141,6 +145,7 @@ class DatasetCatalogueEntry(CatalogueEntry):
 
         if not path.startswith("/") and not path.startswith("s3://"):
             LOG.warning(f"Dataset path is not absolute: {path}")
+            path = os.path.abspath(path)
         if not os.path.exists(path) and not path.startswith("s3://"):
             LOG.warning(f"Dataset path does not exist: {path}")
         if not path.endswith(".zarr") or path.endswith(".zip"):
