@@ -112,6 +112,7 @@ class CatalogueEntry:
     def set_value(self, key, value):
         if not key.startswith("/"):
             key = "/" + key
+            key = key.replace(".", "/")
         self.patch([{"op": "add", "path": key, "value": value}])
 
     def __repr__(self):
