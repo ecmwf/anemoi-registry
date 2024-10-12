@@ -12,6 +12,7 @@ import os
 import yaml
 from anemoi.datasets import open_dataset
 from anemoi.utils.humanize import when
+from anemoi.utils.sanitise import sanitise
 
 from anemoi.registry import config
 from anemoi.registry.rest import RestItemList
@@ -131,14 +132,21 @@ class DatasetCatalogueEntry(CatalogueEntry):
             raise
         task.unregister()
 
-    def set_recipe(self, file):
-        if not os.path.exists(file):
-            raise FileNotFoundError(f"Recipe file not found: {file}")
+    def _file_or_dict(self, file):
+        if isinstance(file, dict):
+            return file
         if not file.endswith(".yaml"):
             LOG.warning("Recipe file extension is not .yaml")
         with open(file) as f:
-            recipe = yaml.safe_load(f)
-        self.patch([{"op": "add", "path": "/recipe", "value": recipe}])
+            return yaml.safe_load(f)
+
+    def set_recipe(self, file):
+        recipe = self._file_or_dict(file)
+        self.patch([{"op": "add", "path": "/metadata/recipe", "value": sanitise(recipe)}])
+
+    def set_variables_metadata(self, file):
+        variables_metadata = self._file_or_dict(file)
+        self.patch([{"op": "add", "path": "/metadata/variables_metadata", "value": variables_metadata}])
 
     def load_from_path(self, path):
         import zarr
