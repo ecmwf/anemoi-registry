@@ -12,6 +12,7 @@ import os
 import yaml
 from anemoi.datasets import open_dataset
 from anemoi.utils.humanize import when
+from anemoi.utils.sanitise import sanitise
 
 from anemoi.registry import config
 from anemoi.registry.rest import RestItemList
@@ -68,6 +69,10 @@ class DatasetCatalogueEntry(CatalogueEntry):
         return uri_pattern.format(name=self.key)
 
     def add_location(self, platform, path):
+        if not path.startswith("s3://"):
+            path = os.path.abspath(path)
+            path = os.path.normpath(path)
+
         LOG.debug(f"Adding location to {platform}: {path}")
         self.patch([{"op": "add", "path": f"/locations/{platform}", "value": {"path": path}}])
         return path
@@ -146,27 +151,28 @@ class DatasetCatalogueEntry(CatalogueEntry):
             raise
         task.unregister()
 
-    def set_recipe(self, recipe):
-        # only for backward compatibility
-        # to support old datasets where the recipe was not stored in the metadata
-        # this is not needed for new datasets and will be removed in the future
-        if not isinstance(recipe, dict):
-            if not os.path.exists(recipe):
-                raise FileNotFoundError(f"Recipe file not found: {recipe}")
-            if not recipe.endswith(".yaml"):
-                LOG.warning("Recipe file extension is not .yaml")
-            with open(recipe) as f:
-                recipe = yaml.safe_load(f)
-                assert isinstance(recipe, dict), f"Recipe must be a dictionary, got {type(recipe)}"
-        # end of backward compatibility
+    def _file_or_dict(self, file):
+        if isinstance(file, dict):
+            return file
+        if not file.endswith(".yaml"):
+            LOG.warning("Recipe file extension is not .yaml")
+        with open(file) as f:
+            return yaml.safe_load(f)
 
-        self.patch([{"op": "add", "path": "/recipe", "value": recipe}])
+    def set_recipe(self, file):
+        recipe = self._file_or_dict(file)
+        self.patch([{"op": "add", "path": "/metadata/recipe", "value": sanitise(recipe)}])
+
+    def set_variables_metadata(self, file):
+        variables_metadata = self._file_or_dict(file)
+        self.patch([{"op": "add", "path": "/metadata/variables_metadata", "value": variables_metadata}])
 
     def load_from_path(self, path):
         import zarr
 
         if not path.startswith("/") and not path.startswith("s3://"):
             LOG.warning(f"Dataset path is not absolute: {path}")
+            path = os.path.abspath(path)
         if not os.path.exists(path) and not path.startswith("s3://"):
             raise ValueError(f"Dataset path does not exist: {path}")
         if not path.endswith(".zarr") or path.endswith(".zip"):

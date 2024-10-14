@@ -143,7 +143,7 @@ class Rest:
 
             exception_handler = errors.get(e.response.status_code)
             errcode = e.response.status_code
-            LOG.debug("HTTP error: ", errcode, exception_handler)
+            LOG.debug("HTTP error: %s %s", errcode, exception_handler)
             if exception_handler:
                 raise exception_handler(e)
             else:
