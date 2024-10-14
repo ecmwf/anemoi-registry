@@ -24,6 +24,7 @@ of the *Anemoi* packages.
 
 -  :doc:`installing`
 -  :doc:`configuring`
+-  :doc:`naming-conventions`
 
 .. toctree::
    :maxdepth: 1
