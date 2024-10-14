@@ -11,9 +11,13 @@ Keep it human-readable, your future self will thank you!
 ## [Unreleased]
 
 ### Added
+
+- Add anemoi-transform link to documentation
 - CI workflows to check for updates in the changelog and the documentation.
+- Support for "anemoi-datasets publish"
 - Added set from file (python only)
 - Force full paths when registering
+
 
 ### Changed
 - Replaces the deploy workflow with cd-pypi

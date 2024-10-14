@@ -37,6 +37,25 @@ class DatasetCatalogueEntry(CatalogueEntry):
     collection = COLLECTION
     main_key = "name"
 
+    @classmethod
+    def publish(cls, path):
+        PLATFORM = config()["datasets_platform"]
+        STATUS = "experimental"
+
+        entry = DatasetCatalogueEntry(path=path)
+        entry.register()
+        entry.set_status(STATUS)
+
+        recipe = entry.record["metadata"].get("recipe", {})
+        if recipe:
+            entry.set_recipe(recipe)
+        else:
+            LOG.warning("No recipe found in metadata.")
+
+        target = entry.build_location_path(PLATFORM)
+        entry.upload(path, target, platform=PLATFORM)
+        entry.add_location(PLATFORM, target)
+
     def set_status(self, status):
         self.patch([{"op": "add", "path": "/status", "value": status}])
 
@@ -155,9 +174,9 @@ class DatasetCatalogueEntry(CatalogueEntry):
             LOG.warning(f"Dataset path is not absolute: {path}")
             path = os.path.abspath(path)
         if not os.path.exists(path) and not path.startswith("s3://"):
-            LOG.warning(f"Dataset path does not exist: {path}")
+            raise ValueError(f"Dataset path does not exist: {path}")
         if not path.endswith(".zarr") or path.endswith(".zip"):
-            LOG.warning("Dataset path extension is neither .zarr nor .zip")
+            raise ValueError(f"Dataset path extension is not supported ({path})")
 
         name, _ = os.path.splitext(os.path.basename(path))
 

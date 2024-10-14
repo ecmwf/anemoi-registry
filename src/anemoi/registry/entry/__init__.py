@@ -37,6 +37,9 @@ class CatalogueEntry:
     def url(self):
         return f"{config()['web_url']}/{self.collection}/{self.key}"
 
+    def load_from_path(self, path):
+        raise NotImplementedError("Subclasses must implement this method")
+
     def __init__(self, key=None, path=None, must_exist=True):
         assert key is not None or path is not None, "key or path must be provided"
         assert key is None or path is None, "key and path are mutually exclusive"
@@ -89,7 +92,7 @@ class CatalogueEntry:
             return self.rest_collection.post(self.record)
         except AlreadyExists:
             if overwrite is True:
-                LOG.warning(f"{self.key} already exists. Deleting existing one to overwrite it.")
+                LOG.warning(f"{self.key} already exists. Overwriting existing one.")
                 return self.rest_item.put(self.record)
             if ignore_existing:
                 LOG.info(f"{self.key} already exists. Ok.")
@@ -112,6 +115,7 @@ class CatalogueEntry:
     def set_value(self, key, value):
         if not key.startswith("/"):
             key = "/" + key
+            key = key.replace(".", "/")
         self.patch([{"op": "add", "path": key, "value": value}])
 
     def __repr__(self):
