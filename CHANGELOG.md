@@ -17,6 +17,7 @@ Keep it human-readable, your future self will thank you!
 - Support for "anemoi-datasets publish"
 - Added set from file (python only)
 - Force full paths when registering
+- Added naming conventions
 
 
 ### Changed
