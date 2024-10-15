@@ -32,6 +32,7 @@ of the *Anemoi* packages.
 
    installing
    configuring
+   naming-conventions
 
 **Command line tool**
 
