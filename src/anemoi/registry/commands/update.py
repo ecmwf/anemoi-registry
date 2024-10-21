@@ -159,7 +159,7 @@ class Update:
                 entry_set_value("/metadata/updated", updated + 1)
 
         if "constant_fields" in entry.record["metadata"] and "variables_metadata" in entry.record["metadata"]:
-            LOG.info("%s, setting `variables_metadata` and `constant_fields`")
+            LOG.info("%s, checking `variables_metadata` and `constant_fields`", name)
             constants = entry.record["metadata"]["constant_fields"]
             variables_metadata = entry.record["metadata"]["variables_metadata"]
 
@@ -178,6 +178,8 @@ class Update:
             if changed:
                 entry_set_value("/metadata/variables_metadata", variables_metadata)
                 entry_set_value("/metadata/updated", updated + 1)
+            else:
+                LOG.info("No changes required")
 
         if "variables_metadata" not in entry.record["metadata"] or args.force:
             LOG.info("%s, setting `variables_metadata`  🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥", name)
