@@ -308,7 +308,6 @@ class Update:
 
         z = zarr.open(path, mode="a")
         LOG.info(f"Updating metadata: {name}")
-        z.attrs.clear()
         z.attrs.update(entry_metadata)
 
 
