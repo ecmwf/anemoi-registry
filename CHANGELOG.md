@@ -25,6 +25,7 @@ Keep it human-readable, your future self will thank you!
 
 ### Changed
 - Replaces the deploy workflow with cd-pypi
+- Update copyright notice
 
 ### Removed
 
