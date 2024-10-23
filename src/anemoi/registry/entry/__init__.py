@@ -40,7 +40,7 @@ class CatalogueEntry:
     def load_from_path(self, path):
         raise NotImplementedError("Subclasses must implement this method")
 
-    def __init__(self, key=None, path=None, must_exist=True):
+    def __init__(self, key=None, path=None, must_exist=True, params=None):
         assert key is not None or path is not None, "key or path must be provided"
         assert key is None or path is None, "key and path are mutually exclusive"
 
@@ -50,7 +50,7 @@ class CatalogueEntry:
         if key is not None:
             if self.key_exists(key):
                 # found in catalogue so load it
-                self.load_from_key(key)
+                self.load_from_key(key, params=params)
             else:
                 # not found in catalogue, so create a new one
                 if must_exist:
@@ -74,11 +74,11 @@ class CatalogueEntry:
     def exists(self):
         return self.rest_item.exists()
 
-    def load_from_key(self, key):
+    def load_from_key(self, key, params=None):
         rest_item = RestItem(self.collection, key)
         if rest_item.exists():
             self.key = key
-            self.record = rest_item.get()
+            self.record = rest_item.get(params=params)
         else:
             raise CatalogueEntryNotFound(f"Could not find any {self.collection} with key={key}")
 

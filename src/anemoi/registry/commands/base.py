@@ -36,8 +36,7 @@ class BaseCommand(Command):
             return False
 
     def process_task(self, entry, args, k, func_name=None, /, _skip_if_not_found=False, **kwargs):
-        """
-        Call the method `k` on the entry object.
+        """Call the method `k` on the entry object.
         The args/kwargs given to the method are extracted from from the argument `k` in the `args` object.
 
         Additionally the argument `k` is casted to the correct type,
