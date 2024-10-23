@@ -19,6 +19,7 @@ Keep it human-readable, your future self will thank you!
 - Added 'update' command
 - Force full paths when registering
 - Added naming conventions
+- Fix docstring errors
 
 
 ### Changed
