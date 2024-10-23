@@ -20,6 +20,7 @@ Keep it human-readable, your future self will thank you!
 - Force full paths when registering
 - Added naming conventions
 - Fix docstring errors
+- Fix import errors [#18](https://github.com/ecmwf/anemoi-registry/pull/18)
 
 
 ### Changed
