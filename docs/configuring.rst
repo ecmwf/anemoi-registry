@@ -8,7 +8,7 @@ The following configuration files are used to store the registry
 configuration. These files allow configuring the catalogue urls, s3
 buckets, API token and object storage credentials.
 
-The first config file is ``~/.config/anemoi/config.toml``. All keys in
+The first config file is ``~/.config/anemoi/settings.toml``. All keys in
 this file are optional and have default values.
 
 .. code::
@@ -16,9 +16,10 @@ this file are optional and have default values.
    [registry]
    api_url = "https://anemoi.ecmwf.int/api/v1"
 
-The second config file is ``~/.config/anemoi/config.secret.toml``. This
-file must have the right permissions set to avoid unauthorized access
-(`chmod 600 <filename>`). All keys in this file have no default values.
+The second config file is ``~/.config/anemoi/settings.secrets.toml``.
+This file must have the right permissions set to avoid unauthorized
+access (`chmod 600 <filename>`). All keys in this file have no default
+values.
 
 .. code::
 

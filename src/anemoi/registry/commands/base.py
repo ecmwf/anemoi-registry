@@ -1,12 +1,12 @@
-#!/usr/bin/env python
-# (C) Copyright 2024 ECMWF.
+# (C) Copyright 2024 Anemoi contributors.
 #
 # This software is licensed under the terms of the Apache Licence Version 2.0
 # which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+#
 # In applying this licence, ECMWF does not waive the privileges and immunities
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
-#
+
 
 """Command place holder. Delete when we have real commands.
 
@@ -36,8 +36,7 @@ class BaseCommand(Command):
             return False
 
     def process_task(self, entry, args, k, func_name=None, /, _skip_if_not_found=False, **kwargs):
-        """
-        Call the method `k` on the entry object.
+        """Call the method `k` on the entry object.
         The args/kwargs given to the method are extracted from from the argument `k` in the `args` object.
 
         Additionally the argument `k` is casted to the correct type,

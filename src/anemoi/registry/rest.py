@@ -1,9 +1,12 @@
-# (C) Copyright 2023 European Centre for Medium-Range Weather Forecasts.
+# (C) Copyright 2024 Anemoi contributors.
+#
 # This software is licensed under the terms of the Apache Licence Version 2.0
 # which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+#
 # In applying this licence, ECMWF does not waive the privileges and immunities
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
+
 
 import datetime
 import logging
@@ -116,6 +119,9 @@ class Rest:
     def delete(self, path, errors={}):
         if not config().get("allow_delete"):
             raise ValueError("Unregister not allowed")
+        return self.unprotected_delete(path, errors=errors)
+
+    def unprotected_delete(self, path, errors={}):
         r = self.session.delete(f"{config().api_url}/{path}", params=dict(force=True))
         self.raise_for_status(r, errors=errors)
         return r.json()
@@ -142,7 +148,7 @@ class Rest:
 
             exception_handler = errors.get(e.response.status_code)
             errcode = e.response.status_code
-            LOG.debug("HTTP error: ", errcode, exception_handler)
+            LOG.debug("HTTP error: %s %s", errcode, exception_handler)
             if exception_handler:
                 raise exception_handler(e)
             else:
@@ -177,6 +183,9 @@ class RestItem:
 
     def delete(self):
         return self.rest.delete(self.path)
+
+    def unprotected_delete(self):
+        return self.rest.unprotected_delete(self.path)
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.collection}, {self.key})"
