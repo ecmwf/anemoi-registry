@@ -175,6 +175,9 @@ class Update:
                     changed = True
 
             if changed:
+                if args.debug:
+                    with open(f"{name}.variables_metadata.json", "w") as f:
+                        print(json.dumps(variables_metadata, indent=2), file=f)
                 entry_set_value("/metadata/variables_metadata", variables_metadata)
                 entry_set_value("/metadata/updated", updated + 1)
             else:
@@ -197,7 +200,9 @@ class Update:
 
                     with open(f"{tmp}/.zattrs") as f:
                         variables_metadata = yaml.safe_load(f)["variables_metadata"]
-
+                    if args.debug:
+                        with open(f"{name}.variables_metadata.json", "w") as f:
+                            print(json.dumps(variables_metadata, indent=2), file=f)
                     LOG.info("Setting variables_metadata %s", name)
                     entry_set_value("/metadata/variables_metadata", variables_metadata)
                     entry_set_value("/metadata/updated", updated + 1)
@@ -210,6 +215,9 @@ class Update:
             ds = open_dataset(name)
             constant_fields = ds.computed_constant_fields()
             LOG.info("%s", constant_fields)
+            if args.debug:
+                with open(f"{name}.constant_fields.json", "w") as f:
+                    print(json.dumps(constant_fields, indent=2), file=f)
             entry_set_value("/metadata/constant_fields", constant_fields)
             entry_set_value("/metadata/updated", updated + 1)
 
