@@ -75,11 +75,13 @@ class TransferDatasetWorker(Worker):
         auto_register=True,
         threads=1,
         filter_tasks={},
+        source=None,  # Source is optional, this is why it is not the first parameter
         **kwargs,
     ):
         super().__init__(**kwargs)
 
         self.destination = destination
+        self.source = source
         self.target_dir = target_dir
         self.published_target_dir = published_target_dir
         self.threads = threads
@@ -90,6 +92,8 @@ class TransferDatasetWorker(Worker):
 
         self.filter_tasks.update(filter_tasks)
         self.filter_tasks["destination"] = self.destination
+        if self.source:
+            self.filter_tasks["source"] = self.source
 
         if not self.destination:
             raise ValueError("No destination platform specified")

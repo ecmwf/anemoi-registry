@@ -41,6 +41,7 @@ class WorkerCommand(BaseCommand):
         )
         transfer.add_argument("--published-target-dir", help="The target directory published in the catalogue.")
         transfer.add_argument("--destination", help="Platform destination (e.g. leonardo, lumi, marenostrum)")
+        transfer.add_argument("--source", help="Platform source (e.g. leonardo, lumi, marenostrum)")
         transfer.add_argument("--threads", help="Number of threads to use", type=int)
         transfer.add_argument("--filter-tasks", help="Filter tasks to process (key=value list)", nargs="*", default=[])
 
