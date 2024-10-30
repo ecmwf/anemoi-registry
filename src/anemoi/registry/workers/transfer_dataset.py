@@ -94,7 +94,11 @@ class TransferDatasetWorker(Worker):
         if not self.destination:
             raise ValueError("No destination platform specified")
 
-        if not os.path.exists(self.target_dir) and not self.target_dir.startswith("s3://"):
+        if (
+            not os.path.exists(self.target_dir)
+            and not self.target_dir.startswith("s3://")
+            and not self.target_dir.startswith("ssh://")
+        ):
             raise ValueError(f"Target directory {self.target_dir} must already exist")
 
     def worker_process_task(self, task):
