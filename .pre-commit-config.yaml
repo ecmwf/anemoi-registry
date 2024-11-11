@@ -53,11 +53,6 @@ repos:
   hooks:
   - id: rstfmt
     exclude: 'cli/.*' # Because we use argparse
-- repo: https://github.com/b8raoult/pre-commit-docconvert
-  rev: "0.1.5"
-  hooks:
-  - id: docconvert
-    args: ["numpy"]
 - repo: https://github.com/b8raoult/optional-dependencies-all
   rev: "0.0.6"
   hooks:
