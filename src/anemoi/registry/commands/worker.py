@@ -1,12 +1,12 @@
-#!/usr/bin/env python
-# (C) Copyright 2024 ECMWF.
+# (C) Copyright 2024 Anemoi contributors.
 #
 # This software is licensed under the terms of the Apache Licence Version 2.0
 # which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+#
 # In applying this licence, ECMWF does not waive the privileges and immunities
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
-#
+
 
 """Command place holder. Delete when we have real commands.
 
@@ -41,6 +41,7 @@ class WorkerCommand(BaseCommand):
         )
         transfer.add_argument("--published-target-dir", help="The target directory published in the catalogue.")
         transfer.add_argument("--destination", help="Platform destination (e.g. leonardo, lumi, marenostrum)")
+        transfer.add_argument("--source", help="Platform source (e.g. leonardo, lumi, marenostrum)")
         transfer.add_argument("--threads", help="Number of threads to use", type=int)
         transfer.add_argument("--filter-tasks", help="Filter tasks to process (key=value list)", nargs="*", default=[])
 
