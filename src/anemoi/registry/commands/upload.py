@@ -36,7 +36,7 @@ class Upload:
         if not UPLOAD_ALLOWED:
             LOG.error("Direct upload not allowed.")
             return
-        from anemoi.utils.s3 import upload
+        from anemoi.utils.remote.s3 import upload
 
         upload(args.path, args.target, overwrite=args.overwrite)
 

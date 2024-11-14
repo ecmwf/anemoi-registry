@@ -30,7 +30,7 @@ class Download:
         command_parser.add_argument("--overwrite", help="Overwrite if already exists.", action="store_true")
 
     def run(self, args):
-        from anemoi.utils.s3 import download
+        from anemoi.utils.remote.s3 import download
 
         target = args.target
 
