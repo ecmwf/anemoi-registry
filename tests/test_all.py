@@ -42,6 +42,12 @@ def setup_module():
 
     if not os.path.exists(DATASET_PATH):
         transfer(DATASET_URL, DATASET_PATH, overwrite=True)
+        import uuid
+
+        import zarr
+
+        z = zarr.open(DATASET_PATH)
+        z.attrs["uuid"] = str(uuid.uuid4())
     assert os.path.exists(DATASET_PATH)
 
     os.symlink(DATASET_PATH, TMP_DATASET_PATH)
