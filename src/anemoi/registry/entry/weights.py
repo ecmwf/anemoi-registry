@@ -12,7 +12,7 @@ import logging
 import os
 
 from anemoi.utils.checkpoints import load_metadata as load_checkpoint_metadata
-from anemoi.utils.s3 import upload
+from anemoi.utils.remote.s3 import upload
 
 from anemoi.registry.rest import RestItemList
 

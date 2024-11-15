@@ -15,9 +15,9 @@ import tempfile
 from getpass import getuser
 
 import yaml
-from anemoi.utils.s3 import delete
-from anemoi.utils.s3 import download
-from anemoi.utils.s3 import upload
+from anemoi.utils.remote.s3 import delete
+from anemoi.utils.remote.s3 import download
+from anemoi.utils.remote.s3 import upload
 
 from anemoi.registry.rest import RestItemList
 

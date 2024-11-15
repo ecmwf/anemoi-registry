@@ -21,7 +21,7 @@ Keep it human-readable, your future self will thank you!
 - Added naming conventions
 - Fix docstring errors
 - Fix import errors [#18](https://github.com/ecmwf/anemoi-registry/pull/18)
-
+- Remove usage of obsolete upload function from anemoi-utils.
 
 ### Changed
 - Replaces the deploy workflow with cd-pypi

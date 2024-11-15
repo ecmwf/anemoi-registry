@@ -98,7 +98,7 @@ class DatasetCatalogueEntry(CatalogueEntry):
             LOG.warning(f"Nothing to delete for {self.key} on platform {platform}")
             return
         if path.startswith("s3://"):
-            from anemoi.utils.s3 import delete
+            from anemoi.utils.remote.s3 import delete
 
             return delete(path + "/")
         else:
@@ -144,7 +144,7 @@ class DatasetCatalogueEntry(CatalogueEntry):
         self.transfer(task, source_path, target, resume=True, threads=2)
 
     def transfer(self, task, source_path, target, resume, threads):
-        from anemoi.utils.s3 import upload
+        from anemoi.utils.remote import transfer
 
         from anemoi.registry.workers.transfer_dataset import Progress
 
@@ -152,7 +152,7 @@ class DatasetCatalogueEntry(CatalogueEntry):
         LOG.info(f"Upload('{source_path}','{target}', resume=True, threads=2)")
         task.set_status("running")
         try:
-            upload(source_path, target, resume=resume, threads=threads, progress=progress)
+            transfer(source_path, target, resume=resume, threads=threads, progress=progress)
         except:
             task.set_status("stopped")
             raise

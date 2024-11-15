@@ -79,11 +79,13 @@ class TransferDatasetWorker(Worker):
         auto_register=True,
         threads=1,
         filter_tasks={},
+        source=None,  # Source is optional, this is why it is not the first parameter
         **kwargs,
     ):
         super().__init__(**kwargs)
 
         self.destination = destination
+        self.source = source
         self.target_dir = target_dir
         self.published_target_dir = published_target_dir
         self.threads = threads
@@ -94,14 +96,22 @@ class TransferDatasetWorker(Worker):
 
         self.filter_tasks.update(filter_tasks)
         self.filter_tasks["destination"] = self.destination
+        if self.source:
+            self.filter_tasks["source"] = self.source
 
         if not self.destination:
             raise ValueError("No destination platform specified")
 
-        if not os.path.exists(self.target_dir) and not self.target_dir.startswith("s3://"):
+        if (
+            not os.path.exists(self.target_dir)
+            and not self.target_dir.startswith("s3://")
+            and not self.target_dir.startswith("ssh://")
+        ):
             raise ValueError(f"Target directory {self.target_dir} must already exist")
 
     def worker_process_task(self, task):
+        from anemoi.utils.remote import transfer
+
         destination, source, dataset = self.parse_task(task)
         entry = DatasetCatalogueEntry(key=dataset)
 
@@ -132,9 +142,6 @@ class TransferDatasetWorker(Worker):
             LOG.error(f"Target path {target_path} already exists, skipping.")
             return
 
-        from anemoi.utils.s3 import download
-        from anemoi.utils.s3 import upload
-
         LOG.info(f"Source path: {source_path}")
         LOG.info(f"Target path: {target_path}")
 
@@ -147,16 +154,14 @@ class TransferDatasetWorker(Worker):
 
         progress = Progress(task, frequency=10)
 
-        if target_path.startswith("s3://"):
-            # upload to S3 uses function upload()
-            LOG.info(f"Upload('{source_path}','{target_path}', resume=True, threads={self.threads})")
-            upload(source_path, target_path, resume=True, threads=self.threads, progress=progress)
-        else:
-            # download to local uses function download() and a temporary path
-            target_tmp_path = os.path.join(self.target_dir + "-downloading", basename)
-            os.makedirs(os.path.dirname(target_tmp_path), exist_ok=True)
-            download(source_path, target_tmp_path, resume=True, threads=self.threads, progress=progress)
-            os.rename(target_tmp_path, target_path)
+        transfer(
+            source_path,
+            target_path,
+            resume=True,
+            threads=self.threads,
+            progress=progress,
+            temporary_target=True,
+        )
 
         if self.auto_register:
             published_target_path = os.path.join(self.published_target_dir, basename)
