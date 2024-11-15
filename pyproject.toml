@@ -42,9 +42,19 @@ dynamic = [ "version" ]
 
 dependencies = [ "anemoi-datasets", "jsonpatch", "requests" ]
 
-optional-dependencies.all = [ "anemoi-registry[s3]" ]
+optional-dependencies.all = [
+  "boto3",
+]
 
-optional-dependencies.dev = [ "anemoi-registry[docs,tests,s3]" ]
+optional-dependencies.dev = [
+  "boto3",
+  "nbsphinx",
+  "pandoc",
+  "pytest",
+  "sphinx",
+  "sphinx-argparse<0.5",
+  "sphinx-rtd-theme",
+]
 
 optional-dependencies.docs = [
   "nbsphinx",
@@ -54,9 +64,13 @@ optional-dependencies.docs = [
   "sphinx-rtd-theme",
 ]
 
-optional-dependencies.s3 = [ "boto3" ]
+optional-dependencies.s3 = [
+  "boto3",
+]
 
-optional-dependencies.tests = [ "pytest" ]
+optional-dependencies.tests = [
+  "pytest",
+]
 
 urls.Documentation = "https://anemoi-registry.readthedocs.io/"
 urls.Homepage = "https://github.com/ecmwf/anemoi-registry/"
