@@ -10,6 +10,8 @@
 import os
 import subprocess
 
+from anemoi.utils.remote import transfer
+
 DATASET = "aifs-ea-an-oper-0001-mars-20p0-1979-1979-6h-v0-testing"
 DATASET_PATH = f"{DATASET}.zarr"
 
@@ -17,6 +19,8 @@ pid = os.getpid()
 
 TMP_DATASET = f"{DATASET}-{pid}"
 TMP_DATASET_PATH = f"{TMP_DATASET}.zarr"
+
+DATASET_URL = "s3://ml-tests/test-data/anemoi-datasets/create/pipe.zarr/"
 
 
 def run(*args):
@@ -37,7 +41,13 @@ def setup_module():
     run("anemoi-registry", "weights", "./dummy-checkpoint.ckpt")
 
     if not os.path.exists(DATASET_PATH):
-        run("anemoi-datasets", "create", "./dummy-recipe-dataset.yaml", DATASET_PATH, "--overwrite")
+        transfer(DATASET_URL, DATASET_PATH, overwrite=True)
+        import uuid
+
+        import zarr
+
+        z = zarr.open(DATASET_PATH)
+        z.attrs["uuid"] = str(uuid.uuid4())
     assert os.path.exists(DATASET_PATH)
 
     os.symlink(DATASET_PATH, TMP_DATASET_PATH)
