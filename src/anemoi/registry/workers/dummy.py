@@ -16,6 +16,8 @@ LOG = logging.getLogger(__name__)
 
 
 class DummyWorker(Worker):
+    """A debug worker that logs the task it receives."""
+
     name = "dummy"
 
     def __init__(self, arg, **kwargs):

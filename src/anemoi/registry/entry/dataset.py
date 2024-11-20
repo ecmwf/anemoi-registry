@@ -28,6 +28,8 @@ COLLECTION = "datasets"
 
 
 class DatasetCatalogueEntryList(RestItemList):
+    """List of dataset catalogue entries."""
+
     def __init__(self, **kwargs):
         super().__init__(COLLECTION, **kwargs)
 
@@ -37,6 +39,8 @@ class DatasetCatalogueEntryList(RestItemList):
 
 
 class DatasetCatalogueEntry(CatalogueEntry):
+    """A dataset catalogue entry."""
+
     collection = COLLECTION
     main_key = "name"
 

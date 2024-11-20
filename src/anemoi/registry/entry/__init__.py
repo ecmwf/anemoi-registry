@@ -28,6 +28,8 @@ class CatalogueEntryNotFound(Exception):
 
 
 class CatalogueEntry:
+    """Base class for a Anemoi catalogue entry."""
+
     record = None
     path = None
     key = None

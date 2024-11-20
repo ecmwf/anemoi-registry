@@ -64,6 +64,8 @@ def trace_info():
 
 
 class Rest:
+    """REST API client."""
+
     def __init__(self):
         self.session = requests.Session()
         self.session.headers.update({"Authorization": f"Bearer {self.token}"})
@@ -154,6 +156,8 @@ class Rest:
 
 
 class RestItem:
+    """Single catalogue entry from REST API."""
+
     def __init__(self, collection, key):
         self.collection = collection
         self.key = key
@@ -188,6 +192,8 @@ class RestItem:
 
 
 class RestItemList:
+    """List of catalogue entries from REST API."""
+
     def __init__(self, collection):
         self.collection = collection
         self.rest = Rest()

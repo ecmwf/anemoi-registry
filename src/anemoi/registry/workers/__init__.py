@@ -25,6 +25,8 @@ LOG = logging.getLogger(__name__)
 
 
 class Worker:
+    """Base class for a worker that processes tasks in the queue."""
+
     name = None
 
     def __init__(

@@ -20,6 +20,12 @@ repos:
   - id: no-commit-to-branch # Prevent committing to main / master
   - id: check-added-large-files # Check for large files added to git
   - id: check-merge-conflict # Check for files that contain merge conflict
+-   repo: https://github.com/pre-commit/pygrep-hooks
+    rev: v1.10.0  # Use the ref you want to point at
+    hooks:
+    -   id: python-use-type-annotations # Check for missing type annotations
+    -   id: python-check-blanket-noqa # Check for # noqa: all
+    -   id: python-no-log-warn # Check for log.warn
 - repo: https://github.com/psf/black-pre-commit-mirror
   rev: 24.10.0
   hooks:
@@ -62,3 +68,17 @@ repos:
   rev: "v2.5.0"
   hooks:
   - id: pyproject-fmt
+-   repo: https://github.com/jshwi/docsig # Check docstrings against function sig
+    rev: v0.60.1
+    hooks:
+    -   id: docsig
+        args:
+        - --ignore-no-params # Allow docstrings without parameters
+        - --check-dunders    # Check dunder methods
+        - --check-overridden # Check overridden methods
+        - --check-protected  # Check protected methods
+        - --check-class      # Check class docstrings
+        - --disable=E113     # Disable empty docstrings
+        - --summary          # Print a summary
+ci:
+  autoupdate_schedule: monthly
