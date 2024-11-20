@@ -226,6 +226,10 @@ class Update:
 
         LOG.info(f"Updating zarr file from catalogue: {path}")
 
+        if not os.path.exists(path):
+            self._error(args, f"File not found: {path}")
+            return
+
         z = zarr.open(path)
         metadata = z.attrs.asdict()
 
