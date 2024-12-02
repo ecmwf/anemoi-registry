@@ -29,6 +29,7 @@ def _shorten(d):
 
 
 class Update:
+    """Update"""
 
     internal = True
     timestamp = True
