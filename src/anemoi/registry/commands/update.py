@@ -163,20 +163,46 @@ def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore,
         if not update or not force:
             return
 
-    if "recipe" not in entry.record["metadata"] or force:
-        LOG.info("%s, setting `constant_fields` 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥", name)
-        if dry_run:
-            LOG.info("Would set recipe %s", name)
-        else:
-            LOG.info("Setting recipe %s", name)
-            recipe["name"] = name
-            entry_set_value("/metadata/recipe", recipe)
-            entry_set_value("/metadata/updated", updated + 1)
+        # Remove stuff added by prepml
+        for k in [
+            "build_dataset",
+            "config_format_version",
+            "config_path",
+            "dataset_status",
+            "ecflow",
+            "metadata",
+            "platform",
+            "reading_chunks",
+            "upload",
+        ]:
+            recipe.pop(k, None)
 
-    if "constant_fields" in entry.record["metadata"] and "variables_metadata" in entry.record["metadata"]:
-        LOG.info("%s, checking `variables_metadata` and `constant_fields`", name)
-        constants = entry.record["metadata"]["constant_fields"]
-        variables_metadata = entry.record["metadata"]["variables_metadata"]
+        if "recipe" not in entry.record["metadata"] or force:
+            LOG.info("%s, setting `recipe` 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥", name)
+            if dry_run:
+                LOG.info("Would set recipe %s", name)
+            else:
+                LOG.info("Setting recipe %s", name)
+                recipe["name"] = name
+                entry_set_value("/metadata/recipe", recipe)
+                entry_set_value("/metadata/updated", updated + 1)
+
+        computed_constant_fields = sorted(open_dataset(name).computed_constant_fields())
+        constant_fields = entry.record["metadata"].get("constant_fields", [])
+        if computed_constant_fields != constant_fields:
+            LOG.info("%s, setting `constant_fields`", name)
+            if dry_run:
+                LOG.info("Would set constant_fields %s", name)
+            else:
+                LOG.info("Setting constant_fields %s", name)
+                entry_set_value("/metadata/constant_fields", computed_constant_fields)
+                entry_set_value("/metadata/updated", updated + 1)
+                entry.record["metadata"]["constant_fields"] = computed_constant_fields
+
+        if "constant_fields" in entry.record["metadata"] and "variables_metadata" in entry.record["metadata"]:
+            LOG.info("%s, checking `variables_metadata` and `constant_fields`", name)
+            constants = entry.record["metadata"]["constant_fields"]
+            variables_metadata = entry.record["metadata"]["variables_metadata"]
 
         changed = False
         for k, v in variables_metadata.items():
@@ -225,17 +251,6 @@ def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore,
 
             finally:
                 shutil.rmtree(dir)
-
-    if "constant_fields" not in entry.record["metadata"] or force:
-        LOG.info("%s, setting `constant_fields` 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥", name)
-        ds = open_dataset(name)
-        constant_fields = ds.computed_constant_fields()
-        LOG.info("%s", constant_fields)
-        if debug:
-            with open(f"{name}.constant_fields.json", "w") as f:
-                print(json.dumps(constant_fields, indent=2), file=f)
-        entry_set_value("/metadata/constant_fields", constant_fields)
-        entry_set_value("/metadata/updated", updated + 1)
 
 
 def zarr_file_from_catalogue(path, *, dry_run, ignore, _error=print):
