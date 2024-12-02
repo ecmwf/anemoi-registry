@@ -129,7 +129,7 @@ def teardown_module(raise_if_error=True):
         raise e
 
 
-def test_datasets():
+def _test_datasets():
     # assert run("anemoi-registry", "datasets", TMP_DATASET) == 1
     run("anemoi-registry", "datasets", TMP_DATASET)
     run("anemoi-registry", "datasets", TMP_DATASET, "--set-recipe", TMP_RECIPE)
@@ -161,7 +161,7 @@ def test_datasets():
     run("anemoi-registry", "update", "--zarr-file-from-catalogue", TMP_DATASET_PATH, "--force")
 
 
-def test_weights():
+def _test_weights():
     # assert run("anemoi-registry", "weights", "a5275e04-0000-0000-a0f6-be19591b09fe") == 1
     run("anemoi-registry", "weights", "a5275e04-0000-0000-a0f6-be19591b09fe")
     run(
@@ -175,20 +175,20 @@ def test_weights():
     )
 
 
-def test_experiments():
+def _test_experiments():
     run("anemoi-registry", "experiments", "i4df")
     run("anemoi-registry", "experiments", "i4df", "--add-plots", "./dummy-quaver.pdf")
     run("anemoi-registry", "experiments", "i4df", "--add-weights", "./dummy-checkpoint.ckpt")
 
 
-def test_list_commands():
+def _test_list_commands():
     run("anemoi-registry", "list", "experiments")
     run("anemoi-registry", "list", "weights")
     run("anemoi-registry", "list", "datasets")
 
 
 if __name__ == "__main__":
-    test_list_commands()
+    _test_list_commands()
     print()
 
     errors = []
@@ -196,7 +196,7 @@ if __name__ == "__main__":
     print("# Start setup")
     setup_datasets()
     try:
-        test_datasets()
+        _test_datasets()
     finally:
         print("# Start teardown")
         teardown_datasets(errors)
@@ -206,7 +206,7 @@ if __name__ == "__main__":
     print("# Start setup")
     setup_experiments()
     try:
-        test_experiments()
+        _test_experiments()
     finally:
         print("# Start teardown")
         teardown_experiments(errors)
@@ -216,7 +216,7 @@ if __name__ == "__main__":
     print("# Start setup")
     setup_checkpoints()
     try:
-        test_weights()
+        _test_weights()
     finally:
         print("# Start teardown")
         teardown_checkpoints(errors)
