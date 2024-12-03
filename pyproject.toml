@@ -8,20 +8,13 @@
 # nor does it submit to any jurisdiction.
 
 [build-system]
-requires = [
-  "setuptools>=60",
-  "setuptools-scm>=8",
-]
+requires = [ "setuptools>=60", "setuptools-scm>=8" ]
 
 [project]
 name = "anemoi-registry"
 
 description = "A package to manage a registry or data-driven forecasts."
-keywords = [
-  "ai",
-  "registry",
-  "tools",
-]
+keywords = [ "ai", "registry", "tools" ]
 
 license = { file = "LICENSE" }
 authors = [
@@ -45,15 +38,9 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 
-dynamic = [
-  "version",
-]
+dynamic = [ "version" ]
 
-dependencies = [
-  "anemoi-datasets",
-  "jsonpatch",
-  "requests",
-]
+dependencies = [ "anemoi-datasets", "jsonpatch", "requests" ]
 
 optional-dependencies.all = [
   "boto3",
@@ -92,9 +79,7 @@ urls.Repository = "https://github.com/ecmwf/anemoi-registry/"
 scripts.anemoi-registry = "anemoi.registry.__main__:main_PYTHON_ARGCOMPLETE_OK"
 
 [tool.setuptools.package-data]
-"anemoi.registry" = [
-  "*.yaml",
-]
+"anemoi.registry" = [ "*.yaml" ]
 
 [tool.setuptools_scm]
 version_file = "src/anemoi/registry/_version.py"

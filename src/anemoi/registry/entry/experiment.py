@@ -31,6 +31,8 @@ LOG = logging.getLogger(__name__)
 
 
 class ExperimentCatalogueEntryList(RestItemList):
+    """List of ExperimentCatalogueEntry objects."""
+
     def __init__(self, **kwargs):
         super().__init__(COLLECTION, **kwargs)
 
@@ -40,6 +42,8 @@ class ExperimentCatalogueEntryList(RestItemList):
 
 
 class ExperimentCatalogueEntry(CatalogueEntry):
+    """Catalogue entry for an experiment."""
+
     collection = COLLECTION
     main_key = "expver"
 

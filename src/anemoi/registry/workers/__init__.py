@@ -17,6 +17,7 @@ import time
 from anemoi.utils.humanize import when
 
 from anemoi.registry import config
+from anemoi.registry.tasks import TaskCatalogueEntry
 from anemoi.registry.tasks import TaskCatalogueEntryList
 
 # from anemoi.utils.provenance import trace_info
@@ -25,6 +26,8 @@ LOG = logging.getLogger(__name__)
 
 
 class Worker:
+    """Base class for a worker that processes tasks in the queue."""
+
     name = None
 
     def __init__(
@@ -129,7 +132,8 @@ class Worker:
             thread.join()
 
     @classmethod
-    def parse_task(cls, task, *keys):
+    def parse_task(cls, task: TaskCatalogueEntry, *keys: list[str]):
+        """Parse a task (from the catalogue) and return a list of values for the given keys."""
         data = task.record.copy()
         assert isinstance(data, dict), data
 
@@ -206,6 +210,7 @@ def run_worker(action, **kwargs):
 
     from .delete_dataset import DeleteDatasetWorker
     from .transfer_dataset import TransferDatasetWorker
+    from .update_dataset import UpdateDatasetWorker
 
     workers_config = config().get("workers", {})
     worker_config = workers_config.get(action, {})
@@ -229,6 +234,7 @@ def run_worker(action, **kwargs):
     cls = {
         "transfer-dataset": TransferDatasetWorker,
         "delete-dataset": DeleteDatasetWorker,
+        "update-dataset": UpdateDatasetWorker,
         "dummy": DummyWorker,
     }[action]
     cls(**kwargs).run()
