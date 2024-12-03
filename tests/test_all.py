@@ -80,8 +80,8 @@ def setup_datasets():
     print("# Setup done")
 
 
-def setup_module():
-    teardown_module(raise_if_error=False)
+def _setup_module():
+    _teardown_module(raise_if_error=False)
     setup_experiments()
     setup_checkpoints()
     setup_datasets()
@@ -118,7 +118,7 @@ def teardown_datasets(errors):
         errors.append(e)
 
 
-def teardown_module(raise_if_error=True):
+def _teardown_module(raise_if_error=True):
     errors = []
     teardown_experiments(errors)
     teardown_checkpoints(errors)
@@ -185,10 +185,6 @@ def _test_list_commands():
     run("anemoi-registry", "list", "experiments")
     run("anemoi-registry", "list", "weights")
     run("anemoi-registry", "list", "datasets")
-
-
-def test_print():
-    print("test")
 
 
 if __name__ == "__main__":
