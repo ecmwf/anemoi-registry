@@ -187,6 +187,10 @@ def _test_list_commands():
     run("anemoi-registry", "list", "datasets")
 
 
+def test_print():
+    print("test")
+
+
 if __name__ == "__main__":
     _test_list_commands()
     print()
