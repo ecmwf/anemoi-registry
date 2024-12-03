@@ -74,7 +74,7 @@ The tables below provides more details and some examples.
          aifs-od-an-oper-0001-mars-o96-2020-2020-6h-v5
 
    -  -  **frequency**
-      -  1h (could be : 6h)
+      -  1h (could be : 6h, 10m for 10 minutes)
 
    -  -  **version**
 

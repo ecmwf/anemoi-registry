@@ -8,8 +8,12 @@
 # nor does it submit to any jurisdiction.
 
 import os
+import shutil
 import subprocess
+import uuid
 
+import yaml
+import zarr
 from anemoi.utils.remote import transfer
 
 DATASET = "aifs-ea-an-oper-0001-mars-20p0-1979-1979-6h-v0-testing"
@@ -19,6 +23,7 @@ pid = os.getpid()
 
 TMP_DATASET = f"{DATASET}-{pid}"
 TMP_DATASET_PATH = f"{TMP_DATASET}.zarr"
+TMP_RECIPE = f"./{TMP_DATASET}.yaml"
 
 DATASET_URL = "s3://ml-tests/test-data/anemoi-datasets/create/pipe.zarr/"
 
@@ -26,61 +31,108 @@ DATASET_URL = "s3://ml-tests/test-data/anemoi-datasets/create/pipe.zarr/"
 def run(*args):
     print(" ".join(args))
     try:
-        subprocess.check_call(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        result.check_returncode()
     except Exception as e:
+        print("----------------SDTOUT----------------")
+        print(result.stdout)
+        print("----------------SDERR----------------")
+        print(result.stderr)
+        print("-------------------------------------")
         e.add_note = f"Command failed: {' '.join(args)}"
         raise
 
 
-def setup_module():
-    teardown_module(raise_if_error=False)
+def setup_experiments():
     run("anemoi-registry", "experiments", "./dummy-recipe-experiment.yaml", "--register")
     run("anemoi-registry", "experiments", "./dummy-recipe-experiment.yaml")
 
+
+def setup_checkpoints():
     run("anemoi-registry", "weights", "./dummy-checkpoint.ckpt", "--register")
     run("anemoi-registry", "weights", "./dummy-checkpoint.ckpt")
 
+
+def setup_datasets():
+    # cache to avoid downloading the dataset when re-running the tests
     if not os.path.exists(DATASET_PATH):
         transfer(DATASET_URL, DATASET_PATH, overwrite=True)
-        import uuid
-
-        import zarr
-
-        z = zarr.open(DATASET_PATH)
-        z.attrs["uuid"] = str(uuid.uuid4())
     assert os.path.exists(DATASET_PATH)
 
-    os.symlink(DATASET_PATH, TMP_DATASET_PATH)
+    # create a temporary recipe file with the right name in
+    with open("./recipe.yaml", "r") as f:
+        r = yaml.load(f, Loader=yaml.FullLoader)
+    r["name"] = TMP_DATASET
+    with open(TMP_RECIPE, "w") as f:
+        yaml.dump(r, f)
+
+    # set new uuid to the tmp dataset
+    shutil.copytree(DATASET_PATH, TMP_DATASET_PATH)
+    z = zarr.open(TMP_DATASET_PATH)
+    z.attrs["uuid"] = str(uuid.uuid4())
+
+    # register the dataset
     run("anemoi-registry", "datasets", TMP_DATASET_PATH, "--register")
+
+    # check that the dataset is registered
     run("anemoi-registry", "datasets", TMP_DATASET_PATH)
+
     print("# Setup done")
 
 
-def teardown_module(raise_if_error=True):
-    error = None
+def _setup_module():
+    _teardown_module(raise_if_error=False)
+    setup_experiments()
+    setup_checkpoints()
+    setup_datasets()
+
+
+def teardown_experiments(errors):
+    try:
+        run("anemoi-registry", "experiments", "./dummp-recipe-experiment.yaml", "--unregister")
+    except Exception as e:
+        errors.append(e)
+
+
+def teardown_checkpoints(errors):
     try:
         run("anemoi-registry", "weights", "a5275e04-0000-0000-a0f6-be19591b09fe", "--unregister")
     except Exception as e:
-        error = e
+        errors.append(e)
 
-    try:
-        run("anemoi-registry", "experiments", "./dummy-recipe-experiment.yaml", "--unregister")
-    except Exception as e:
-        error = e
 
+def teardown_datasets(errors):
     try:
         run("anemoi-registry", "datasets", TMP_DATASET, "--unregister")
-        os.remove(TMP_DATASET_PATH)
     except Exception as e:
-        error = e
-    if error and raise_if_error:
-        raise error
+        errors.append(e)
+
+    try:
+        os.remove(TMP_RECIPE)
+    except Exception as e:
+        errors.append(e)
+
+    try:
+        shutil.rmtree(TMP_DATASET_PATH)
+    except Exception as e:
+        errors.append(e)
 
 
-def test_datasets():
+def _teardown_module(raise_if_error=True):
+    errors = []
+    teardown_experiments(errors)
+    teardown_checkpoints(errors)
+    teardown_datasets(errors)
+    if errors and raise_if_error:
+        for e in errors:
+            print(e)
+        raise e
+
+
+def _test_datasets():
     # assert run("anemoi-registry", "datasets", TMP_DATASET) == 1
     run("anemoi-registry", "datasets", TMP_DATASET)
-    run("anemoi-registry", "datasets", TMP_DATASET, "--set-recipe", "./dummy-recipe-dataset.yaml")
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-recipe", TMP_RECIPE)
     run("anemoi-registry", "datasets", TMP_DATASET, "--set-status", "testing")
     run(
         "anemoi-registry",
@@ -102,11 +154,14 @@ def test_datasets():
     )
     run("anemoi-registry", "datasets", TMP_DATASET, "--add-location", "ewc")
 
-    # do not upload the dataset to avoid polluting the s3 bucket, until we have a way to clean it up automatically
-    # run("anemoi-registry", "datasets", TMP_DATASET_PATH, "--add-location", "ewc", "--upload")
+    # This is poluting the s3 bucket, we should have a way to clean it up automatically
+    run("anemoi-registry", "datasets", TMP_DATASET_PATH, "--add-location", "ewc", "--upload")
+
+    run("anemoi-registry", "update", "--catalogue-from-recipe-file", TMP_RECIPE, "--force", "--update")
+    run("anemoi-registry", "update", "--zarr-file-from-catalogue", TMP_DATASET_PATH, "--force")
 
 
-def test_weights():
+def _test_weights():
     # assert run("anemoi-registry", "weights", "a5275e04-0000-0000-a0f6-be19591b09fe") == 1
     run("anemoi-registry", "weights", "a5275e04-0000-0000-a0f6-be19591b09fe")
     run(
@@ -120,32 +175,57 @@ def test_weights():
     )
 
 
-def test_experiments():
+def _test_experiments():
     run("anemoi-registry", "experiments", "i4df")
     run("anemoi-registry", "experiments", "i4df", "--add-plots", "./dummy-quaver.pdf")
     run("anemoi-registry", "experiments", "i4df", "--add-weights", "./dummy-checkpoint.ckpt")
 
 
-def test_list_commands():
+def _test_list_commands():
     run("anemoi-registry", "list", "experiments")
     run("anemoi-registry", "list", "weights")
     run("anemoi-registry", "list", "datasets")
 
 
+def test_print():
+    print("test")
+
+
 if __name__ == "__main__":
-    test_list_commands()
+    _test_list_commands()
+    print()
+
+    errors = []
+
+    print("# Start setup")
+    setup_datasets()
+    try:
+        _test_datasets()
+    finally:
+        print("# Start teardown")
+        teardown_datasets(errors)
+
     print()
 
     print("# Start setup")
-    setup_module()
+    setup_experiments()
     try:
-        print()
-        test_datasets()
-        print()
-        test_weights()
-        print()
-        test_experiments()
-        print()
+        _test_experiments()
     finally:
         print("# Start teardown")
-        teardown_module()
+        teardown_experiments(errors)
+
+    print()
+
+    print("# Start setup")
+    setup_checkpoints()
+    try:
+        _test_weights()
+    finally:
+        print("# Start teardown")
+        teardown_checkpoints(errors)
+
+    if errors:
+        for e in errors:
+            print(e)
+        raise e
