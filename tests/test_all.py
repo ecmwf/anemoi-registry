@@ -157,7 +157,8 @@ def _test_datasets():
     # This is poluting the s3 bucket, we should have a way to clean it up automatically
     run("anemoi-registry", "datasets", TMP_DATASET_PATH, "--add-location", "ewc", "--upload")
 
-    run("anemoi-registry", "update", "--catalogue-from-recipe-file", TMP_RECIPE, "--force", "--update")
+    if os.path.exists("/usr/local/bin/mars"):
+        run("anemoi-registry", "update", "--catalogue-from-recipe-file", TMP_RECIPE, "--force", "--update")
     run("anemoi-registry", "update", "--zarr-file-from-catalogue", TMP_DATASET_PATH, "--force")
 
 
