@@ -193,7 +193,11 @@ class DatasetCatalogueEntry(CatalogueEntry):
         metadata = z.attrs.asdict()
 
         assert "statistics" not in metadata
-        metadata["statistics"] = {k: v.tolist() for k, v in ds.statistics.items()}
+        try:
+            metadata["statistics"] = {k: v.tolist() for k, v in ds.statistics.items()}
+        except AttributeError:
+            metadata["statistics"] = dict(mean=[], stdev=[], minimum=[], maximum=[])
+            LOG.warning("No statistics found in dataset.")
 
         assert "shape" not in metadata
         metadata["shape"] = z.data.shape
