@@ -59,11 +59,6 @@ repos:
   hooks:
   - id: rstfmt
     exclude: 'cli/.*' # Because we use argparse
-- repo: https://github.com/b8raoult/optional-dependencies-all
-  rev: "0.0.6"
-  hooks:
-  - id: optional-dependencies-all
-    args: ["--inplace", "--exclude-keys=dev,docs,tests", "--group=dev=all,docs,tests"]
 - repo: https://github.com/tox-dev/pyproject-fmt
   rev: "v2.5.0"
   hooks:
