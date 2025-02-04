@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Please add your functional changes to the appropriate section in the PR.
 Keep it human-readable, your future self will thank you!
 
+## 0.1.7 (2025-02-04)
+
+<!-- Release notes generated using configuration in .github/release.yml at main -->
+
+## What's Changed
+### Other Changes 🔗
+* feat: accept-datasets-with-no-statistics by @floriankrb in https://github.com/ecmwf/anemoi-registry/pull/41
+* chore: synced file(s) with ecmwf-actions/reusable-workflows by @DeployDuck in https://github.com/ecmwf/anemoi-registry/pull/40
+
+## New Contributors
+* @DeployDuck made their first contribution in https://github.com/ecmwf/anemoi-registry/pull/40
+
+**Full Changelog**: https://github.com/ecmwf/anemoi-registry/compare/0.1.6...0.1.7
+
 ## [Unreleased]
 
 ### Added
