@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Please add your functional changes to the appropriate section in the PR.
 Keep it human-readable, your future self will thank you!
 
+## 0.1.8 (2025-02-05)
+
+<!-- Release notes generated using configuration in .github/release.yml at main -->
+
+## What's Changed
+### Other Changes 🔗
+* chore: synced file(s) with ecmwf-actions/reusable-workflows by @DeployDuck in https://github.com/ecmwf/anemoi-registry/pull/46
+* chore: synced file(s) with ecmwf-actions/reusable-workflows by @DeployDuck in https://github.com/ecmwf/anemoi-registry/pull/48
+
+
+**Full Changelog**: https://github.com/ecmwf/anemoi-registry/compare/0.1.7...0.1.8
+
 ## 0.1.7 (2025-02-04)
 
 <!-- Release notes generated using configuration in .github/release.yml at main -->
