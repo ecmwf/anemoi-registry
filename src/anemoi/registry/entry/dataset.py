@@ -102,6 +102,8 @@ class DatasetCatalogueEntry(CatalogueEntry):
         else:
             LOG.warning(f"Location is not an s3 path: {path}. Delete not implemented.")
 
+        self.remove_location(platform)
+
     def upload(self, source, target, platform="unknown", resume=True):
         LOG.info(f"Uploading from {source} to {target} ")
         assert target.startswith("s3://"), target
