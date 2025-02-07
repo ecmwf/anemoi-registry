@@ -129,8 +129,15 @@ class Experiments(BaseCommand):
             extras=args.archive_extra_metadata,
         )
         self.process_task(entry, args, "get_archive", run_number=args.run_number, platform=args.archive_platform)
-        self.process_task(entry, args, "remove_archive", run_number=args.run_number, platform=args.archive_platform)
-        self.process_task(entry, args, "archive_moved", run_number=args.run_number)
+        self.process_task(
+            entry,
+            args,
+            "remove_archive",
+            run_number=args.run_number,
+            platform=args.archive_platform,
+            _skip_if_not_found=True,
+        )
+        self.process_task(entry, args, "archive_moved", run_number=args.run_number, _skip_if_not_found=True)
         if args.url:
             print(entry.url)
 
