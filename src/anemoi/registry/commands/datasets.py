@@ -62,11 +62,20 @@ class Datasets(BaseCommand):
             default=False,
         )
 
-        command_parser.add_argument("--remove-location", help="Platform name to remove.", metavar="PLATFORM")
         command_parser.add_argument(
-            "--DELETE",
-            help="Delete the dataset when removing a location. Requires --remove-location.",
-            action="store_true",
+            "--remove-location",
+            help="Platform name to remove from the catalogue.",
+            metavar="PLATFORM",
+        )
+        command_parser.add_argument(
+            "--delete-location",
+            help=(
+                "Actually delete the data when removing a location from the catalogue. "
+                "Deletion of the data can take a long time. The location in the calogue is only "
+                "removed when the deletion is successful. Implies --remove-location PLATFORM "
+                "when the deletion is finished."
+            ),
+            metavar="PLATFORM",
         )
 
     def _run(self, entry, args):
@@ -96,7 +105,8 @@ class Datasets(BaseCommand):
         self.process_task(entry, args, "register")
         self.process_task(entry, args, "set_recipe")
         self.process_task(entry, args, "set_status")
-        self.process_task(entry, args, "remove_location", delete=args.DELETE)
+        self.process_task(entry, args, "delete_location")
+        self.process_task(entry, args, "remove_location")
 
         if args.add_local:
             entry.add_location(args.add_local, path=args.NAME_OR_PATH)
