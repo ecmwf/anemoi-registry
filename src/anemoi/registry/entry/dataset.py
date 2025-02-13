@@ -68,7 +68,7 @@ class DatasetCatalogueEntry(CatalogueEntry):
 
     def build_location_path(self, platform, uri_pattern=None):
         if uri_pattern is None:
-            assert platform == config()["datasets_platform"]
+            assert platform == config()["datasets_platform"], (platform, config()["datasets_platform"])
             uri_pattern = config()["datasets_uri_pattern"]
             LOG.debug(f"Using uri pattern from config: {uri_pattern}")
         else:
@@ -84,12 +84,10 @@ class DatasetCatalogueEntry(CatalogueEntry):
         self.patch([{"op": "add", "path": f"/locations/{platform}", "value": {"path": path}}])
         return path
 
-    def remove_location(self, platform, *, delete):
-        if delete:
-            self.delete(platform)
+    def remove_location(self, platform):
         self.patch([{"op": "remove", "path": f"/locations/{platform}"}])
 
-    def delete(self, platform):
+    def delete_location(self, platform):
         if not config().get("allow_delete"):
             raise ValueError("Delete not allowed by configuration")
 
@@ -103,6 +101,8 @@ class DatasetCatalogueEntry(CatalogueEntry):
             return delete(path + "/")
         else:
             LOG.warning(f"Location is not an s3 path: {path}. Delete not implemented.")
+
+        self.remove_location(platform)
 
     def upload(self, source, target, platform="unknown", resume=True):
         LOG.info(f"Uploading from {source} to {target} ")
@@ -192,20 +192,26 @@ class DatasetCatalogueEntry(CatalogueEntry):
 
         metadata = z.attrs.asdict()
 
-        assert "statistics" not in metadata
         try:
             metadata["statistics"] = {k: v.tolist() for k, v in ds.statistics.items()}
         except AttributeError:
             metadata["statistics"] = dict(mean=[], stdev=[], minimum=[], maximum=[])
-            LOG.warning("No statistics found in dataset.")
+            if "statistics" in metadata:
+                LOG.warning("Found statistics in metadata, but not in dataset.")
+                metadata["statistics"] = {k: v.tolist() for k, v in ds.statistics.items()}
+            else:
+                LOG.warning("No statistics found in metadata.")
 
-        assert "shape" not in metadata
+        if "shape" in metadata:
+            assert tuple(metadata["shape"]) == z.data.shape, (metadata["shape"], z.data.shape)
         metadata["shape"] = z.data.shape
 
-        assert "dtype" not in metadata
+        if "dtype" in metadata:
+            assert metadata["dtype"] == str(ds.dtype), (metadata["dtype"], ds.dtype)
         metadata["dtype"] = str(ds.dtype)
 
-        assert "chunks" not in metadata
+        if "chunks" in metadata:
+            assert tuple(metadata["chunks"]) == ds.chunks, (metadata["chunks"], ds.chunks)
         metadata["chunks"] = ds.chunks
 
         self.key = name
