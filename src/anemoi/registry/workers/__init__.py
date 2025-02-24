@@ -25,6 +25,23 @@ from anemoi.registry.tasks import TaskCatalogueEntryList
 LOG = logging.getLogger(__name__)
 
 
+def set_global_timeout(timeout, timeout_exit_code=None):
+    # will raise SIGALRM after `timeout` seconds, which will exit the process with error code 128 + SIGALRM = 142
+    # except if timeout_exit_code is set, in which case it will exit with this code, which could be 0 (success)
+    if not timeout:
+        return
+
+    signal.alarm(timeout)
+
+    if timeout_exit_code is not None:
+
+        def exit_now(*args, **kwargs):
+            print(f"Timeout of {timeout} seconds reached, exiting with code {timeout_exit_code}.")
+            sys.exit(timeout_exit_code)
+
+        signal.signal(signal.SIGALRM, exit_now)
+
+
 class Worker:
     """Base class for a worker that processes tasks in the queue."""
 
@@ -38,6 +55,7 @@ class Worker:
         loop=False,
         check_todo=False,
         timeout=None,
+        timeout_exit_code=None,
         dry_run=False,
     ):
         """Run a worker that will process tasks in the queue.
@@ -51,8 +69,9 @@ class Worker:
         self.dry_run = dry_run
 
         self.wait = wait
-        if timeout:
-            signal.alarm(timeout)
+
+        set_global_timeout(timeout, timeout_exit_code)
+
         self.filter_tasks = {"action": self.name}
 
     def run(self):

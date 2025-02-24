@@ -58,6 +58,7 @@ class WorkerCommand(BaseCommand):
 
         for subparser in [transfer, delete, dummy, update]:
             subparser.add_argument("--timeout", help="Die with timeout (SIGALARM) after TIMEOUT seconds.", type=int)
+            subparser.add_argument("--timeout-exit-code", help="Exit code when timeout is reached")
             subparser.add_argument("--wait", help="Check for new task every WAIT seconds.", type=int)
             subparser.add_argument("--heartbeat", help="Heartbeat interval", type=int)
             subparser.add_argument(
