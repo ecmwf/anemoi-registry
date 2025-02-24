@@ -195,12 +195,11 @@ class DatasetCatalogueEntry(CatalogueEntry):
         try:
             metadata["statistics"] = {k: v.tolist() for k, v in ds.statistics.items()}
         except AttributeError:
-            metadata["statistics"] = dict(mean=[], stdev=[], minimum=[], maximum=[])
             if "statistics" in metadata:
                 LOG.warning("Found statistics in metadata, but not in dataset.")
-                metadata["statistics"] = {k: v.tolist() for k, v in ds.statistics.items()}
             else:
                 LOG.warning("No statistics found in metadata.")
+                metadata["statistics"] = dict(mean=[], stdev=[], minimum=[], maximum=[])
 
         if "shape" in metadata:
             assert tuple(metadata["shape"]) == z.data.shape, (metadata["shape"], z.data.shape)
