@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Please add your functional changes to the appropriate section in the PR.
 Keep it human-readable, your future self will thank you!
 
+## [0.1.8](https://github.com/ecmwf/anemoi-registry/compare/0.1.7...0.1.8) (2025-02-25)
+
+
+### Features
+
+* better dataset deletion ([#49](https://github.com/ecmwf/anemoi-registry/issues/49)) ([449bf8c](https://github.com/ecmwf/anemoi-registry/commit/449bf8ca9156f7f6538ff3d0c26a9a72b8143f6f))
+* self timeout for workers ([#53](https://github.com/ecmwf/anemoi-registry/issues/53)) ([377d9ef](https://github.com/ecmwf/anemoi-registry/commit/377d9ef1f27b76cb524e60f11c746a254f14a1e6))
+
+
+### Documentation
+
+* use new logo ([#51](https://github.com/ecmwf/anemoi-registry/issues/51)) ([1641b5a](https://github.com/ecmwf/anemoi-registry/commit/1641b5ac8a36bcd1ff8ea01df65a1804a56f9deb))
+
 ## 0.1.7 (2025-02-04)
 
 <!-- Release notes generated using configuration in .github/release.yml at main -->
