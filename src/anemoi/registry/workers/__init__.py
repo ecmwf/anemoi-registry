@@ -31,15 +31,22 @@ def set_global_timeout(timeout, timeout_exit_code=None):
     if not timeout:
         return
 
+    if timeout_exit_code is None:
+        timeout_exit_code = 128 + signal.SIGALRM
+
+    timeout_exit_code = int(timeout_exit_code)
+
+    def exit_now(*args, **kwargs):
+        print(f"Timeout of {timeout} seconds reached, exiting with code {timeout_exit_code}.")
+        import os
+
+        os._exit(timeout_exit_code)
+        # Do not use only sys.exit(timeout_exit_code), as it will not exit the threads
+        # os._exit will exit the process immediately, without calling cleanup handlers, flushing stdio buffers, etc.
+        # which is arguably what we want here
+
+    signal.signal(signal.SIGALRM, exit_now)
     signal.alarm(timeout)
-
-    if timeout_exit_code is not None:
-
-        def exit_now(*args, **kwargs):
-            print(f"Timeout of {timeout} seconds reached, exiting with code {timeout_exit_code}.")
-            sys.exit(timeout_exit_code)
-
-        signal.signal(signal.SIGALRM, exit_now)
 
 
 class Worker:
