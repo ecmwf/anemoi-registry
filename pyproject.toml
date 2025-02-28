@@ -52,7 +52,7 @@ optional-dependencies.dev = [
   "pandoc",
   "pytest",
   "sphinx",
-  "sphinx-argparse<0.5",
+  "sphinx-argparse<0.6",
   "sphinx-rtd-theme",
 ]
 
@@ -60,7 +60,7 @@ optional-dependencies.docs = [
   "nbsphinx",
   "pandoc",
   "sphinx",
-  "sphinx-argparse<0.5",
+  "sphinx-argparse<0.6",
   "sphinx-rtd-theme",
 ]
 
