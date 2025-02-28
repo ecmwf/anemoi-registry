@@ -43,11 +43,11 @@ dynamic = [ "version" ]
 dependencies = [ "anemoi-datasets", "jsonpatch", "requests" ]
 
 optional-dependencies.all = [
-  "boto3",
+  "boto3<1.36",
 ]
 
 optional-dependencies.dev = [
-  "boto3",
+  "boto3<1.36",
   "nbsphinx",
   "pandoc",
   "pytest",
@@ -65,7 +65,7 @@ optional-dependencies.docs = [
 ]
 
 optional-dependencies.s3 = [
-  "boto3",
+  "boto3<1.36",
 ]
 
 optional-dependencies.tests = [
