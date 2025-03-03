@@ -9,6 +9,7 @@
 
 import datetime
 import logging
+import os
 import signal
 import sys
 import threading
@@ -52,7 +53,16 @@ class Worker:
 
         self.wait = wait
         if timeout:
+
+            def timeout_handler(signum, frame):
+                # need to kill the process group to make sure all children are killed
+                # especially when using multiprocessing/threads/Popens
+                LOG.warning("Timeout reached, sending SIGHUP to the process group.")
+                os.killpg(os.getpgrp(), signal.SIGHUP)
+
+            signal.signal(signal.SIGALRM, timeout_handler)
             signal.alarm(timeout)
+
         self.filter_tasks = {"action": self.name}
 
     def run(self):
