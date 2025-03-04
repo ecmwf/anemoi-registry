@@ -9,6 +9,7 @@
 
 import datetime
 import logging
+import os
 import signal
 import sys
 import threading
@@ -23,23 +24,6 @@ from anemoi.registry.tasks import TaskCatalogueEntryList
 # from anemoi.utils.provenance import trace_info
 
 LOG = logging.getLogger(__name__)
-
-
-def set_global_timeout(timeout, timeout_exit_code=None):
-    # will raise SIGALRM after `timeout` seconds, which will exit the process with error code 128 + SIGALRM = 142
-    # except if timeout_exit_code is set, in which case it will exit with this code, which could be 0 (success)
-    if not timeout:
-        return
-
-    signal.alarm(timeout)
-
-    if timeout_exit_code is not None:
-
-        def exit_now(*args, **kwargs):
-            print(f"Timeout of {timeout} seconds reached, exiting with code {timeout_exit_code}.")
-            sys.exit(timeout_exit_code)
-
-        signal.signal(signal.SIGALRM, exit_now)
 
 
 class Worker:
@@ -70,7 +54,16 @@ class Worker:
 
         self.wait = wait
 
-        set_global_timeout(timeout, timeout_exit_code)
+        if timeout:
+
+            def timeout_handler(signum, frame):
+                # need to kill the process group to make sure all children are killed
+                # especially when using multiprocessing/threads/Popens
+                LOG.warning("Timeout reached, sending SIGHUP to the process group.")
+                os.killpg(os.getpgrp(), signal.SIGHUP)
+
+            signal.signal(signal.SIGALRM, timeout_handler)
+            signal.alarm(timeout)
 
         self.filter_tasks = {"action": self.name}
 
