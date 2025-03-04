@@ -39,6 +39,7 @@ class Worker:
         loop=False,
         check_todo=False,
         timeout=None,
+        timeout_exit_code=None,
         dry_run=False,
     ):
         """Run a worker that will process tasks in the queue.
@@ -52,6 +53,7 @@ class Worker:
         self.dry_run = dry_run
 
         self.wait = wait
+
         if timeout:
 
             def timeout_handler(signum, frame):
