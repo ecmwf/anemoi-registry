@@ -129,9 +129,7 @@ class BaseCommand(Command):
             entry.set_value(*args.set_metadata, increment_update=True)
         if args.remove_metadata:
             args.remove_metadata = resolve_path(args.remove_metadata)
-            entry.delete_value(args.remove_metadata, increment_update=True)
-            updated = entry.get_value("/metadata/updated")
-            entry.set_value("/metadata/updated", updated + 1)
+            entry.remove_value(args.remove_metadata, increment_update=True)
         # if args.patch:
         #     if len(args.patch) not in (2, 3, 4):
         #         raise ValueError(f"Invalid patch {args.patch}")
