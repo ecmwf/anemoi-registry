@@ -8,13 +8,12 @@
 # nor does it submit to any jurisdiction.
 
 
-"""Command place holder. Delete when we have real commands.
-
-"""
+"""Command place holder. Delete when we have real commands."""
 
 import logging
 import os
 
+from anemoi.registry import config
 from ..entry import CatalogueEntryNotFound
 from . import Command
 
@@ -95,3 +94,65 @@ class BaseCommand(Command):
 
     def run_from_path(self, *args, **kwargs):
         raise NotImplementedError()
+
+    def set_get_remove_metadata(self, entry, args):
+        def resolve_path(path, check=True):
+            # Add /metadata/ to the path if it is not there,
+            # the rest of the catalogue record should not be changed.
+            # But allow to do is anyway if the user configuration allows it.
+
+            def raise_if_needed():
+                if check and not config().get("allow_edit_entries"):
+                    raise ValueError(
+                        "Editing entries is not allowed, only metadata can be changed. "
+                        "Please set value to true in your config file if you know what you are doing."
+                    )
+
+            if path.startswith("../"):
+                raise_if_needed()
+                return path[3:]
+            if path.startswith("..."):
+                raise_if_needed()
+                return path[3:]
+            if path.startswith(".."):
+                raise_if_needed()
+                return path[2:]
+
+            return path if path.startswith("/metadata/") else "/metadata/" + path
+
+        if args.get_metadata:
+            args.get_metadata = resolve_path(args.get_metadata, check=False)
+            print(entry.get_value(args.get_metadata))
+        if args.set_metadata:
+            args.set_metadata[0] = resolve_path(args.set_metadata[0])
+            entry.set_value(*args.set_metadata, increment_update=True)
+        if args.remove_metadata:
+            args.remove_metadata = resolve_path(args.remove_metadata)
+            entry.delete_value(args.remove_metadata, increment_update=True)
+            updated = entry.get_value("/metadata/updated")
+            entry.set_value("/metadata/updated", updated + 1)
+        # if args.patch:
+        #     if len(args.patch) not in (2, 3, 4):
+        #         raise ValueError(f"Invalid patch {args.patch}")
+        #     entry.patch_value(*args.patch, increment_update=True)
+
+    def add_set_get_remove_metadata_arguments(self, command_parser):
+        command_parser.add_argument(
+            "--get-metadata",
+            help=f"Get a metadata value from the {self.kind} catalogue record",
+            metavar="KEY",
+        )
+        command_parser.add_argument(
+            "--set-metadata",
+            help=f"Set a metadata value to the {self.kind} catalogue record (KEY, VALUE, [TYPE])",
+            nargs="+",
+        )
+        command_parser.add_argument(
+            "--remove-metadata",
+            help=f"Delete a metadata value to the {self.kind} catalogue record (KEY)",
+        )
+        # command_parser.add_argument(
+        #    "--patch",
+        #    help="Patch the metadata to the {self.kind} catalogue record (OP, KEY, [VALUE], [TYPE])",
+        #    nargs="+",
+        # )

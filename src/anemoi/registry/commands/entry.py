@@ -8,10 +8,6 @@
 # nor does it submit to any jurisdiction.
 
 
-"""Command place holder. Delete when we have real commands.
-
-"""
-
 import json
 import logging
 import os

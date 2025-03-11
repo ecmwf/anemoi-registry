@@ -8,10 +8,6 @@
 # nor does it submit to any jurisdiction.
 
 
-"""Command place holder. Delete when we have real commands.
-
-"""
-
 import argparse
 import logging
 import os
@@ -39,6 +35,9 @@ class Datasets(BaseCommand):
             action="store_true",
         )
         command_parser.add_argument("--url", help="Print the URL of the dataset.", action="store_true")
+
+        self.add_set_get_remove_metadata_arguments(command_parser)
+
         command_parser.add_argument("--set-status", help="Set the status to the dataset.", metavar="STATUS")
         command_parser.add_argument(
             "--set-recipe", help="Set the recipe file to [re-]build the dataset.", metavar="FILE"
@@ -105,6 +104,7 @@ class Datasets(BaseCommand):
         self.process_task(entry, args, "register")
         self.process_task(entry, args, "set_recipe")
         self.process_task(entry, args, "set_status")
+        self.set_get_remove_metadata(entry, args)
         self.process_task(entry, args, "delete_location")
         self.process_task(entry, args, "remove_location")
 

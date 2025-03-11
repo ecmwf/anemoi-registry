@@ -7,7 +7,9 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 
+import json
 import logging
+import yaml
 
 from anemoi.utils.config import load_any_dict_format
 from anemoi.utils.humanize import json_pretty_dump
@@ -114,11 +116,66 @@ class CatalogueEntry:
         value = load_any_dict_format(file)
         self.set_value(key, value)
 
-    def set_value(self, key, value):
-        if not key.startswith("/"):
-            key = "/" + key
-            key = key.replace(".", "/")
-        self.patch([{"op": "add", "path": key, "value": value}])
+    def get_value(self, key):
+        rec = self.record
+        if key.startswith("/"):
+            key = key[1:]
+            key = ".".join(key.split("/"))
+        key = key.split(".")
+        for p in key:
+            if isinstance(rec, list):
+                rec = rec[int(p)]
+            elif isinstance(rec, dict):
+                rec = rec[p]
+            else:
+                raise ValueError(f"Cannot get value for {key} in {self.record}. {p} is not a key in {rec}")
+        return rec
+
+    def set_value(self, key, value, type_=None, increment_update=False):
+        return self.patch_value("add", key, value=value, type_=type_, increment_update=increment_update)
+
+    def remove_value(self, key, increment_update=False):
+        return self.patch_value("remove", key, increment_update=increment_update)
+
+    def patch_value(self, op, path, value=None, type_=None, from_=None, increment_update=False):
+
+        if not path.startswith("/"):
+            path = "/" + path
+            path = path.replace(".", "/")
+
+        patch = {"op": op, "path": path}
+
+        if op in ("add", "replace", "test"):
+
+            if type_ is not None:
+                # if type provided, cast value to type
+
+                if type_ == "stdin" and value != "-":
+                    raise ValueError(f"Invalid value for type {type_}: Expecting '-', got '{value}'")
+
+                value = {
+                    "int": int,
+                    "float": float,
+                    "bool": bool,
+                    "stdin": load_any_dict_format,
+                    "path": load_any_dict_format,
+                    "yaml": yaml.safe_load,
+                    "json": json.load,
+                }[type_](value)
+
+            patch["value"] = value
+
+        if from_ is not None:
+            patch["from"] = from_
+
+        patches = [patch]
+        if increment_update:
+            updated = self.record["metadata"].get("updated", 0)
+            patches = [{"op": "add", "path": "/metadata/updated", "value": updated + 1}] + patches
+
+        LOG.debug(f"jsonpatch: {patches}")
+
+        self.patch(patches)
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.rest_collection}, {self.key})"
