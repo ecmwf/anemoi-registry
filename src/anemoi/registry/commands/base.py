@@ -14,6 +14,7 @@ import logging
 import os
 
 from anemoi.registry import config
+
 from ..entry import CatalogueEntryNotFound
 from . import Command
 

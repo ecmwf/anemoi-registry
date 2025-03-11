@@ -9,8 +9,8 @@
 
 import json
 import logging
-import yaml
 
+import yaml
 from anemoi.utils.config import load_any_dict_format
 from anemoi.utils.humanize import json_pretty_dump
 
