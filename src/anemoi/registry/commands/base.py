@@ -103,7 +103,9 @@ class BaseCommand(Command):
         def resolve_path(path, check=True):
             # Add /metadata/ to the path if it is not there,
             # the rest of the catalogue record should not be changed.
-            # But allow to do is anyway if the user configuration allows it.
+            # But, if the user configuration allows it, allow to do it anyway with
+            #  - path starting with '//', containing '/' as separators
+            #  - path starting with '...' or '..'
 
             def raise_if_needed():
                 if check and not config().get("allow_edit_entries"):
@@ -112,15 +114,18 @@ class BaseCommand(Command):
                         "Please set value to true in your config file if you know what you are doing."
                     )
 
-            if path.startswith("../"):
-                raise_if_needed()
-                return path[3:]
-            if path.startswith("..."):
-                raise_if_needed()
-                return path[3:]
-            if path.startswith(".."):
+            if path.startswith("//"):
                 raise_if_needed()
                 return path[2:]
+
+            if path.startswith("..."):
+                raise_if_needed()
+                path = path[3:]
+            if path.startswith(".."):
+                raise_if_needed()
+                path = path[2:]
+
+            path = path.replace(".", "/")
 
             return path if path.startswith("/metadata/") else "/metadata/" + path
 

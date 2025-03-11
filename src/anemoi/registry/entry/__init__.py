@@ -116,23 +116,30 @@ class CatalogueEntry:
         value = load_any_dict_format(file)
         self.set_value(key, value)
 
-    def get_value(self, key):
+    def get_value(self, path):
+        # Read a value from the record using a path:
+        # path is a string with keys separated by dots or slashes.
+        # e.g. "metadata.updated" or "metadata/updated"
+        # list indices are also supported, e.g. "metadata.tags.0"
+
         rec = self.record
-        if key.startswith("/"):
-            key = key[1:]
-            key = ".".join(key.split("/"))
-        key = key.split(".")
-        for p in key:
+        for p in self._path_to_list(path):
             if isinstance(rec, list):
                 rec = rec[int(p)]
             elif isinstance(rec, dict):
                 rec = rec[p]
             else:
-                raise ValueError(f"Cannot get value for {key} in {self.record}. {p} is not a key in {rec}")
+                raise KeyError(f"Cannot get value for {path} in {self.record}. {p} is not a key in {rec}")
         return rec
 
-    def set_value(self, key, value, type_=None, increment_update=False):
-        return self.patch_value("add", key, value=value, type_=type_, increment_update=increment_update)
+    def _path_to_list(self, path):
+        if path.startswith("/"):
+            path = path[1:]
+            path = ".".join(path.split("/"))
+        return path.split(".")
+
+    def set_value(self, path, value, type_=None, increment_update=False):
+        return self.patch_value("add", path, value=value, type_=type_, increment_update=increment_update)
 
     def remove_value(self, key, increment_update=False):
         return self.patch_value("remove", key, increment_update=increment_update)
@@ -160,7 +167,7 @@ class CatalogueEntry:
                     "stdin": load_any_dict_format,
                     "path": load_any_dict_format,
                     "yaml": yaml.safe_load,
-                    "json": json.load,
+                    "json": json.loads,
                 }[type_](value)
 
             patch["value"] = value
