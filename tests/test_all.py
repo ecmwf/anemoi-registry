@@ -30,6 +30,7 @@ DATASET_URL = "s3://ml-tests/test-data/anemoi-datasets/create/pipe.zarr/"
 
 def run(*args):
     print(" ".join(args))
+    # input("Press Enter to continue...")
     try:
         result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         result.check_returncode()
