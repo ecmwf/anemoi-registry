@@ -10,6 +10,7 @@
 
 """Command place holder. Delete when we have real commands."""
 
+import json
 import logging
 import os
 
@@ -127,8 +128,13 @@ class BaseCommand(Command):
             key = resolve_path(args.get_metadata[0], check=False)
             value = entry.get_value(key)
             if len(args.get_metadata) > 1:
-                if args.get_metadata[1] == "yaml":
-                    value = yaml.safe_dump(value)
+                value = dict(
+                    yaml=yaml.safe_dump,
+                    json=json.dumps,
+                )[
+                    args.get_metadata[1]
+                ](value)
+
             print(value)
 
         if args.set_metadata:
