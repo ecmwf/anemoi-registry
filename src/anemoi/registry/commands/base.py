@@ -13,6 +13,8 @@
 import logging
 import os
 
+import yaml
+
 from anemoi.registry import config
 
 from ..entry import CatalogueEntryNotFound
@@ -122,14 +124,21 @@ class BaseCommand(Command):
             return path if path.startswith("/metadata/") else "/metadata/" + path
 
         if args.get_metadata:
-            args.get_metadata = resolve_path(args.get_metadata, check=False)
-            print(entry.get_value(args.get_metadata))
+            key = resolve_path(args.get_metadata[0], check=False)
+            value = entry.get_value(key)
+            if len(args.get_metadata) > 1:
+                if args.get_metadata[1] == "yaml":
+                    value = yaml.safe_dump(value)
+            print(value)
+
         if args.set_metadata:
             args.set_metadata[0] = resolve_path(args.set_metadata[0])
             entry.set_value(*args.set_metadata, increment_update=True)
+
         if args.remove_metadata:
             args.remove_metadata = resolve_path(args.remove_metadata)
             entry.remove_value(args.remove_metadata, increment_update=True)
+
         # if args.patch:
         #     if len(args.patch) not in (2, 3, 4):
         #         raise ValueError(f"Invalid patch {args.patch}")
@@ -138,8 +147,8 @@ class BaseCommand(Command):
     def add_set_get_remove_metadata_arguments(self, command_parser):
         command_parser.add_argument(
             "--get-metadata",
-            help=f"Get a metadata value from the {self.kind} catalogue record",
-            metavar="KEY",
+            help=f"Get a metadata value from the {self.kind} catalogue record (KEY, [TYPE])",
+            nargs="+",
         )
         command_parser.add_argument(
             "--set-metadata",
