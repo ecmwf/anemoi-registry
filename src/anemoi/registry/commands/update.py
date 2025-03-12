@@ -127,12 +127,12 @@ def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore,
     from anemoi.datasets import open_dataset
     from anemoi.datasets.create import creator_factory
 
-    def entry_set_value(path, value):
+    def entry_set_value(path, value, **kwargs):
         if dry_run:
             LOG.info(f"Would set value {path} to {_shorten(value)}")
         else:
             LOG.info(f"Setting value {path} to {_shorten(value)}")
-            entry.set_value(path, value)
+            entry.set_value(path, value, **kwargs)
 
     LOG.info(f"Updating catalogue entry from recipe: {path}")
 
