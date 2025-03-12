@@ -119,18 +119,18 @@ class BaseCommand(Command):
         command_parser.add_argument(
             "--get-metadata",
             help=(
-                f"Get a metadata value from the {self.kind} catalogue record (PATH, [TYPE]). "
-                "PATH is a '.' separated path to the value. "
+                f"Get a metadata value from the {self.kind} catalogue record (KEY, [TYPE]). "
+                "KEY is a '.' separated path to the value. "
                 "TYPE is the output format : str (default), yaml, json."
             ),
             nargs="+",
-            metavar=("PATH", "TYPE"),
+            metavar=("KEY", "TYPE"),
         )
         command_parser.add_argument(
             "--set-metadata",
             help=(
-                f"Set a metadata value to the {self.kind} catalogue record (PATH=VALUE, [TYPE]). "
-                "PATH is a '.' separated path to the value. "
+                f"Set a metadata value to the {self.kind} catalogue record (KEY=VALUE, [TYPE]). "
+                "KEY is a '.' separated path to the value. "
                 f"TYPE is the input type : {', '.join(VALUES_PARSERS.keys())}. "
                 "Default type is 'str'. "
                 "TYPE 'int', 'float', 'bool', 'datetime', 'timedelta' cast the VALUE before storing it. "
@@ -139,10 +139,10 @@ class BaseCommand(Command):
                 "TYPE 'stdin' reads the value from the standard input, ignoring the VALUE. "
             ),
             nargs="+",
-            metavar=("PATH=VALUE", "TYPE"),
+            metavar=("KEY=VALUE", "TYPE"),
         )
         command_parser.add_argument(
             "--remove-metadata",
-            help=f"Delete a metadata value to the {self.kind} catalogue record (PATH)",
-            metavar="PATH",
+            help=f"Delete a metadata value to the {self.kind} catalogue record (KEY)",
+            metavar="KEY",
         )
