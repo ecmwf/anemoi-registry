@@ -16,8 +16,7 @@ import os
 
 import yaml
 
-from anemoi.registry import config
-
+from ..entry import VALUES_PARSERS
 from ..entry import CatalogueEntryNotFound
 from . import Command
 
@@ -100,54 +99,20 @@ class BaseCommand(Command):
         raise NotImplementedError()
 
     def set_get_remove_metadata(self, entry, args):
-        def resolve_path(path, check=True):
-            # Add /metadata/ to the path if it is not there,
-            # the rest of the catalogue record should not be changed.
-            # But, if the user configuration allows it, allow to do it anyway with
-            #  - path starting with '//', containing '/' as separators
-            #  - path starting with '...' or '..'
-
-            def raise_if_needed():
-                if check and not config().get("allow_edit_entries"):
-                    raise ValueError(
-                        "Editing entries is not allowed, only metadata can be changed. "
-                        "Please set value to true in your config file if you know what you are doing."
-                    )
-
-            if path.startswith("//"):
-                raise_if_needed()
-                return path[2:]
-
-            if path.startswith("..."):
-                raise_if_needed()
-                path = path[3:]
-            if path.startswith(".."):
-                raise_if_needed()
-                path = path[2:]
-
-            path = path.replace(".", "/")
-
-            return path if path.startswith("/metadata/") else "/metadata/" + path
 
         if args.get_metadata:
-            key = resolve_path(args.get_metadata[0], check=False)
-            value = entry.get_value(key)
+            value = entry.get_value(args.get_metadata[0])
             if len(args.get_metadata) > 1:
-                value = dict(
-                    yaml=yaml.safe_dump,
-                    json=json.dumps,
-                )[
-                    args.get_metadata[1]
-                ](value)
-
+                type_ = args.get_metadata[1]
+                value = dict(str=str, yaml=yaml.safe_dump, json=json.dumps)[type_](value)
             print(value)
 
         if args.set_metadata:
-            args.set_metadata[0] = resolve_path(args.set_metadata[0])
-            entry.set_value(*args.set_metadata, increment_update=True)
+            path, value = args.set_metadata[0].split("=", 1)
+            type_ = args.set_metadata[1] if len(args.set_metadata) > 1 else None
+            entry.set_value(path, value, type_=type_, increment_update=True)
 
         if args.remove_metadata:
-            args.remove_metadata = resolve_path(args.remove_metadata)
             entry.remove_value(args.remove_metadata, increment_update=True)
 
         # if args.patch:
@@ -158,17 +123,33 @@ class BaseCommand(Command):
     def add_set_get_remove_metadata_arguments(self, command_parser):
         command_parser.add_argument(
             "--get-metadata",
-            help=f"Get a metadata value from the {self.kind} catalogue record (KEY, [TYPE])",
+            help=(
+                f"Get a metadata value from the {self.kind} catalogue record (PATH, [TYPE]). "
+                "PATH is a '.' separated path to the value. "
+                "TYPE is the output format : str (default), yaml, json."
+            ),
             nargs="+",
+            metavar=("PATH", "TYPE"),
         )
         command_parser.add_argument(
             "--set-metadata",
-            help=f"Set a metadata value to the {self.kind} catalogue record (KEY, VALUE, [TYPE])",
+            help=(
+                f"Set a metadata value to the {self.kind} catalogue record (PATH=VALUE, [TYPE]). "
+                "PATH is a '.' separated path to the value. "
+                f"TYPE is the input type : {', '.join(VALUES_PARSERS.keys())}. "
+                "Default type is 'str'. "
+                "TYPE 'int', 'float', 'bool', 'datetime', 'timedelta' cast the VALUE before storing it. "
+                "TYPE 'json' and 'yaml' parse the VALUE before storing it. "
+                "TYPE 'path' reads the file provided as VALUE (.json, .yaml, etc). "
+                "TYPE 'stdin' reads the value from the standard input, ignoring the VALUE. "
+            ),
             nargs="+",
+            metavar=("PATH=VALUE", "TYPE"),
         )
         command_parser.add_argument(
             "--remove-metadata",
-            help=f"Delete a metadata value to the {self.kind} catalogue record (KEY)",
+            help=f"Delete a metadata value to the {self.kind} catalogue record (PATH)",
+            metavar="PATH",
         )
         # command_parser.add_argument(
         #    "--patch",

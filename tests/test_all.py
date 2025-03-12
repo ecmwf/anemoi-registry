@@ -148,16 +148,21 @@ def _test_datasets():
         "/the/dataset/path/{name}",
     )
 
-    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST", "{}", "yaml")
-    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.a", "{}", "yaml")
-    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.a.string", "ok")
-    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.a.int", "42", "int")
-    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.a.float", "42", "float")
-    # run("echo", "45", "|", "anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.b", "-", "stdin")
-    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.c", "{a: 43}", "yaml")
-    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.d", "test.json", "path")
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST={}", "yaml")
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.a={}", "yaml")
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.a.string=ok")
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.a.int=42", "int")
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.a.float=42", "float")
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.a.datetime=2015-04-18", "datetime")
+    # run("echo", "45", "|", "anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.b=-", "stdin")
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.c={a: 43}", "yaml")
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.d=test.json", "path")
     actual = Dataset(TMP_DATASET).record["metadata"]["TEST"]
-    expected = {"a": {"string": "ok", "int": 42, "float": 42.0}, "c": {"a": 43}, "d": {"a": 45}}
+    expected = {
+        "a": {"string": "ok", "int": 42, "float": 42.0, "datetime": "2015-04-18T00:00:00"},
+        "c": {"a": 43},
+        "d": {"a": 45},
+    }
     assert actual == expected, (actual, expected)
 
     run("anemoi-registry", "datasets", TMP_DATASET, "--remove-metadata", "TEST")

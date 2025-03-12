@@ -12,6 +12,8 @@ import logging
 
 import yaml
 from anemoi.utils.config import load_any_dict_format
+from anemoi.utils.dates import as_datetime
+from anemoi.utils.dates import as_timedelta
 from anemoi.utils.humanize import json_pretty_dump
 
 from anemoi.registry import config
@@ -23,6 +25,32 @@ from anemoi.registry.rest import RestItemList
 
 
 LOG = logging.getLogger(__name__)
+
+VALUES_PARSERS = {
+    "str": str,
+    "int": int,
+    "float": float,
+    "bool": bool,
+    "stdin": load_any_dict_format,
+    "path": load_any_dict_format,
+    "yaml": yaml.safe_load,
+    "json": json.loads,
+    "datetime": as_datetime,
+    "timedelta": as_timedelta,
+}
+
+
+def parse_value(value, type_):
+    if type_ is None:
+        return value
+
+    if type_ == "stdin" and value != "-":
+        raise ValueError(f"Invalid value for type {type_}: Expecting '-', got '{value}'")
+
+    if type_ not in VALUES_PARSERS:
+        raise ValueError(f"Invalid type {type_}. Supported types are: {list(VALUES_PARSERS.keys())}")
+
+    return VALUES_PARSERS[type_](value)
 
 
 class CatalogueEntryNotFound(Exception):
@@ -112,15 +140,55 @@ class CatalogueEntry:
     def unregister(self):
         return self.rest_item.delete()
 
-    def set_value_from_file(self, key, file):
-        value = load_any_dict_format(file)
-        self.set_value(key, value)
+    @classmethod
+    def resolve_path(cls, path, check=True):
+        # Add /metadata/ to the path if it is not there, because the rest of the catalogue record should not be changed.
+        # But, if the user configuration allows it, allow to top level paths anyway with
+        #  - path starting with '//', containing '/' as separators
+        #  - path starting with '...' or '..'
+
+        def raise_if_needed(p):
+            if p.startswith("/metadata/"):
+                return p
+            if check and not config().get("allow_edit_entries"):
+                raise ValueError(
+                    "Editing entries is not allowed, only metadata can be changed. "
+                    "Please set value to true in your config file if you know what you are doing."
+                )
+            return p
+
+        if path.startswith("/"):
+            # This is a top level path
+            # separator is now '/' and path is absolute
+            return raise_if_needed(path)
+
+        if path.startswith("."):
+            path = path.replace(".", "/")
+            # This is a top level path
+            # separator is now '/' and path is absolute
+            return raise_if_needed(path)
+
+        if "/" not in path:
+            path = path.replace(".", "/")
+
+        path = "/metadata/" + path
+
+        # separator is now '/' and path is absolute
+        return raise_if_needed(path)
+
+    def _path_to_list(self, path):
+        parts = path.split("/")
+        if parts[0] == "":
+            parts = parts[1:]
+        return parts
 
     def get_value(self, path):
         # Read a value from the record using a path:
         # path is a string with keys separated by dots or slashes.
         # e.g. "metadata.updated" or "metadata/updated"
         # list indices are also supported, e.g. "metadata.tags.0"
+
+        path = self.resolve_path(path, check=False)
 
         rec = self.record
         for p in self._path_to_list(path):
@@ -132,46 +200,28 @@ class CatalogueEntry:
                 raise KeyError(f"Cannot get value for {path} in {self.record}. {p} is not a key in {rec}")
         return rec
 
-    def _path_to_list(self, path):
-        if path.startswith("/"):
-            path = path[1:]
-            path = ".".join(path.split("/"))
-        return path.split(".")
-
     def set_value(self, path, value, type_=None, increment_update=False):
+        path = self.resolve_path(path)
         return self.patch_value("add", path, value=value, type_=type_, increment_update=increment_update)
 
-    def remove_value(self, key, increment_update=False):
-        return self.patch_value("remove", key, increment_update=increment_update)
+    def set_value_from_file(self, path, file):
+        value = load_any_dict_format(file)
+        self.set_value(path, value)
+
+    def remove_value(self, path, increment_update=False):
+        path = self.resolve_path(path)
+        return self.patch_value("remove", path, increment_update=increment_update)
 
     def patch_value(self, op, path, value=None, type_=None, from_=None, increment_update=False):
-
-        if not path.startswith("/"):
-            path = "/" + path
-            path = path.replace(".", "/")
-
+        path = self.resolve_path(path)
         patch = {"op": op, "path": path}
 
+        # if operation has a value, parse it and use it
         if op in ("add", "replace", "test"):
-
-            if type_ is not None:
-                # if type provided, cast value to type
-
-                if type_ == "stdin" and value != "-":
-                    raise ValueError(f"Invalid value for type {type_}: Expecting '-', got '{value}'")
-
-                value = {
-                    "int": int,
-                    "float": float,
-                    "bool": bool,
-                    "stdin": load_any_dict_format,
-                    "path": load_any_dict_format,
-                    "yaml": yaml.safe_load,
-                    "json": json.loads,
-                }[type_](value)
-
+            value = parse_value(value, type_)
             patch["value"] = value
 
+        # if has a from value, use it
         if from_ is not None:
             patch["from"] = from_
 
@@ -181,8 +231,22 @@ class CatalogueEntry:
             patches = [{"op": "add", "path": "/metadata/updated", "value": updated + 1}] + patches
 
         LOG.debug(f"jsonpatch: {patches}")
-
         self.patch(patches)
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.rest_collection}, {self.key})"
+
+
+def test_resolve_path():
+    for x, y in [
+        ("updated", "/metadata/updated"),
+        ("a.b", "/metadata/a/b"),
+        ("/top/value", "/top/value"),
+        (".top.value", "/top/value"),
+        (".metadata.updated", "/metadata/updated"),
+        ("/metadata/key.with.dot", "/metadata/key.with.dot"),
+    ]:
+        actual = CatalogueEntry.resolve_path(x)
+        assert actual == y, "%s -> %s, expected: %s" % (x, actual, y)
+        actual = CatalogueEntry.resolve_path(actual)
+        assert actual == y, "%s -> %s, expected: %s" % (actual, actual, y)
