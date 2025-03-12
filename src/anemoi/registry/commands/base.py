@@ -115,11 +115,6 @@ class BaseCommand(Command):
         if args.remove_metadata:
             entry.remove_value(args.remove_metadata, increment_update=True)
 
-        # if args.patch:
-        #     if len(args.patch) not in (2, 3, 4):
-        #         raise ValueError(f"Invalid patch {args.patch}")
-        #     entry.patch_value(*args.patch, increment_update=True)
-
     def add_set_get_remove_metadata_arguments(self, command_parser):
         command_parser.add_argument(
             "--get-metadata",
@@ -151,8 +146,3 @@ class BaseCommand(Command):
             help=f"Delete a metadata value to the {self.kind} catalogue record (PATH)",
             metavar="PATH",
         )
-        # command_parser.add_argument(
-        #    "--patch",
-        #    help="Patch the metadata to the {self.kind} catalogue record (OP, KEY, [VALUE], [TYPE])",
-        #    nargs="+",
-        # )
