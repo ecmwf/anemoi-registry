@@ -226,6 +226,17 @@ class CatalogueEntry:
             patch["from"] = from_
 
         patches = [patch]
+        if "/" in path[1:]:
+            parent_path = path.rsplit("/", 1)[0]
+            parent_name = parent_path.rsplit("/", 1)[0]
+            try:
+                self.get_value(parent_path)
+            except KeyError:
+                if parent_name.isdigit():
+                    patches = [{"op": "add", "path": parent_path, "value": []}] + patches
+                else:
+                    patches = [{"op": "add", "path": parent_path, "value": {}}] + patches
+
         if increment_update:
             updated = self.record["metadata"].get("updated", 0)
             patches = [{"op": "add", "path": "/metadata/updated", "value": updated + 1}] + patches
