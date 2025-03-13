@@ -18,6 +18,7 @@ import requests
 from requests.exceptions import HTTPError
 
 from anemoi.registry import config
+from anemoi.registry.robust import robust
 
 from ._version import __version__
 
@@ -83,7 +84,7 @@ class Rest:
         if params is not None:
             kwargs["params"] = params
 
-        r = self.session.get(f"{config().api_url}/{path}", **kwargs)
+        r = robust(self.session.get)(f"{config().api_url}/{path}", **kwargs)
         self.raise_for_status(r, errors=errors)
         return r.json()
 
@@ -99,7 +100,7 @@ class Rest:
         self.log_debug("PUT", path, data)
         if not data:
             raise ValueError(f"PUT data must be provided for {path}")
-        r = self.session.put(f"{config().api_url}/{path}", json=tidy(data))
+        r = robust(self.session.put)(f"{config().api_url}/{path}", json=tidy(data))
         self.raise_for_status(r, errors=errors)
         return r.json()
 
@@ -107,12 +108,12 @@ class Rest:
         self.log_debug("PATCH", path, data)
         if not data:
             raise ValueError(f"PATCH data must be provided for {path}")
-        r = self.session.patch(f"{config().api_url}/{path}", json=tidy(data))
+        r = robust(self.session.patch)(f"{config().api_url}/{path}", json=tidy(data))
         self.raise_for_status(r, errors=errors)
         return r.json()
 
     def post(self, path, data, errors={}):
-        r = self.session.post(f"{config().api_url}/{path}", json=tidy(data))
+        r = robust(self.session.post)(f"{config().api_url}/{path}", json=tidy(data))
         self.raise_for_status(r, errors=errors)
         return r.json()
 
@@ -122,7 +123,7 @@ class Rest:
         return self.unprotected_delete(path, errors=errors)
 
     def unprotected_delete(self, path, errors={}):
-        r = self.session.delete(f"{config().api_url}/{path}", params=dict(force=True))
+        r = robust(self.session.delete)(f"{config().api_url}/{path}", params=dict(force=True))
         self.raise_for_status(r, errors=errors)
         return r.json()
 
