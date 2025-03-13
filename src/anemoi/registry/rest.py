@@ -104,7 +104,7 @@ class Rest:
         self.raise_for_status(r, errors=errors)
         return r.json()
 
-    def patch(self, path, data, errors={}, robust=True):
+    def patch(self, path, data, errors={}, robust=False):
         # patch (and post) are not idempotent, so we need to be careful with retries
         # default to non-robust
         robust_ = {True: make_robust, False: lambda x: x}[robust]
@@ -116,7 +116,7 @@ class Rest:
         self.raise_for_status(r, errors=errors)
         return r.json()
 
-    def post(self, path, data, errors={}, robust=True):
+    def post(self, path, data, errors={}, robust=False):
         # patch (and post) are not idempotent, so we need to be careful with retries
         robust_ = {True: make_robust, False: lambda x: x}[robust]
 

@@ -117,11 +117,11 @@ class TaskCatalogueEntry(CatalogueEntry):
     main_key = "uuid"
 
     def set_status(self, status):
-        self.patch([{"op": "add", "path": "/status", "value": status}])
+        self.patch([{"op": "add", "path": "/status", "value": status}], robust=True)
 
     def unregister(self):
         # deleting a task is unprotected because non-admin should be able to delete their tasks
-        return self.rest_item.unprotected_delete()
+        return self.unprotected_unregister()
 
     def take_ownership(self):
         trace = trace_info()
@@ -149,4 +149,10 @@ class TaskCatalogueEntry(CatalogueEntry):
             if not (0 <= progress <= 100):
                 raise ValueError("Progress must be between 0 and 100")
             progress = dict(percent=progress)
-        self.patch([{"op": "add", "path": "/progress", "value": progress}])
+        self.patch(
+            [
+                {"op": "test", "path": "/status", "value": "running"},
+                {"op": "add", "path": "/progress", "value": progress},
+            ],
+            robust=True,
+        )
