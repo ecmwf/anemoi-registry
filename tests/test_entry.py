@@ -8,7 +8,7 @@
 # nor does it submit to any jurisdiction.
 
 
-from anemoi.registry import CatalogueEntry
+from anemoi.registry.entry import CatalogueEntry
 
 
 def test_resolve_path():
