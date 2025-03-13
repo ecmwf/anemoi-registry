@@ -20,7 +20,7 @@ def test_resolve_path():
         (".metadata.updated", "/metadata/updated"),
         ("/metadata/key.with.dot", "/metadata/key.with.dot"),
     ]:
-        actual = CatalogueEntry.resolve_path(x)
+        actual = CatalogueEntry.resolve_path(x, check=False)
         assert actual == y, "%s -> %s, expected: %s" % (x, actual, y)
-        actual = CatalogueEntry.resolve_path(actual)
+        actual = CatalogueEntry.resolve_path(actual, check=False)
         assert actual == y, "%s -> %s, expected: %s" % (actual, actual, y)
