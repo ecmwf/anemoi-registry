@@ -134,11 +134,11 @@ class CatalogueEntry:
     def json(self):
         print(self.as_json())
 
-    def patch(self, data):
-        return self.rest_item.patch(data)
+    def patch(self, data, *args, **kwargs):
+        return self.rest_item.patch(data, *args, **kwargs)
 
-    def unregister(self):
-        return self.rest_item.delete()
+    def unregister(self, *args, **kwargs):
+        return self.rest_item.delete(*args, **kwargs)
 
     @classmethod
     def resolve_path(cls, path, check=True):

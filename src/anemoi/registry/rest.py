@@ -18,7 +18,7 @@ import requests
 from requests.exceptions import HTTPError
 
 from anemoi.registry import config
-from anemoi.registry.robust import robust
+from anemoi.registry.robust import make_robust
 
 from ._version import __version__
 
@@ -84,7 +84,7 @@ class Rest:
         if params is not None:
             kwargs["params"] = params
 
-        r = robust(self.session.get)(f"{config().api_url}/{path}", **kwargs)
+        r = make_robust(self.session.get)(f"{config().api_url}/{path}", **kwargs)
         self.raise_for_status(r, errors=errors)
         return r.json()
 
@@ -100,20 +100,27 @@ class Rest:
         self.log_debug("PUT", path, data)
         if not data:
             raise ValueError(f"PUT data must be provided for {path}")
-        r = robust(self.session.put)(f"{config().api_url}/{path}", json=tidy(data))
+        r = make_robust(self.session.put)(f"{config().api_url}/{path}", json=tidy(data))
         self.raise_for_status(r, errors=errors)
         return r.json()
 
-    def patch(self, path, data, errors={}):
+    def patch(self, path, data, errors={}, robust=True):
+        # patch (and post) are not idempotent, so we need to be careful with retries
+        # default to non-robust
+        robust_ = {True: make_robust, False: lambda x: x}[robust]
+
         self.log_debug("PATCH", path, data)
         if not data:
             raise ValueError(f"PATCH data must be provided for {path}")
-        r = robust(self.session.patch)(f"{config().api_url}/{path}", json=tidy(data))
+        r = robust_(self.session.patch)(f"{config().api_url}/{path}", json=tidy(data))
         self.raise_for_status(r, errors=errors)
         return r.json()
 
-    def post(self, path, data, errors={}):
-        r = robust(self.session.post)(f"{config().api_url}/{path}", json=tidy(data))
+    def post(self, path, data, errors={}, robust=True):
+        # patch (and post) are not idempotent, so we need to be careful with retries
+        robust_ = {True: make_robust, False: lambda x: x}[robust]
+
+        r = robust_(self.session.post)(f"{config().api_url}/{path}", json=tidy(data))
         self.raise_for_status(r, errors=errors)
         return r.json()
 
@@ -123,7 +130,7 @@ class Rest:
         return self.unprotected_delete(path, errors=errors)
 
     def unprotected_delete(self, path, errors={}):
-        r = robust(self.session.delete)(f"{config().api_url}/{path}", params=dict(force=True))
+        r = make_robust(self.session.delete)(f"{config().api_url}/{path}", params=dict(force=True))
         self.raise_for_status(r, errors=errors)
         return r.json()
 
@@ -165,28 +172,28 @@ class RestItem:
         self.rest = Rest()
         self.path = f"{collection}/{key}"
 
-    def exists(self):
+    def exists(self, *args, **kwargs):
         try:
-            self.get()
+            self.get(*args, **kwargs)
             return True
         except HTTPError as e:
             if e.response.status_code == 404:
                 return False
 
-    def get(self, params=None, errors={}):
-        return self.rest.get(self.path, params=params, errors=errors)
+    def get(self, *args, **kwargs):
+        return self.rest.get(self.path, *args, **kwargs)
 
-    def patch(self, data):
-        return self.rest.patch(self.path, data)
+    def patch(self, data, *args, **kwargs):
+        return self.rest.patch(self.path, data, *args, **kwargs)
 
-    def put(self, data):
-        return self.rest.put(self.path, data)
+    def put(self, data, *args, **kwargs):
+        return self.rest.put(self.path, data, *args, **kwargs)
 
-    def delete(self):
-        return self.rest.delete(self.path)
+    def delete(self, *args, **kwargs):
+        return self.rest.delete(self.path, *args, **kwargs)
 
-    def unprotected_delete(self):
-        return self.rest.unprotected_delete(self.path)
+    def unprotected_delete(self, *args, **kwargs):
+        return self.rest.unprotected_delete(self.path, *args, **kwargs)
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.collection}, {self.key})"
@@ -200,11 +207,11 @@ class RestItemList:
         self.rest = Rest()
         self.path = collection
 
-    def get(self, params=None, errors={}):
-        return self.rest.get(self.path, params=params, errors=errors)
+    def get(self, *args, **kwargs):
+        return self.rest.get(self.path, *args, **kwargs)
 
-    def post(self, data):
-        return self.rest.post(self.path, data, errors={409: AlreadyExists})
+    def post(self, data, **kwargs):
+        return self.rest.post(self.path, data, errors={409: AlreadyExists}, **kwargs)
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.collection})"

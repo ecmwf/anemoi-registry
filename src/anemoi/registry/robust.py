@@ -24,7 +24,7 @@ RETRIABLE = (
 )
 
 
-def robust(call: callable, maximum_tries: int = 500, retry_after: int = 120) -> callable:
+def make_robust(call: callable, maximum_tries: int = 60, retry_after: int = 60) -> callable:
     """Retry a function call in case of connection errors or HTTP errors.
 
     Parameters
@@ -32,9 +32,9 @@ def robust(call: callable, maximum_tries: int = 500, retry_after: int = 120) -> 
     call : callable
         function to call
     maximum_tries : int, optional
-        maximum number of retries, by default 500
+        maximum number of retries, by default 60
     retry_after : int, optional
-        seconds to wait between retries, by default 120
+        seconds to wait between retries, by default 60
 
     Returns
     -------
