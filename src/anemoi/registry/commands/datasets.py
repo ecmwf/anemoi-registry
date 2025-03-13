@@ -35,6 +35,9 @@ class Datasets(BaseCommand):
             action="store_true",
         )
         command_parser.add_argument("--url", help="Print the URL of the dataset.", action="store_true")
+        command_parser.add_argument(
+            "--view", help=f"Open the URL of the {self.kind} in a browser.", action="store_true"
+        )
 
         self.add_set_get_remove_metadata_arguments(command_parser)
 
@@ -121,6 +124,10 @@ class Datasets(BaseCommand):
 
         if args.url:
             print(entry.url)
+        if args.view:
+            import webbrowser
+
+            webbrowser.open(entry.url)
 
 
 command = Datasets
