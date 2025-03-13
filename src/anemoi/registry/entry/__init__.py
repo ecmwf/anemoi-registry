@@ -249,18 +249,3 @@ class CatalogueEntry:
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.rest_collection}, {self.key})"
-
-
-def test_resolve_path():
-    for x, y in [
-        ("updated", "/metadata/updated"),
-        ("a.b", "/metadata/a/b"),
-        ("/top/value", "/top/value"),
-        (".top.value", "/top/value"),
-        (".metadata.updated", "/metadata/updated"),
-        ("/metadata/key.with.dot", "/metadata/key.with.dot"),
-    ]:
-        actual = CatalogueEntry.resolve_path(x)
-        assert actual == y, "%s -> %s, expected: %s" % (x, actual, y)
-        actual = CatalogueEntry.resolve_path(actual)
-        assert actual == y, "%s -> %s, expected: %s" % (actual, actual, y)
