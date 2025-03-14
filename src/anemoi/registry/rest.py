@@ -15,10 +15,10 @@ import socket
 from getpass import getuser
 
 import requests
+from anemoi.utils.remote import robust as make_robust
 from requests.exceptions import HTTPError
 
 from anemoi.registry import config
-from anemoi.registry.robust import make_robust
 
 from ._version import __version__
 
