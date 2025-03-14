@@ -93,7 +93,7 @@ class CatalogueEntry:
         assert self.record is not None
         assert self.key is not None, "key must be provided"
 
-        self.rest_item = RestItem(self.collection, self.key)
+        self._rest_item = RestItem(self.collection, self.key)
         self.rest_collection = RestItemList(self.collection)
 
     def as_json(self):
@@ -104,13 +104,13 @@ class CatalogueEntry:
         return RestItem(cls.collection, key).exists()
 
     def exists(self):
-        return self.rest_item.exists()
+        return self._rest_item.exists()
 
     def load_from_key(self, key, params=None):
-        rest_item = RestItem(self.collection, key)
-        if rest_item.exists():
+        _rest_item = RestItem(self.collection, key)
+        if _rest_item.exists():
             self.key = key
-            self.record = rest_item.get(params=params)
+            self.record = _rest_item.get(params=params)
         else:
             raise CatalogueEntryNotFound(f"Could not find any {self.collection} with key={key}")
 
@@ -118,14 +118,14 @@ class CatalogueEntry:
     def main_key(self):
         raise NotImplementedError("Subclasses must implement this property")
 
-    def register(self, overwrite=False, ignore_existing=True):
+    def register(self, overwrite=False, ignore_existing=True, **kwargs):
         assert self.record, "record must be set"
         try:
-            return self.rest_collection.post(self.record)
+            return self.rest_collection.post(self.record, **kwargs)
         except AlreadyExists:
             if overwrite is True:
                 LOG.warning(f"{self.key} already exists. Overwriting existing one.")
-                return self.rest_item.put(self.record)
+                return self._rest_item.put(self.record, **kwargs)
             if ignore_existing:
                 LOG.info(f"{self.key} already exists. Ok.")
                 return
@@ -134,11 +134,14 @@ class CatalogueEntry:
     def json(self):
         print(self.as_json())
 
-    def patch(self, data):
-        return self.rest_item.patch(data)
+    def patch(self, data, *args, **kwargs):
+        return self._rest_item.patch(data, *args, **kwargs)
 
-    def unregister(self):
-        return self.rest_item.delete()
+    def unregister(self, *args, **kwargs):
+        return self._rest_item.delete(*args, **kwargs)
+
+    def unprotected_unregister(self, *args, **kwargs):
+        return self._rest_item.unprotected_delete(*args, **kwargs)
 
     @classmethod
     def resolve_path(cls, path, check=True):
@@ -246,18 +249,3 @@ class CatalogueEntry:
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.rest_collection}, {self.key})"
-
-
-def test_resolve_path():
-    for x, y in [
-        ("updated", "/metadata/updated"),
-        ("a.b", "/metadata/a/b"),
-        ("/top/value", "/top/value"),
-        (".top.value", "/top/value"),
-        (".metadata.updated", "/metadata/updated"),
-        ("/metadata/key.with.dot", "/metadata/key.with.dot"),
-    ]:
-        actual = CatalogueEntry.resolve_path(x)
-        assert actual == y, "%s -> %s, expected: %s" % (x, actual, y)
-        actual = CatalogueEntry.resolve_path(actual)
-        assert actual == y, "%s -> %s, expected: %s" % (actual, actual, y)

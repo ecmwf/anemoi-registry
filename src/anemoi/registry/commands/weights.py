@@ -41,6 +41,9 @@ class Weights(BaseCommand):
         command_parser.add_argument("--location-path", help="Path of the new location using {{uuid}}.", metavar="PATH")
         command_parser.add_argument("--overwrite", help="Overwrite any existing weights.", action="store_true")
         command_parser.add_argument("--url", help="Print the URL of the dataset.", action="store_true")
+        command_parser.add_argument(
+            "--view", help=f"Open the URL of the {self.kind} in a browser.", action="store_true"
+        )
 
     def _run(self, entry, args):
         if args.unregister:
@@ -51,6 +54,10 @@ class Weights(BaseCommand):
         self.set_get_remove_metadata(entry, args)
         if args.url:
             print(entry.url)
+        if args.view:
+            import webbrowser
+
+            webbrowser.open(entry.url)
 
 
 command = Weights
