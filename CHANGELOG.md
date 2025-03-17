@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Please add your functional changes to the appropriate section in the PR.
 Keep it human-readable, your future self will thank you!
 
+## [0.2.0](https://github.com/ecmwf/anemoi-registry/compare/0.1.8...0.2.0) (2025-03-17)
+
+
+### Features
+
+* add robust connection to server ([#66](https://github.com/ecmwf/anemoi-registry/issues/66)) ([c0f735c](https://github.com/ecmwf/anemoi-registry/commit/c0f735ccf132e924c476539e3ae808575c60c324))
+* adding set-get-remove metadata ([#63](https://github.com/ecmwf/anemoi-registry/issues/63)) ([15633fe](https://github.com/ecmwf/anemoi-registry/commit/15633feb2bf9664b64026729aa763c666991c6e3))
+
+
+### Miscellaneous Chores
+
+* Manual version bump ([c2f0b8f](https://github.com/ecmwf/anemoi-registry/commit/c2f0b8f26deb089385df8ba5b35cc5b69ea06ffa))
+
 ## [0.1.8](https://github.com/ecmwf/anemoi-registry/compare/0.1.7...0.1.8) (2025-03-04)
 
 
