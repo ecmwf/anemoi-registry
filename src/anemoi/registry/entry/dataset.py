@@ -64,7 +64,7 @@ class DatasetCatalogueEntry(CatalogueEntry):
         entry.add_location(PLATFORM, target)
 
     def set_status(self, status):
-        self.patch([{"op": "add", "path": "/status", "value": status}])
+        self.patch([{"op": "add", "path": "/status", "value": status}], robust=True)
 
     def build_location_path(self, platform, uri_pattern=None):
         if uri_pattern is None:
@@ -81,11 +81,11 @@ class DatasetCatalogueEntry(CatalogueEntry):
             path = os.path.normpath(path)
 
         LOG.debug(f"Adding location to {platform}: {path}")
-        self.patch([{"op": "add", "path": f"/locations/{platform}", "value": {"path": path}}])
+        self.patch([{"op": "add", "path": f"/locations/{platform}", "value": {"path": path}}], robust=True)
         return path
 
     def remove_location(self, platform):
-        self.patch([{"op": "remove", "path": f"/locations/{platform}"}])
+        self.patch([{"op": "remove", "path": f"/locations/{platform}"}], robust=True)
 
     def delete_location(self, platform):
         if not config().get("allow_delete"):
@@ -168,11 +168,11 @@ class DatasetCatalogueEntry(CatalogueEntry):
 
     def set_recipe(self, file):
         recipe = self._file_or_dict(file)
-        self.patch([{"op": "add", "path": "/metadata/recipe", "value": sanitise(recipe)}])
+        self.patch([{"op": "add", "path": "/metadata/recipe", "value": sanitise(recipe)}], robust=True)
 
     def set_variables_metadata(self, file):
         variables_metadata = self._file_or_dict(file)
-        self.patch([{"op": "add", "path": "/metadata/variables_metadata", "value": variables_metadata}])
+        self.patch([{"op": "add", "path": "/metadata/variables_metadata", "value": variables_metadata}], robust=True)
 
     def load_from_path(self, path):
         import zarr

@@ -40,7 +40,7 @@ class WeightCatalogueEntry(CatalogueEntry):
     main_key = "uuid"
 
     def add_location(self, platform, path):
-        self.rest_item.patch([{"op": "add", "path": f"/locations/{platform}", "value": {"path": path}}])
+        self.patch([{"op": "add", "path": f"/locations/{platform}", "value": {"path": path}}], robust=True)
         return path
 
     def default_location(self, **kwargs):

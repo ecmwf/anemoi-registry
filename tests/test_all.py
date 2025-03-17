@@ -8,6 +8,7 @@
 # nor does it submit to any jurisdiction.
 
 import os
+import shlex
 import shutil
 import subprocess
 import uuid
@@ -15,6 +16,8 @@ import uuid
 import yaml
 import zarr
 from anemoi.utils.remote import transfer
+
+from anemoi.registry import Dataset
 
 DATASET = "aifs-ea-an-oper-0001-mars-20p0-1979-1979-6h-v0-testing"
 DATASET_PATH = f"{DATASET}.zarr"
@@ -29,7 +32,8 @@ DATASET_URL = "s3://ml-tests/test-data/anemoi-datasets/create/pipe.zarr/"
 
 
 def run(*args):
-    print(" ".join(args))
+    print(" ".join(shlex.quote(arg) for arg in args))
+    # input("Press Enter to continue...")
     try:
         result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         result.check_returncode()
@@ -143,6 +147,28 @@ def _test_datasets():
         "--uri-pattern",
         "/the/dataset/path/{name}",
     )
+
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST={}", "yaml")
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.a={}", "yaml")
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.a.string=ok")
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.a.int=42", "int")
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.a.float=42", "float")
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.a.datetime=2015-04-18", "datetime")
+    # run("echo", "45", "|", "anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.b=-", "stdin")
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.c={a: 43}", "yaml")
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.d=test.json", "path")
+    actual = Dataset(TMP_DATASET).record["metadata"]["TEST"]
+    expected = {
+        "a": {"string": "ok", "int": 42, "float": 42.0, "datetime": "2015-04-18T00:00:00"},
+        "c": {"a": 43},
+        "d": {"a": 45},
+    }
+    assert actual == expected, (actual, expected)
+
+    run("anemoi-registry", "datasets", TMP_DATASET, "--remove-metadata", "TEST")
+    metadata = Dataset(TMP_DATASET).record["metadata"]
+    assert "TEST" not in metadata, metadata["TEST"]
+
     run(
         "anemoi-registry",
         "datasets",

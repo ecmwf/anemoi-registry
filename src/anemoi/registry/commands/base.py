@@ -10,9 +10,13 @@
 
 """Command place holder. Delete when we have real commands."""
 
+import json
 import logging
 import os
 
+import yaml
+
+from ..entry import VALUES_PARSERS
 from ..entry import CatalogueEntryNotFound
 from . import Command
 
@@ -93,3 +97,52 @@ class BaseCommand(Command):
 
     def run_from_path(self, *args, **kwargs):
         raise NotImplementedError()
+
+    def set_get_remove_metadata(self, entry, args):
+
+        if args.get_metadata:
+            value = entry.get_value(args.get_metadata[0])
+            if len(args.get_metadata) > 1:
+                type_ = args.get_metadata[1]
+                value = dict(str=str, yaml=yaml.safe_dump, json=json.dumps)[type_](value)
+            print(value)
+
+        if args.set_metadata:
+            path, value = args.set_metadata[0].split("=", 1)
+            type_ = args.set_metadata[1] if len(args.set_metadata) > 1 else None
+            entry.set_value(path, value, type_=type_, increment_update=True)
+
+        if args.remove_metadata:
+            entry.remove_value(args.remove_metadata, increment_update=True)
+
+    def add_set_get_remove_metadata_arguments(self, command_parser):
+        command_parser.add_argument(
+            "--get-metadata",
+            help=(
+                f"Get a metadata value from the {self.kind} catalogue record (KEY, [TYPE]). "
+                "KEY is a '.' separated path to the value. "
+                "TYPE is the output format : str (default), yaml, json."
+            ),
+            nargs="+",
+            metavar=("KEY", "TYPE"),
+        )
+        command_parser.add_argument(
+            "--set-metadata",
+            help=(
+                f"Set a metadata value to the {self.kind} catalogue record (KEY=VALUE, [TYPE]). "
+                "KEY is a '.' separated path to the value. "
+                f"TYPE is the input type : {', '.join(VALUES_PARSERS.keys())}. "
+                "Default type is 'str'. "
+                "TYPE 'int', 'float', 'bool', 'datetime', 'timedelta' cast the VALUE before storing it. "
+                "TYPE 'json' and 'yaml' parse the VALUE before storing it. "
+                "TYPE 'path' reads the file provided as VALUE (.json, .yaml, etc). "
+                "TYPE 'stdin' reads the value from the standard input, ignoring the VALUE. "
+            ),
+            nargs="+",
+            metavar=("KEY=VALUE", "TYPE"),
+        )
+        command_parser.add_argument(
+            "--remove-metadata",
+            help=f"Delete a metadata value to the {self.kind} catalogue record (KEY)",
+            metavar="KEY",
+        )

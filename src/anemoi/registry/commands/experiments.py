@@ -8,8 +8,6 @@
 # nor does it submit to any jurisdiction.
 
 
-"""Command place holder. Delete when we have real commands."""
-
 import logging
 import os
 
@@ -40,6 +38,10 @@ class Experiments(BaseCommand):
             action="store_true",
         )
         command_parser.add_argument("--url", help="Print the URL of the experiment.", action="store_true")
+        command_parser.add_argument(
+            "--view", help=f"Open the URL of the {self.kind} in a browser.", action="store_true"
+        )
+        self.add_set_get_remove_metadata_arguments(command_parser)
         command_parser.add_argument(
             "--delete-artefacts",
             help="Remove experiments artefacts (such as plots)",
@@ -113,6 +115,7 @@ class Experiments(BaseCommand):
         self.process_task(entry, args, "delete_artefacts", _skip_if_not_found=True)
         self.process_task(entry, args, "unregister", _skip_if_not_found=True)
         self.process_task(entry, args, "register", overwrite=args.overwrite)
+        self.set_get_remove_metadata(entry, args)
         self.process_task(entry, args, "add_weights")
         self.process_task(entry, args, "add_plots")
         self.process_task(entry, args, "set_key", run_number=args.run_number)

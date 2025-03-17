@@ -58,8 +58,6 @@ class TaskCatalogueEntryList:
         assert "action" in kwargs, kwargs
         kwargs["action"] = kwargs["action"].replace("_", "-").lower()
 
-        # actor_factory(**kwargs).check()
-
         res = self.rest_collection.post(kwargs)
         uuid = res["uuid"]
         LOG.debug(f"New task created {uuid}: {res}")
@@ -75,8 +73,7 @@ class TaskCatalogueEntryList:
         entry = TaskCatalogueEntry(key=latest)
         res = entry.take_ownership()
         LOG.debug(f"Task {latest} taken: {res}")
-        uuid = res["uuid"]
-        return uuid
+        return res["uuid"]
 
     def to_str(self, long):
         rows = []
@@ -120,17 +117,16 @@ class TaskCatalogueEntry(CatalogueEntry):
     main_key = "uuid"
 
     def set_status(self, status):
-        patch = [{"op": "add", "path": "/status", "value": status}]
-        self.rest_item.patch(patch)
+        self.patch([{"op": "add", "path": "/status", "value": status}], robust=True)
 
     def unregister(self):
         # deleting a task is unprotected because non-admin should be able to delete their tasks
-        return self.rest_item.unprotected_delete()
+        return self.unprotected_unregister()
 
     def take_ownership(self):
         trace = trace_info()
         trace["timestamp"] = datetime.datetime.now().isoformat()
-        return self.rest_item.patch(
+        return self.patch(
             [
                 {"op": "test", "path": "/status", "value": "queued"},
                 {"op": "replace", "path": "/status", "value": "running"},
@@ -139,7 +135,7 @@ class TaskCatalogueEntry(CatalogueEntry):
         )
 
     def release_ownership(self):
-        self.rest_item.patch(
+        self.patch(
             [
                 {"op": "test", "path": "/status", "value": "running"},
                 {"op": "replace", "path": "/status", "value": "queued"},
@@ -153,5 +149,10 @@ class TaskCatalogueEntry(CatalogueEntry):
             if not (0 <= progress <= 100):
                 raise ValueError("Progress must be between 0 and 100")
             progress = dict(percent=progress)
-        patch = [{"op": "add", "path": "/progress", "value": progress}]
-        self.rest_item.patch(patch)
+        self.patch(
+            [
+                {"op": "test", "path": "/status", "value": "running"},
+                {"op": "add", "path": "/progress", "value": progress},
+            ],
+            robust=True,
+        )
