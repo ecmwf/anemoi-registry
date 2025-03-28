@@ -1,0 +1,33 @@
+{
+    "training_id": "terrible-raptor",
+    "mlflow_run_id": "4022f4fed6ad462e9bf8678a31f64ceg",
+    "owner": "user",
+    "time": "2020-01-01T01:00:00.00",
+    "prepml_command": "prepml",
+    "prepml_module_version": "1.0",
+    "config_home": "path_to_config",
+    "input": "path_to_config",
+    "run_number": 42,
+    "config": {
+        "description": "Best training.",
+        "platform": {
+            "name": "hpc"
+        },
+        "resources": {
+            "total_nodes": 1
+        },
+        "runner": {
+            "name": "anemoi-training",
+            "conda": "path_to_env"
+        },
+        "training": {
+            "name": "anemoi",
+            "config": {
+                "path": "path_to_config",
+                "name": "dev"
+            },
+            "run_time": "7d"
+        }
+    },
+    "training_config": {"data": 42}
+}
