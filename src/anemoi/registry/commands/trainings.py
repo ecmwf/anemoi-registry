@@ -59,7 +59,7 @@ class Trainings(BaseCommand):
     def is_path(self, name_or_path):
         if not os.path.exists(name_or_path):
             return False
-        if not name_or_path.endswith(".yaml"):
+        if not name_or_path.endswith(".json"):
             return False
         return True
 

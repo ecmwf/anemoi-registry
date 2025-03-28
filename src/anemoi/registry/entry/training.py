@@ -12,7 +12,7 @@ import logging
 import os
 from getpass import getuser
 
-import yaml
+import json
 
 from anemoi.registry.rest import RestItemList
 
@@ -48,15 +48,16 @@ class TrainingCatalogueEntry(CatalogueEntry):
 
     def load_from_path(self, path):
         assert os.path.exists(path), f"{path} does not exist"
-        assert path.endswith(".yaml"), f"{path} must be a yaml file"
+        assert path.endswith(".json"), f"{path} must be a json file"
 
         with open(path, "r") as file:
-            config = yaml.safe_load(file)
-
+            config = json.load(file)
+            
         metadata = config.pop("metadata")
         metadata["config"] = config
-        training_id = metadata["training-id"]
-
+        metadata["config_training"] = config
+        training_id = metadata["training-uid"]
+        
         self.key = training_id
         self.record = dict(training_id=training_id, metadata=metadata, runs={})
 
@@ -119,7 +120,7 @@ class TrainingCatalogueEntry(CatalogueEntry):
 
     def set_key_json(self, key, file, run_number):
         with open(file, "r") as f:
-            value = yaml.safe_load(f)
+            value = json.load(f)
         return self.set_key(key, value, run_number)
 
     def set_key(self, key, value, run_number):
