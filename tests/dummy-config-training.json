@@ -1,13 +1,16 @@
 {
-    "training_id": "terrible-raptor",
-    "mlflow_run_id": "4022f4fed6ad462e9bf8678a31f64ceg",
-    "owner": "user",
-    "time": "2020-01-01T01:00:00.00",
-    "prepml_command": "prepml",
-    "prepml_module_version": "1.0",
-    "config_home": "path_to_config",
-    "input": "path_to_config",
-    "run_number": 42,
+    "metadata": {
+        "training_uid": "4088f4fed6ad462e9bf8678a31f64ceg",
+        "training_id": "terrible-raptor",
+        "mlflow_run_id": "4022f4fed6ad462e9bf8678a31f64ceg",
+        "owner": "user",
+        "time": "2020-01-01T01:00:00.00",
+        "prepml_command": "prepml",
+        "prepml_module_version": "1.0",
+        "config_home": "path_to_config",
+        "input": "path_to_config",
+        "run_number": 42
+    },
     "config": {
         "description": "Best training.",
         "platform": {
