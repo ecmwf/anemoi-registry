@@ -8,11 +8,10 @@
 # nor does it submit to any jurisdiction.
 
 
+import json
 import logging
 import os
 from getpass import getuser
-
-import json
 
 from anemoi.registry.rest import RestItemList
 
@@ -52,12 +51,12 @@ class TrainingCatalogueEntry(CatalogueEntry):
 
         with open(path, "r") as file:
             config = json.load(file)
-            
+
         metadata = config.pop("metadata")
         metadata["config"] = config
         metadata["config_training"] = config
         training_id = metadata["training-uid"]
-        
+
         self.key = training_id
         self.record = dict(training_id=training_id, metadata=metadata, runs={})
 
