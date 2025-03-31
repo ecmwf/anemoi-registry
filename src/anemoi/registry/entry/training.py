@@ -55,8 +55,7 @@ class TrainingCatalogueEntry(CatalogueEntry):
         metadata = config.pop("metadata")
         metadata["config"] = config
         metadata["config_training"] = config
-        training_id = metadata["training-uid"]
-
+        training_id = metadata["training_uid"]
         self.key = training_id
         self.record = dict(training_id=training_id, metadata=metadata, runs={})
 
