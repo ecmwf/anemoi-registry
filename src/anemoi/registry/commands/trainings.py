@@ -67,8 +67,6 @@ class Trainings(BaseCommand):
         self.process_task(entry, args, "unregister", _skip_if_not_found=True)
         self.process_task(entry, args, "register", overwrite=args.overwrite)
         self.set_get_remove_metadata(entry, args)
-        self.process_task(entry, args, "set_key", run_number=args.run_number)
-        self.process_task(entry, args, "set_key_json", run_number=args.run_number)
 
 
 command = Trainings

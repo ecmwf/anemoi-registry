@@ -43,7 +43,7 @@ class TrainingCatalogueEntry(CatalogueEntry):
         assert self.key_exists(key) is False, f"{self.collection} with key={key} already exists"
         metadata = dict(training_id=key, user=getuser())
         self.key = key
-        self.record = dict(training_id=key, metadata=metadata, runs={})
+        self.record = dict(training_id=key, metadata=metadata)
 
     def load_from_path(self, path):
         assert os.path.exists(path), f"{path} does not exist"
@@ -57,73 +57,15 @@ class TrainingCatalogueEntry(CatalogueEntry):
         metadata["config_training"] = config
         training_id = metadata["training_uid"]
         self.key = training_id
-        self.record = dict(training_id=training_id, metadata=metadata, runs={})
-
-    def set_run_status(self, run_number, status):
-        self.patch([{"op": "add", "path": f"/runs/{run_number}/status", "value": status}], robust=True)
-
-    def create_new_run(self, **kwargs):
-        runs = self.record.get("runs", {})
-        numbers = [int(k) for k in runs.keys()]
-        new = max(numbers) + 1 if numbers else 1
-        self._ensure_run_exists(new, **kwargs)
-        return new
-
-    def _ensure_run_exists(self, run_number, **kwargs):
-        e = self.__class__(key=self.key)
-
-        if "runs" not in e.record:
-            # for backwards compatibility, create '/runs' if it does not exist
-            e.patch([{"op": "add", "path": "/runs", "value": {}}], robust=True)
-            e.record["runs"] = {}
-
-        # add run_number if it does not exist
-        if str(run_number) not in self.record.get("runs", {}):
-            e.patch(
-                [
-                    {"op": "test", "path": "/runs", "value": e.record["runs"]},
-                    {"op": "add", "path": f"/runs/{run_number}", "value": dict(archives={}, **kwargs)},
-                ],
-                robust=True,
-            )
-            e.record["runs"] = {str(run_number): dict(archives={}, **kwargs)}
-        self.record = e.record
-
-    def _list_run_numbers(self):
-        return [int(k) for k in self.record.get("runs", {}).keys()]
-
-    def _parse_run_number(self, run_number):
-        assert isinstance(run_number, (str, int)), "run_number must be a string or an integer"
-        run_number = str(run_number)
-
-        if run_number.lower() == "all":
-            return [str(i) for i in self._list_run_numbers()]
-
-        if run_number == "latest":
-            run_number = str(max(self._list_run_numbers()))
-            LOG.info(f"Using latest run number {run_number}")
-
-        if run_number not in self.record["runs"]:
-            raise ValueError(f"Run number {run_number} not found")
-
-        return [run_number]
-
-    def _get_run_record(self, run_number):
-        print(self.record.get("runs", {}), run_number, type(run_number))
-        print(self.record.get("runs", {}).get(run_number, {}))
-        return self.record.get("runs", {}).get(run_number, {})
+        self.record = dict(training_id=training_id, metadata=metadata)
 
     def delete_artefacts(self):
         pass
 
-    def set_key_json(self, key, file, run_number):
+    def set_key_json(self, key, file):
         with open(file, "r") as f:
             value = json.load(f)
-        return self.set_key(key, value, run_number)
+        return self.set_key(key, value)
 
-    def set_key(self, key, value, run_number):
-        if run_number is None:
-            self.patch([{"op": "add", "path": f"/{key}", "value": value}])
-        else:
-            self._ensure_run_exists(run_number)
-            self.patch([{"op": "add", "path": f"/runs/{run_number}/{key}", "value": value}])
+    def set_key(self, key, value):
+        self.patch([{"op": "add", "path": f"/{key}", "value": value}])
