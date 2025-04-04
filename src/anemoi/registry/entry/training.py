@@ -8,10 +8,8 @@
 # nor does it submit to any jurisdiction.
 
 
-import json
 import logging
 import os
-from getpass import getuser
 
 from anemoi.utils.config import load_any_dict_format
 
@@ -39,13 +37,7 @@ class TrainingCatalogueEntry(CatalogueEntry):
     """Catalogue entry for a training."""
 
     collection = COLLECTION
-    main_key = "training-id"
-
-    def create_from_new_key(self, key):
-        assert self.key_exists(key) is False, f"{self.collection} with key={key} already exists"
-        metadata = dict(training_id=key, user=getuser())
-        self.key = key
-        self.record = dict(training_id=key, metadata=metadata)
+    main_key = "uuid"
 
     def load_from_path(self, path):
         assert os.path.exists(path), f"{path} does not exist"
@@ -53,20 +45,15 @@ class TrainingCatalogueEntry(CatalogueEntry):
 
         config = load_any_dict_format(path)
 
-        metadata = config.pop("metadata")
-        metadata["config"] = config
-        metadata["config_training"] = config
-        training_id = metadata["training_uid"]
-        self.key = training_id
-        self.record = dict(training_id=training_id, metadata=metadata)
+        # metadata = config.pop("metadata")
+        # metadata["config"] = config
+        # metadata["config_training"] = config
+        # training_id = metadata["training_uid"]
+        self.key = config["uuid"]
+        self.record = dict(uuid=config["uuid"], metadata=config["metadata"])
 
-    def delete_artefacts(self):
-        pass
-
-    def set_key_json(self, key, file):
-        with open(file, "r") as f:
-            value = json.load(f)
-        return self.set_key(key, value)
-
-    def set_key(self, key, value):
-        self.patch([{"op": "add", "path": f"/{key}", "value": value}])
+    def register(self, overwrite=False, ignore_existing=True, **kwargs):
+        assert self.record, "record must be set"
+        record = self.record.copy()
+        record.pop("uuid")
+        return self._rest_item.put(record, **kwargs)

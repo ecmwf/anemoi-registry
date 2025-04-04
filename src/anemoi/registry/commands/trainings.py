@@ -35,25 +35,6 @@ class Trainings(BaseCommand):
             help="Remove from catalogue (without deleting the training from other locations)",
             action="store_true",
         )
-        command_parser.add_argument("--url", help="Print the URL of the training.", action="store_true")
-        command_parser.add_argument(
-            "--view", help=f"Open the URL of the {self.kind} in a browser.", action="store_true"
-        )
-        self.add_set_get_remove_metadata_arguments(command_parser)
-
-        command_parser.add_argument(
-            "--set-key",
-            nargs=2,
-            help="Set VALUE in the KEY to the training catalogue. Replace existing value.",
-            metavar=("KEY", "VALUE"),
-        )
-        command_parser.add_argument(
-            "--set-key-json",
-            nargs=2,
-            help="Set the content of a FILE in the KEY to the training catalogue. Replace existing value.",
-            metavar=("KEY", "FILE"),
-        )
-
         command_parser.add_argument("--overwrite", help="Overwrite if already exists.", action="store_true")
 
     def is_path(self, name_or_path):
@@ -66,7 +47,6 @@ class Trainings(BaseCommand):
     def _run(self, entry, args):
         self.process_task(entry, args, "unregister", _skip_if_not_found=True)
         self.process_task(entry, args, "register", overwrite=args.overwrite)
-        self.set_get_remove_metadata(entry, args)
 
 
 command = Trainings
