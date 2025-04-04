@@ -13,6 +13,8 @@ import logging
 import os
 from getpass import getuser
 
+from anemoi.utils.config import load_any_dict_format
+
 from anemoi.registry.rest import RestItemList
 
 from . import CatalogueEntry
@@ -49,8 +51,7 @@ class TrainingCatalogueEntry(CatalogueEntry):
         assert os.path.exists(path), f"{path} does not exist"
         assert path.endswith(".json"), f"{path} must be a json file"
 
-        with open(path, "r") as file:
-            config = json.load(file)
+        config = load_any_dict_format(path)
 
         metadata = config.pop("metadata")
         metadata["config"] = config
