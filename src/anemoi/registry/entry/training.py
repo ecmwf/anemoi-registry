@@ -53,3 +53,13 @@ class TrainingCatalogueEntry(CatalogueEntry):
         record = self.record.copy()
         record.pop("uuid")
         return self._rest_item.put(record, **kwargs)
+
+    def set_key_json(self, key, file):
+        assert os.path.exists(file), f"{file} does not exist"
+        assert file.endswith(".json"), f"{file} must be a json file"
+
+        value = load_any_dict_format(file)
+        return self.set_key(key, value)
+
+    def set_key(self, key, value):
+        self.patch([{"op": "add", "path": f"/{key}", "value": value}])
