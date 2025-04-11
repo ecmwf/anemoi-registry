@@ -1,36 +1,70 @@
 {
-    "uuid": "a6d0cbff-addd-4f91-a046-7eef06a8e65f",
     "metadata": {
-        "name": "able-krill",
-        "mlflow_runid": "4022f4fed6ad462e9bf8678a31f64ceg",
-        "mlflow_experiment": "4022f4fed6ad462e9bf8678a31f64ceg",
-        "owner": "user",
-        "time": "2020-01-01T01:00:00.00",
-        "prepml_command": "prepml",
-        "prepml_module_version": "1.0",
-        "config_home": "path_to_config",
-        "input": "path_to_config"
-    },
-    "config": {
-        "description": "Best training.",
-        "platform": {
-            "name": "hpc"
-        },
-        "resources": {
-            "total_nodes": 1
-        },
-        "runner": {
-            "name": "anemoi-training",
-            "conda": "path_to_env"
-        },
-        "training": {
-            "name": "anemoi",
-            "config": {
-                "path": "path_to_config",
-                "name": "dev"
+        "config_home": "/home/ecm6116/prepml/training/golden-bug",
+        "input": "/home/ecm6116/Documents/workingdir/tools/python/prepml/configs/training.yaml",
+        "mlflow_run_id": "16cba6047e914570b2b3baa5131e4ec4",
+        "owner": "ecm6116",
+        "prepml_command": "/perm/ecm6116/conda/envs/prepml/bin/python3.10 -m prepml",
+        "prepml_module_version": "0.99.1.dev90+ge594760c.d20250407",
+        "time": "2025-04-10T15:40:37.920599",
+        "prepml_config": {
+            "description": "Anemoi training xxx",
+            "ecflow": {
+                "host": "ecflow-gen-mlx-001",
+                "limits": {
+                    "gpu": 10
+                },
+                "port": 3141,
+                "target_running_user": "mlx"
             },
-            "run_time": "7d"
+            "platform": {
+                "name": "atos"
+            },
+            "resources": {
+                "memory_per_node": "64G",
+                "total_nodes": 1,
+                "training": {
+                    "cpu": {
+                        "cpus_per_task": 32,
+                        "memory_per_node": "64G",
+                        "tasks_per_node": 1
+                    },
+                    "custom_directives": [],
+                    "gpu": {
+                        "gpus_per_node": 1,
+                        "memory_per_node": "64G"
+                    },
+                    "memory_per_node": "512G",
+                    "total_nodes": 1
+                }
+            },
+            "runner": {
+                "conda": "/perm/ecm6116/conda/envs/anemoi-training",
+                "extra_args": "hardware.paths.output=$WORKDIR/output",
+                "name": "anemoi-training"
+            },
+            "training": {
+                "callback_recordfile": "training_complete",
+                "config": {
+                    "name": "debug",
+                    "path": "/home/ecm6116/Documents/workingdir/tools/python/anemoi-core/training/configs"
+                },
+                "name": "anemoi",
+                "run_time": "180m",
+                "step_run_time": "60m"
+            }
+        },
+        "anemoi_config": {
+            "data": 42
+        },
+        "tracking": {
+            "run_id": "16cba6047e914570b2b3baa5131e4ec4",
+            "tracking_uri": "https://mlflow.ecmwf.int/",
+            "experiment_name": "anemoi-debug-ecm6116",
+            "experiment_id": null
         }
     },
-    "training_config": {"data": 42}
+    "uuid": "a6d0cbff-addd-4f91-a046-7eef06a8e65f",
+    "name": "able-krill",
+    "checkpoints": []
 }

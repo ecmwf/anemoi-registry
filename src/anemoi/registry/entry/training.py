@@ -37,7 +37,7 @@ class TrainingCatalogueEntry(CatalogueEntry):
     """Catalogue entry for a training."""
 
     collection = COLLECTION
-    main_key = "uuid"
+    main_key = "name"
 
     def load_from_path(self, path):
         assert os.path.exists(path), f"{path} does not exist"
@@ -45,11 +45,7 @@ class TrainingCatalogueEntry(CatalogueEntry):
 
         config = load_any_dict_format(path)
 
-        # metadata = config.pop("metadata")
-        # metadata["config"] = config
-        # metadata["config_training"] = config
-        # training_id = metadata["training_uid"]
-        self.key = config["uuid"]
+        self.key = config["name"]
         self.record = dict(uuid=config["uuid"], metadata=config["metadata"])
 
     def register(self, overwrite=False, ignore_existing=True, **kwargs):
