@@ -35,6 +35,18 @@ class Trainings(BaseCommand):
             help="Remove from catalogue (without deleting the training from other locations)",
             action="store_true",
         )
+        command_parser.add_argument(
+            "--set-key",
+            nargs=2,
+            help="Set VALUE in the KEY to the experiment catalogue. Replace existing value.",
+            metavar=("KEY", "VALUE"),
+        )
+        command_parser.add_argument(
+            "--set-key-json",
+            nargs=2,
+            help="Set the content of a FILE in the KEY to the experiment catalogue. Replace existing value.",
+            metavar=("KEY", "FILE"),
+        )
         command_parser.add_argument("--overwrite", help="Overwrite if already exists.", action="store_true")
 
     def is_path(self, name_or_path):
@@ -47,6 +59,8 @@ class Trainings(BaseCommand):
     def _run(self, entry, args):
         self.process_task(entry, args, "unregister", _skip_if_not_found=True)
         self.process_task(entry, args, "register", overwrite=args.overwrite)
+        self.process_task(entry, args, "set_key")
+        self.process_task(entry, args, "set_key_json")
 
 
 command = Trainings
