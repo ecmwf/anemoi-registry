@@ -30,7 +30,7 @@ class TrainingCatalogueEntryList(RestItemList):
 
     def __iter__(self):
         for v in self.get():
-            yield TrainingCatalogueEntry(key=v["training-id"])
+            yield TrainingCatalogueEntry(key=v["name"])
 
 
 class TrainingCatalogueEntry(CatalogueEntry):
