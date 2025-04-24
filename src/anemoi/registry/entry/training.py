@@ -16,6 +16,7 @@ from anemoi.utils.config import load_any_dict_format
 from anemoi.registry.rest import RestItemList
 
 from . import CatalogueEntry
+from .weights import TrainingWeightCatalogueEntry
 
 COLLECTION = "trainings"
 
@@ -63,3 +64,34 @@ class TrainingCatalogueEntry(CatalogueEntry):
 
     def set_key(self, key, value):
         self.patch([{"op": "add", "path": f"/{key}", "value": value}])
+
+    def add_weights(self, *paths, **kwargs):
+        for path in paths:
+            self._add_one_weights(path, **kwargs)
+
+    def _add_one_weights(self, path, **kwargs):
+        training_metadata = {
+            "uuid": self.record["uuid"],
+            "key": self.key,
+        }
+        weights = TrainingWeightCatalogueEntry(path=path, training_config=training_metadata)
+
+        if not TrainingWeightCatalogueEntry.key_exists(weights.key):
+            # weights with this uuid does not exist, register and upload them
+            weights.register(ignore_existing=False, overwrite=False)
+            weights.upload(path, overwrite=False)
+
+        else:
+            # Weights with this uuid already exist
+            # Skip if the weights are the same
+            # Raise an error if the weights are different
+            other = TrainingWeightCatalogueEntry(key=weights.key)
+            if other.record["metadata"]["timestamp"] == weights.record["metadata"]["timestamp"]:
+                LOG.info(
+                    f"Not updating weights with key={weights.key}, because it already exists and has the same timestamp"
+                )
+            else:
+                raise ValueError(f"Conflicting weights with key={weights.key}")
+
+        dic = dict(uuid=weights.key, path=path)
+        self.patch([{"op": "add", "path": "/checkpoints/-", "value": dic}], robust=True)

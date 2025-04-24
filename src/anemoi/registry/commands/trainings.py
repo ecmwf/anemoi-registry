@@ -38,16 +38,25 @@ class Trainings(BaseCommand):
         command_parser.add_argument(
             "--set-key",
             nargs=2,
-            help="Set VALUE in the KEY to the experiment catalogue. Replace existing value.",
+            help="Set VALUE in the KEY to the training catalogue. Replace existing value.",
             metavar=("KEY", "VALUE"),
         )
         command_parser.add_argument(
             "--set-key-json",
             nargs=2,
-            help="Set the content of a FILE in the KEY to the experiment catalogue. Replace existing value.",
+            help="Set the content of a FILE in the KEY to the training catalogue. Replace existing value.",
             metavar=("KEY", "FILE"),
         )
         command_parser.add_argument("--overwrite", help="Overwrite if already exists.", action="store_true")
+        command_parser.add_argument(
+            "--add-weights",
+            nargs="+",
+            help=(
+                "Add weights to the experiment and upload them do s3."
+                "Skip upload if these weights are already uploaded."
+            ),
+            metavar="FILE",
+        )
 
     def is_path(self, name_or_path):
         if not os.path.exists(name_or_path):
@@ -61,6 +70,7 @@ class Trainings(BaseCommand):
         self.process_task(entry, args, "register", overwrite=args.overwrite)
         self.process_task(entry, args, "set_key")
         self.process_task(entry, args, "set_key_json")
+        self.process_task(entry, args, "add_weights")
 
 
 command = Trainings
