@@ -70,8 +70,14 @@ class TrainingCatalogueEntry(CatalogueEntry):
             self._add_one_weights(path, **kwargs)
 
     def _add_one_weights(self, path, **kwargs):
+        try:
+            checkpoint_metadata = load_any_dict_format(path.replace(".ckpt", ".json"))
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Checkpoint metadata file not found for {path}")
+
         training_metadata = {
-            "uuid": self.record["uuid"],
+            "uuid": checkpoint_metadata["uuid"],
+            "metadata": checkpoint_metadata["metadata"],
             "key": self.key,
         }
         weights = TrainingWeightCatalogueEntry(path=path, training_config=training_metadata)
