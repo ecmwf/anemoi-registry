@@ -85,31 +85,3 @@ class WeightCatalogueEntry(CatalogueEntry):
 
         self.key = uuid
         self.record = dict(uuid=uuid, metadata=metadata)
-
-
-class TrainingWeightCatalogueEntry(WeightCatalogueEntry):
-    collection = COLLECTION
-    main_key = "uuid"
-
-    def __init__(self, **kwargs):
-        self.training_metadata = kwargs.pop("training_config", None)
-        super().__init__(**kwargs)
-
-    def load_from_path(self, path):
-        self.path = path
-        assert os.path.exists(path), f"{path} does not exist"
-
-        if self.training_metadata is None:
-            raise ValueError("Training metadata must be provided for training weights.")
-
-        metadata = self.training_metadata.get("metadata")
-        metadata["path"] = os.path.abspath(path)
-        metadata["size"] = os.path.getsize(path)
-        metadata["training_name"] = self.training_metadata.get("key")
-
-        uuid = self.training_metadata.get("uuid", None)
-        if uuid is None:
-            raise ValueError("UUID not found in training metadata.")
-
-        self.key = uuid
-        self.record = dict(uuid=uuid, metadata=metadata)

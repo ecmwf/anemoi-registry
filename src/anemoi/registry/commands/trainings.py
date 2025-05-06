@@ -70,7 +70,6 @@ class Trainings(BaseCommand):
         self.process_task(entry, args, "register", overwrite=args.overwrite)
         self.process_task(entry, args, "set_key")
         self.process_task(entry, args, "set_key_json")
-        self.process_task(entry, args, "add_weights")
 
 
 command = Trainings
