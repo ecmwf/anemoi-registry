@@ -18,8 +18,6 @@ import requests
 from anemoi.utils.remote import robust as make_robust
 from requests.exceptions import HTTPError
 
-from anemoi.registry import config
-
 from ._version import __version__
 
 LOG = logging.getLogger(__name__)
@@ -67,15 +65,28 @@ def trace_info():
 class Rest:
     """REST API client."""
 
-    def __init__(self):
+    def __init__(self, token=None):
+        self.token = token or self.config.api_token
+
         self.session = requests.Session()
         self.session.headers.update({"Authorization": f"Bearer {self.token}"})
         for k, v in trace_info().items():
             self.session.headers.update({f"x-anemoi-registry-{k}": str(v)})
 
     @property
-    def token(self):
-        return config().api_token
+    def config(self):
+        from anemoi.registry import config
+
+        return config()
+
+    @property
+    def api_url(self):
+        return self.config.api_url
+
+    def get_url(self, url):
+        r = make_robust(self.session.get)(url)
+        self.raise_for_status(r)
+        return r.json()
 
     def get(self, path, params=None, errors={}):
         self.log_debug("GET", path, params)
@@ -84,7 +95,7 @@ class Rest:
         if params is not None:
             kwargs["params"] = params
 
-        r = make_robust(self.session.get)(f"{config().api_url}/{path}", **kwargs)
+        r = make_robust(self.session.get)(f"{self.api_url}/{path}", **kwargs)
         self.raise_for_status(r, errors=errors)
         return r.json()
 
@@ -100,7 +111,7 @@ class Rest:
         self.log_debug("PUT", path, data)
         if not data:
             raise ValueError(f"PUT data must be provided for {path}")
-        r = make_robust(self.session.put)(f"{config().api_url}/{path}", json=tidy(data))
+        r = make_robust(self.session.put)(f"{self.api_url}/{path}", json=tidy(data))
         self.raise_for_status(r, errors=errors)
         return r.json()
 
@@ -112,7 +123,7 @@ class Rest:
         self.log_debug("PATCH", path, data)
         if not data:
             raise ValueError(f"PATCH data must be provided for {path}")
-        r = robust_(self.session.patch)(f"{config().api_url}/{path}", json=tidy(data))
+        r = robust_(self.session.patch)(f"{self.api_url}/{path}", json=tidy(data))
         self.raise_for_status(r, errors=errors)
         return r.json()
 
@@ -120,17 +131,17 @@ class Rest:
         # patch (and post) are not idempotent, so we need to be careful with retries
         robust_ = {True: make_robust, False: lambda x: x}[robust]
 
-        r = robust_(self.session.post)(f"{config().api_url}/{path}", json=tidy(data))
+        r = robust_(self.session.post)(f"{self.api_url}/{path}", json=tidy(data))
         self.raise_for_status(r, errors=errors)
         return r.json()
 
     def delete(self, path, errors={}):
-        if not config().get("allow_delete"):
+        if not self.config.get("allow_delete"):
             raise ValueError("Unregister not allowed")
         return self.unprotected_delete(path, errors=errors)
 
     def unprotected_delete(self, path, errors={}):
-        r = make_robust(self.session.delete)(f"{config().api_url}/{path}", params=dict(force=True))
+        r = make_robust(self.session.delete)(f"{self.api_url}/{path}", params=dict(force=True))
         self.raise_for_status(r, errors=errors)
         return r.json()
 
