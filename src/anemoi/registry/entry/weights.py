@@ -61,11 +61,13 @@ class WeightCatalogueEntry(CatalogueEntry):
 
     def register(self, **kwargs):
         assert self.path is not None, "path must be provided"
+        uri_pattern = kwargs.pop("uri_pattern")
+        uri_pattern = uri_pattern.format(uuid=self.key) if uri_pattern else None
 
         super().register(**kwargs)
 
         platform = self.default_platform()
-        target = self.upload(self.path)
+        target = self.upload(self.path, target=uri_pattern)
         self.add_location(platform=platform, path=target)
 
     def load_from_path(self, path):
