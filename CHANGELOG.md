@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Please add your functional changes to the appropriate section in the PR.
 Keep it human-readable, your future self will thank you!
 
+## [0.2.1](https://github.com/ecmwf/anemoi-registry/compare/0.2.0...0.2.1) (2025-05-20)
+
+
+### Features
+
+* use latest version of anemoi-datasets ([#76](https://github.com/ecmwf/anemoi-registry/issues/76)) ([aa4ab87](https://github.com/ecmwf/anemoi-registry/commit/aa4ab87486381ba4d8fcc56d15c94d87adcb729d))
+
+
+### Bug Fixes
+
+* remove pinning on botocore and update anemoi-utils ([7665a23](https://github.com/ecmwf/anemoi-registry/commit/7665a23112e61f91aed0e657aab37146967dc40a))
+
 ## [0.2.0](https://github.com/ecmwf/anemoi-registry/compare/0.1.8...0.2.0) (2025-04-10)
 
 
