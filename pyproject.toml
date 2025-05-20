@@ -40,14 +40,14 @@ classifiers = [
 
 dynamic = [ "version" ]
 
-dependencies = [ "anemoi-datasets>=0.5.16", "anemoi-utils[text]>=0.4.13", "jsonpatch", "requests" ]
+dependencies = [ "anemoi-datasets>=0.5.16", "anemoi-utils[text]>=0.4.23", "jsonpatch", "requests" ]
 
 optional-dependencies.all = [
-  "boto3<1.36",
+  "anemoi-utils[s3]",
 ]
 
 optional-dependencies.dev = [
-  "boto3<1.36",
+  "anemoi-utils[s3]",
   "nbsphinx",
   "pandoc",
   "pytest",
@@ -65,7 +65,7 @@ optional-dependencies.docs = [
 ]
 
 optional-dependencies.s3 = [
-  "boto3<1.36",
+  "anemoi-utils[s3]",
 ]
 
 optional-dependencies.tests = [
