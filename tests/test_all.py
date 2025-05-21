@@ -34,7 +34,7 @@ TMP_RECIPE = f"./{TMP_DATASET}.yaml"
 REFERENCE_DATASET_URL = "s3://ml-tests/test-data/anemoi-datasets/create/pipe.zarr/"
 
 
-def run(*args):
+def run(*args, raise_if_error=True):
     print(" ".join(shlex.quote(arg) for arg in args))
     # input("Press Enter to continue...")
     try:
@@ -44,11 +44,14 @@ def run(*args):
         result.check_returncode()
         return result.stdout
     except Exception as e:
-        print("----------------SDTOUT----------------")
-        print(result.stdout)
-        print("----------------SDERR----------------")
-        print(result.stderr)
-        print("-------------------------------------")
+        if raise_if_error:
+            print("----------------SDTOUT----------------")
+            print(result.stdout)
+            print("----------------SDERR----------------")
+            print(result.stderr)
+            print("-------------------------------------")
+        else:
+            print("Command failed, but this is expected")
         e.add_note = f"Command failed: {' '.join(args)}"
         raise
 
@@ -87,36 +90,45 @@ def setup_datasets():
     # check that the dataset is registered
     run("anemoi-registry", "datasets", TMP_DATASET_PATH)
 
-    print("# Setup done")
 
-
-def _setup_module():
+def setup_module():
+    print("# Setup started")
     _teardown_module(raise_if_error=False)
+    print()
     setup_experiments()
     setup_checkpoints()
     setup_datasets()
+    print("# Setup done")
+    print()
 
 
-def teardown_experiments(errors):
+def teardown_experiments(errors, raise_if_error):
     try:
-        run("anemoi-registry", "experiments", "./dummp-recipe-experiment.yaml", "--unregister")
+        run(
+            "anemoi-registry",
+            "experiments",
+            "./dummp-recipe-experiment.yaml",
+            "--unregister",
+            raise_if_error=raise_if_error,
+        )
     except Exception as e:
         errors.append(e)
 
 
-def teardown_checkpoints(errors):
+def teardown_checkpoints(errors, raise_if_error):
     try:
-        run("anemoi-registry", "weights", "a5275e04-0000-0000-a0f6-be19591b09fe", "--unregister")
+        run(
+            "anemoi-registry",
+            "weights",
+            "a5275e04-0000-0000-a0f6-be19591b09fe",
+            "--unregister",
+            raise_if_error=raise_if_error,
+        )
     except Exception as e:
         errors.append(e)
 
 
-def teardown_datasets(errors):
-    try:
-        run("anemoi-registry", "datasets", TMP_DATASET, "--unregister")
-    except Exception as e:
-        errors.append(e)
-
+def teardown_datasets(errors, raise_if_error):
     try:
         os.remove(TMP_RECIPE)
     except Exception as e:
@@ -127,19 +139,37 @@ def teardown_datasets(errors):
     except Exception as e:
         errors.append(e)
 
+    try:
+        run("anemoi-registry", "datasets", TMP_DATASET, "--unregister", raise_if_error=raise_if_error)
+    except Exception as e:
+        errors.append(e)
 
-def _teardown_module(raise_if_error=True):
+
+def teardown_module():
+    print()
+    print("# Teardown")
+    _teardown_module(raise_if_error=True)
+    print("# Teardown ended")
+    print()
+
+
+def _teardown_module(raise_if_error):
     errors = []
-    teardown_experiments(errors)
-    teardown_checkpoints(errors)
-    teardown_datasets(errors)
+    teardown_experiments(errors, raise_if_error=raise_if_error)
+    teardown_checkpoints(errors, raise_if_error=raise_if_error)
+    teardown_datasets(errors, raise_if_error=raise_if_error)
     if errors and raise_if_error:
         for e in errors:
             print(e)
         raise e
 
 
-def _test_datasets():
+def test_settings():
+    out = run("anemoi-registry", "settings")
+    print(out)
+
+
+def test_datasets():
     # assert run("anemoi-registry", "datasets", TMP_DATASET) == 1
     run("anemoi-registry", "datasets", TMP_DATASET)
     run("anemoi-registry", "datasets", TMP_DATASET, "--set-recipe", TMP_RECIPE)
@@ -195,7 +225,7 @@ def _test_datasets():
     # run("anemoi-registry", "update", "--zarr-file-from-catalogue", TMP_DATASET_PATH, "--force")
 
 
-def _test_weights():
+def test_weights():
     # assert run("anemoi-registry", "weights", "a5275e04-0000-0000-a0f6-be19591b09fe") == 1
     run("anemoi-registry", "weights", "a5275e04-0000-0000-a0f6-be19591b09fe")
     run(
@@ -209,13 +239,13 @@ def _test_weights():
     )
 
 
-def _test_experiments():
+def test_experiments():
     run("anemoi-registry", "experiments", "i4df")
     run("anemoi-registry", "experiments", "i4df", "--add-plots", "./dummy-quaver.pdf")
     run("anemoi-registry", "experiments", "i4df", "--add-weights", "./dummy-checkpoint.ckpt")
 
 
-def _test_list_commands():
+def test_list_commands():
     run("anemoi-registry", "list", "experiments")
     run("anemoi-registry", "list", "weights")
     run("anemoi-registry", "list", "datasets")
@@ -226,7 +256,7 @@ def test_print():
 
 
 if __name__ == "__main__":
-    _test_list_commands()
+    test_list_commands()
     print()
 
     errors = []
@@ -236,7 +266,7 @@ if __name__ == "__main__":
     print("# Start setup")
     setup_datasets()
     try:
-        _test_datasets()
+        test_datasets()
     finally:
         print("# Start teardown")
         teardown_datasets(errors)
@@ -246,7 +276,7 @@ if __name__ == "__main__":
     print("# Start setup")
     setup_experiments()
     try:
-        _test_experiments()
+        test_experiments()
     finally:
         print("# Start teardown")
         teardown_experiments(errors)
@@ -256,7 +286,7 @@ if __name__ == "__main__":
     print("# Start setup")
     setup_checkpoints()
     try:
-        _test_weights()
+        test_weights()
     finally:
         print("# Start teardown")
         teardown_checkpoints(errors)
