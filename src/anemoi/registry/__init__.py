@@ -14,10 +14,10 @@ import logging
 LOG = logging.getLogger(__name__)
 
 
-def config():
+def config(*args, **kwargs):
     from anemoi.registry.configuration import CONF
 
-    return CONF()
+    return CONF(*args, **kwargs)
 
 
 def publish_dataset(*args, **kwargs):
