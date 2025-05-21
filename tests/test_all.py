@@ -95,6 +95,8 @@ def setup_datasets():
 
 
 def setup_module():
+    if IN_CI:
+        return
     print("# Setup started")
     _teardown_module(raise_if_error=False)
     print()
@@ -149,6 +151,8 @@ def teardown_datasets(errors, raise_if_error):
 
 
 def teardown_module():
+    if IN_CI:
+        return
     print()
     print("# Teardown")
     _teardown_module(raise_if_error=True)
