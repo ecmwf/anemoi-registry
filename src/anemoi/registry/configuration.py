@@ -12,6 +12,7 @@
 import importlib
 import logging
 import os
+from functools import cached_property
 
 from anemoi.utils.config import DotDict
 from anemoi.utils.config import load_any_dict_format
@@ -33,7 +34,7 @@ def package_config(module_name, missing_ok=False):
         else:
             raise FileNotFoundError(f"Config file not found: {path}")
 
-    return load_any_dict_format(path)
+    return DotDict(load_any_dict_format(path))
 
 
 class SingletonConfig:
@@ -41,36 +42,38 @@ class SingletonConfig:
         self._cache = None
         self.package_config = package_config("anemoi.registry")
 
-        url = self.package_config["registry"]["settings"]
-        if os.environ.get("ANEMOI_TESTING") and not os.environ.get("ANEMOI_TESTING") == "0":
-            url = self.package_config["registry"]["test-settings"]
-            LOG.warning("Using default settings URL for testing: %s", url)
-        self.default_url = url
+    @cached_property
+    def url(self):
+        env_var = os.environ.get("ANEMOI_CATALOGUE")
 
-    def _settings_url_and_token(self):
-        # overwritten by config from user
-        config = load_config(secrets=["api_token"]).get("registry")
-        url = config["settings"] or self.default_url
-        if url != self.default_url:
-            LOG.warning(f"Overriding default settings URL {self.default_url} with {url} from user config.")
+        if env_var == "TEST":
+            url = self.package_config["registry"]["test-catalogue"]
+            LOG.warning("Using default catalogue URL for testing: %s", url)
+            return url
 
-        if url == "-":
-            return None, None
+        if env_var is not None:
+            LOG.warning("Using catalogue URL from environment variable ANEMOI_CATALOGUE: %s", env_var)
+            return env_var
 
-        # use the token to retrieve the settings from the server
-        if "api_token" not in config:
-            raise ValueError("Missing api_token in config")
-        token = config["api_token"]
+        url_from_user = self._url_from_user_config()
+        if url_from_user is not None:
+            LOG.warning(f"Overriding default catalogue URL with {url_from_user} from user config.")
+            return url_from_user
 
-        return url, token
+        return self.package_config["registry"]["catalogue"]
+
+    @cached_property
+    def _token(self):
+        return load_config(secrets=["api_token"]).get("registry", {}).get("api_token")
+
+    def _url_from_user_config(self):
+        return load_config(secrets=["api_token"]).get("registry", {}).get("catalogue")
 
     def _config_from_server(self):
-
-        url, token = self._settings_url_and_token()
-        if not url:
+        if not self.url:
             return {}
 
-        return Rest(token=token).get_url(url)
+        return Rest(token=self._token).get_url(self.url + "/settings")
 
     def __call__(self, with_secrets=True):
         if self._cache:
@@ -78,7 +81,6 @@ class SingletonConfig:
 
         # from this anemoi-registry package
         conf = self.package_config["registry"]
-        conf = DotDict(conf)
 
         # overwritten by server config
         for k, v in self._config_from_server()["registry"].items():
@@ -106,8 +108,8 @@ class SingletonConfig:
                         "Please delete this entry from your config file."
                     )
                 )
-        conf.pop("settings")
-        conf.pop("test-settings")
+        conf.pop("catalogue")
+        conf.pop("test-catalogue")
         self._cache = conf
 
         if not with_secrets:

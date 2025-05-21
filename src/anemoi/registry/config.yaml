@@ -2,10 +2,10 @@ registry:
   # can be overridden either by
   # - an entry in the anemoi config file (~/.config/anemoi/settings.toml)
   # [registry]
-  # settings=...
-  # - or with the environment variable ANEMOI_CONFIG_REGISTRY_SETTINGS=...
-  settings: "https://anemoi.ecmwf.int/settings"
-  test-settings: "https://anemoi-test.ecmwf.int/settings"
+  # catalogue=...
+  # - or with the environment variable ANEMOI_CATALOGUE=...
+  catalogue: "https://anemoi.ecmwf.int"
+  test-catalogue: "https://anemoi-test.ecmwf.int"
 
   # These come from the server.
   # api_url: "https://anemoi.ecmwf.int/api/v1"
