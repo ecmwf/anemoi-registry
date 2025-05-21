@@ -21,6 +21,7 @@ from anemoi.utils.remote import transfer
 from anemoi.registry import Dataset
 
 IN_CI = (os.environ.get("GITHUB_WORKFLOW") is not None) or (os.environ.get("IN_CI_HPC") is not None)
+ANEMOI_CATALOGUE_TOKEN = os.environ.get("ANEMOI_CATALOGUE_TOKEN")
 
 FORCE_TEST_ENV_VARIABLE = "TEST"
 os.environ["ANEMOI_CATALOGUE"] = FORCE_TEST_ENV_VARIABLE
@@ -171,6 +172,7 @@ def _teardown_module(raise_if_error):
         raise e
 
 
+@pytest.mark.skipif(IN_CI and not ANEMOI_CATALOGUE_TOKEN, reason="Test requires access to the ANEMOI_CATALOGUE_TOKEN")
 def test_settings():
     out = run("anemoi-registry", "settings")
     print(out)
@@ -255,6 +257,7 @@ def test_experiments():
     run("anemoi-registry", "experiments", "i4df", "--add-weights", "./dummy-checkpoint.ckpt")
 
 
+@pytest.mark.skipif(IN_CI and not ANEMOI_CATALOGUE_TOKEN, reason="Test requires access to the ANEMOI_CATALOGUE_TOKEN")
 def test_list_commands():
     run("anemoi-registry", "list", "experiments")
     run("anemoi-registry", "list", "weights")
