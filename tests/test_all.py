@@ -19,6 +19,9 @@ from anemoi.utils.remote import transfer
 
 from anemoi.registry import Dataset
 
+FORCE_TEST_ENV_VARIABLE = "TEST"
+os.environ["ANEMOI_CATALOGUE"] = FORCE_TEST_ENV_VARIABLE
+
 DATASET = "aifs-ea-an-oper-0001-mars-20p0-1979-1979-6h-v0-testing"
 DATASET_PATH = f"{DATASET}.zarr"
 
@@ -28,15 +31,18 @@ TMP_DATASET = f"{DATASET}-{pid}"
 TMP_DATASET_PATH = f"{TMP_DATASET}.zarr"
 TMP_RECIPE = f"./{TMP_DATASET}.yaml"
 
-DATASET_URL = "s3://ml-tests/test-data/anemoi-datasets/create/pipe.zarr/"
+REFERENCE_DATASET_URL = "s3://ml-tests/test-data/anemoi-datasets/create/pipe.zarr/"
 
 
 def run(*args):
     print(" ".join(shlex.quote(arg) for arg in args))
     # input("Press Enter to continue...")
     try:
-        result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        env = os.environ.copy()
+        env["ANEMOI_CATALOGUE"] = FORCE_TEST_ENV_VARIABLE
+        result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
         result.check_returncode()
+        return result.stdout
     except Exception as e:
         print("----------------SDTOUT----------------")
         print(result.stdout)
@@ -60,7 +66,7 @@ def setup_checkpoints():
 def setup_datasets():
     # cache to avoid downloading the dataset when re-running the tests
     if not os.path.exists(DATASET_PATH):
-        transfer(DATASET_URL, DATASET_PATH, overwrite=True)
+        transfer(REFERENCE_DATASET_URL, DATASET_PATH, overwrite=True)
     assert os.path.exists(DATASET_PATH)
 
     # create a temporary recipe file with the right name in
@@ -183,9 +189,10 @@ def _test_datasets():
     # This is poluting the s3 bucket, we should have a way to clean it up automatically
     run("anemoi-registry", "datasets", TMP_DATASET_PATH, "--add-location", "ewc", "--upload")
 
-    if os.path.exists("/usr/local/bin/mars"):
-        run("anemoi-registry", "update", "--catalogue-from-recipe-file", TMP_RECIPE, "--force", "--update")
-    run("anemoi-registry", "update", "--zarr-file-from-catalogue", TMP_DATASET_PATH, "--force")
+    # Disable this for now, we need that open_dataset ask the catalogue for the location of the dataset
+    # if os.path.exists("/usr/local/bin/mars"):
+    #    run("anemoi-registry", "update", "--catalogue-from-recipe-file", TMP_RECIPE, "--force", "--update")
+    # run("anemoi-registry", "update", "--zarr-file-from-catalogue", TMP_DATASET_PATH, "--force")
 
 
 def _test_weights():
@@ -223,6 +230,8 @@ if __name__ == "__main__":
     print()
 
     errors = []
+    out = run("anemoi-registry", "settings")
+    print(out)
 
     print("# Start setup")
     setup_datasets()
