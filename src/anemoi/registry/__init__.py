@@ -10,63 +10,14 @@
 # ruff: noqa: E402
 
 import logging
-import os
 
 LOG = logging.getLogger(__name__)
 
 
-def _get_config_from_server():
-    from anemoi.utils.config import load_config
-
-    from anemoi.registry.rest import Rest
-
-    # config from this anemoi-registry package
-    config = _get_config_from_package()
-
-    # overwritten by config from user
-    config = load_config(secrets=["api_token"], defaults=config)["registry"]
-
-    # use it to get the settings from the server
-    if "api_token" not in config:
-        raise ValueError("Missing api_token in config")
-    token = config["api_token"]
-    url = config["settings"]
-    LOG.debug(f"Using settings from URL: {url}")
-    print(f"Using settings from URL: {url}")
-
-    rest = Rest(token=token)
-    return rest.get_url(url)
-
-
-def _get_config_from_package():
-    from anemoi.utils.config import load_any_dict_format
-
-    path = os.path.join(os.path.dirname(__file__), "config.yaml")
-    return load_any_dict_format(path)
-
-
-global CONFIG
-CONFIG = None
-
-
 def config():
-    global CONFIG
-    if CONFIG:
-        return CONFIG
+    from anemoi.registry.configuration import CONF
 
-    from anemoi.utils.config import load_config
-
-    # config from this anemoi-registry package
-    cfg = _get_config_from_package()
-
-    # overwritten by config from server
-    cfg.update(_get_config_from_server())
-
-    # overwritten by config from user
-    cfg = load_config(secrets=["api_token"], defaults=cfg)
-
-    CONFIG = cfg.get("registry")
-    return config()
+    return CONF()
 
 
 def publish_dataset(*args, **kwargs):
@@ -100,4 +51,5 @@ __all__ = [
     "DatasetsList",
     "Task",
     "TasksList",
+    "config",
 ]
