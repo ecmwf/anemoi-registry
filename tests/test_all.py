@@ -13,11 +13,14 @@ import shutil
 import subprocess
 import uuid
 
+import pytest
 import yaml
 import zarr
 from anemoi.utils.remote import transfer
 
 from anemoi.registry import Dataset
+
+IN_CI = (os.environ.get("GITHUB_WORKFLOW") is not None) or (os.environ.get("IN_CI_HPC") is not None)
 
 FORCE_TEST_ENV_VARIABLE = "TEST"
 os.environ["ANEMOI_CATALOGUE"] = FORCE_TEST_ENV_VARIABLE
@@ -169,6 +172,7 @@ def test_settings():
     print(out)
 
 
+@pytest.mark.skipif(IN_CI, reason="Test requires access to S3")
 def test_datasets():
     # assert run("anemoi-registry", "datasets", TMP_DATASET) == 1
     run("anemoi-registry", "datasets", TMP_DATASET)
@@ -225,6 +229,7 @@ def test_datasets():
     # run("anemoi-registry", "update", "--zarr-file-from-catalogue", TMP_DATASET_PATH, "--force")
 
 
+@pytest.mark.skipif(IN_CI, reason="Test requires access to S3")
 def test_weights():
     # assert run("anemoi-registry", "weights", "a5275e04-0000-0000-a0f6-be19591b09fe") == 1
     run("anemoi-registry", "weights", "a5275e04-0000-0000-a0f6-be19591b09fe")
@@ -239,6 +244,7 @@ def test_weights():
     )
 
 
+@pytest.mark.skipif(IN_CI, reason="Test requires access to S3")
 def test_experiments():
     run("anemoi-registry", "experiments", "i4df")
     run("anemoi-registry", "experiments", "i4df", "--add-plots", "./dummy-quaver.pdf")
@@ -249,10 +255,6 @@ def test_list_commands():
     run("anemoi-registry", "list", "experiments")
     run("anemoi-registry", "list", "weights")
     run("anemoi-registry", "list", "datasets")
-
-
-def test_print():
-    print("test")
 
 
 if __name__ == "__main__":
