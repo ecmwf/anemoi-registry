@@ -26,8 +26,7 @@ an anemoi catalogue.
 
    git clone ...
    cd anemoi-registry
-   pip install .[dev]
-   pip install -r docs/requirements.txt
+   pip install '.[dev]'
 
 You may also have to install pandoc on MacOS:
 
