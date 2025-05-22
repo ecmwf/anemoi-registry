@@ -5,7 +5,7 @@ The `datasets` command is used to manage datasets in the registry.
 It can be used to register or unregister a datasets, add and remove information about a dataset, and upload it to the catalogue.
 
 
-The dataset names MUST follow the naming convention documented at <TODO ADD NAMING CONVENTION URL>.
+The dataset names MUST follow the naming convention documented at :ref:`naming-conventions`.
 For instance `dataset-name` can be `aifs-ea-an-oper-0001-mars-o96-1979-2022-6h-v6`.
 
 
