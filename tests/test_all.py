@@ -52,6 +52,11 @@ def setup_experiments():
     run("anemoi-registry", "experiments", "./dummy-recipe-experiment.yaml")
 
 
+def setup_trainings():
+    run("anemoi-registry", "trainings", "./dummy-recipe-training.json", "--register")
+    run("anemoi-registry", "trainings", "./dummy-recipe-training.json")
+
+
 def setup_checkpoints():
     run("anemoi-registry", "weights", "./dummy-checkpoint.ckpt", "--register")
     run("anemoi-registry", "weights", "./dummy-checkpoint.ckpt")
@@ -89,11 +94,19 @@ def _setup_module():
     setup_experiments()
     setup_checkpoints()
     setup_datasets()
+    setup_trainings()
 
 
 def teardown_experiments(errors):
     try:
         run("anemoi-registry", "experiments", "./dummp-recipe-experiment.yaml", "--unregister")
+    except Exception as e:
+        errors.append(e)
+
+
+def teardown_trainings(errors):
+    try:
+        run("anemoi-registry", "trainings", "./dummy-recipe-training.json", "--unregister")
     except Exception as e:
         errors.append(e)
 
@@ -125,6 +138,7 @@ def teardown_datasets(errors):
 def _teardown_module(raise_if_error=True):
     errors = []
     teardown_experiments(errors)
+    teardown_trainings(errors)
     teardown_checkpoints(errors)
     teardown_datasets(errors)
     if errors and raise_if_error:
@@ -241,6 +255,13 @@ if __name__ == "__main__":
     finally:
         print("# Start teardown")
         teardown_experiments(errors)
+
+    print()
+
+    print("# Start setup")
+    setup_trainings()
+    print("# Start teardown")
+    teardown_trainings(errors)
 
     print()
 
