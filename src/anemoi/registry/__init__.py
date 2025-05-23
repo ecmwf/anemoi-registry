@@ -10,17 +10,14 @@
 # ruff: noqa: E402
 
 import logging
-import os
 
 LOG = logging.getLogger(__name__)
 
 
-def config():
-    from anemoi.utils.config import load_config
+def config(*args, **kwargs):
+    from anemoi.registry.configuration import CONF
 
-    default_config = os.path.join(os.path.dirname(__file__), "config.yaml")
-    config = load_config(secrets=["api_token"], defaults=default_config)
-    return config.get("registry")
+    return CONF(*args, **kwargs)
 
 
 def publish_dataset(*args, **kwargs):
@@ -54,4 +51,5 @@ __all__ = [
     "DatasetsList",
     "Task",
     "TasksList",
+    "config",
 ]
