@@ -65,6 +65,11 @@ def setup_experiments():
     run("anemoi-registry", "experiments", "./dummy-recipe-experiment.yaml")
 
 
+def setup_trainings():
+    run("anemoi-registry", "trainings", "./dummy-recipe-training.json", "--register")
+    run("anemoi-registry", "trainings", "./dummy-recipe-training.json")
+
+
 def setup_checkpoints():
     run("anemoi-registry", "weights", "./dummy-checkpoint.ckpt", "--register")
     run("anemoi-registry", "weights", "./dummy-checkpoint.ckpt")
@@ -102,10 +107,12 @@ def setup_module():
     _teardown_module(raise_if_error=False)
     print()
     setup_experiments()
+    setup_trainings()
     setup_checkpoints()
     setup_datasets()
     print("# Setup done")
     print()
+
 
 
 def teardown_experiments(errors, raise_if_error):
@@ -116,6 +123,19 @@ def teardown_experiments(errors, raise_if_error):
             "./dummp-recipe-experiment.yaml",
             "--unregister",
             raise_if_error=raise_if_error,
+        )
+    except Exception as e:
+        errors.append(e)
+
+
+def teardown_trainings(errors, raise_if_error):
+    try:
+        run(
+            "anemoi-registry",
+            "trainings",
+            "./dummy-recipe-training.json",
+            "--unregister",
+            raise_if_error=raise_if_error
         )
     except Exception as e:
         errors.append(e)
@@ -163,9 +183,10 @@ def teardown_module():
 
 def _teardown_module(raise_if_error):
     errors = []
-    teardown_experiments(errors, raise_if_error=raise_if_error)
-    teardown_checkpoints(errors, raise_if_error=raise_if_error)
-    teardown_datasets(errors, raise_if_error=raise_if_error)
+    teardown_experiments(errors)
+    teardown_trainings(errors)
+    teardown_checkpoints(errors)
+    teardown_datasets(errors)
     if errors and raise_if_error:
         for e in errors:
             print(e)
@@ -289,6 +310,13 @@ if __name__ == "__main__":
     finally:
         print("# Start teardown")
         teardown_experiments(errors)
+
+    print()
+
+    print("# Start setup")
+    setup_trainings()
+    print("# Start teardown")
+    teardown_trainings(errors)
 
     print()
 
