@@ -11,6 +11,7 @@
 import datetime
 import logging
 import os
+import shutil
 
 import yaml
 from anemoi.datasets import open_dataset
@@ -25,6 +26,40 @@ from . import CatalogueEntry
 LOG = logging.getLogger(__name__)
 
 COLLECTION = "datasets"
+
+
+def delete_on_s3(path):
+    from anemoi.utils.remote.s3 import delete
+
+    return delete(path + "/")
+
+
+def delete_on_local(path):
+    if not os.path.exists(path):
+        LOG.warning(f"Path {path} does not exist, nothing to delete.")
+        return
+    if not os.path.isdir(path):
+        raise ValueError(f"Path {path} is not a directory, cannot delete.")
+
+    # First, move the directory to a temporary name <dataset>.deleting.i
+    # This is to make sure the dataset is not accessed while we are deleting it.
+    tmp_path = path + ".deleting"
+    i = 0
+    while os.path.exists(tmp_path):
+        i += 1
+        tmp_path = path + ".deleting." + str(i)
+    try:
+        os.rename(path, tmp_path)
+    except OSError as e:
+        LOG.error(f"Failed to rename {path} to {tmp_path}: {e}")
+        raise
+
+    # Now do the actual deletion, of any <dataset>.deleting.* directories
+    for glob in os.listdir(path + ".deleting.*"):
+        try:
+            shutil.rmtree(tmp_path)
+        except OSError as e:
+            LOG.error(f"Failed to delete {tmp_path}: {e}")
 
 
 class DatasetCatalogueEntryList(RestItemList):
@@ -86,21 +121,26 @@ class DatasetCatalogueEntry(CatalogueEntry):
 
     def remove_location(self, platform):
         self.patch([{"op": "remove", "path": f"/locations/{platform}"}], robust=True)
+        LOG.warning(f"Removed location from catalogue from '{platform}'")
 
     def delete_location(self, platform):
+        # the variable name 'location' and 'platform' are sometimes used interchangeably in the codebase
+        # this should be clarified in the future
+
         if not config().get("allow_delete"):
             raise ValueError("Delete not allowed by configuration")
 
         path = self.record.get("locations", {}).get(platform, {}).get("path")
         if path is None:
-            LOG.warning(f"Nothing to delete for {self.key} on platform {platform}")
+            LOG.warning(f"ERROR: Nothing to delete for {self.key} on platform {platform}")
             return
         if path.startswith("s3://"):
-            from anemoi.utils.remote.s3 import delete
-
-            return delete(path + "/")
+            delete_on_s3(path)
         else:
-            LOG.warning(f"Location is not an s3 path: {path}. Delete not implemented.")
+            LOG.warning(f"Deleting {path} from '{platform}'")
+            delete_on_local(path)
+
+        LOG.warning(f"Deleted {path} from '{platform}'")
 
         self.remove_location(platform)
 
