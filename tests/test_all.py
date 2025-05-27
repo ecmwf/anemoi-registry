@@ -114,7 +114,6 @@ def setup_module():
     print()
 
 
-
 def teardown_experiments(errors, raise_if_error):
     try:
         run(
@@ -135,7 +134,7 @@ def teardown_trainings(errors, raise_if_error):
             "trainings",
             "./dummy-recipe-training.json",
             "--unregister",
-            raise_if_error=raise_if_error
+            raise_if_error=raise_if_error,
         )
     except Exception as e:
         errors.append(e)
