@@ -37,7 +37,6 @@ class Weights(BaseCommand):
         # command_parser.add_argument("--delete", help=f"Delete the {self.kind} from the catalogue and from any other location", action="store_true")
         self.add_set_get_remove_metadata_arguments(command_parser)
 
-        command_parser.add_argument("--uri-pattern", help="Overwrite default URI pattern for upload.")
         command_parser.add_argument("--add-location", help="Platform to add location to the weights.")
         command_parser.add_argument("--location-path", help="Path of the new location using {{uuid}}.", metavar="PATH")
         command_parser.add_argument("--overwrite", help="Overwrite any existing weights.", action="store_true")
@@ -50,7 +49,7 @@ class Weights(BaseCommand):
         if args.unregister:
             entry.unregister()
             return
-        self.process_task(entry, args, "register", overwrite=args.overwrite, uri_pattern=args.uri_pattern)
+        self.process_task(entry, args, "register", overwrite=args.overwrite)
         self.process_task(entry, args, "add_location", path=args.location_path)
         self.set_get_remove_metadata(entry, args)
 
