@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Please add your functional changes to the appropriate section in the PR.
 Keep it human-readable, your future self will thank you!
 
+## [0.2.2](https://github.com/ecmwf/anemoi-registry/compare/0.2.1...0.2.2) (2025-05-30)
+
+
+### Features
+
+* implement worker to delete datasets on s3 ([#85](https://github.com/ecmwf/anemoi-registry/issues/85)) ([8de1f71](https://github.com/ecmwf/anemoi-registry/commit/8de1f710bae2abed017e1e9b9ed51affb4c27587))
+* simplify getting settings from catalogue ([#81](https://github.com/ecmwf/anemoi-registry/issues/81)) ([cada143](https://github.com/ecmwf/anemoi-registry/commit/cada143bb61e9c806c8e9100074adda860a0d994))
+* use settings from server ([#77](https://github.com/ecmwf/anemoi-registry/issues/77)) ([1633674](https://github.com/ecmwf/anemoi-registry/commit/1633674ce4004098618c32ffcbdc7c916cccbce2))
+
+
+### Documentation
+
+* minor updates ([#83](https://github.com/ecmwf/anemoi-registry/issues/83)) ([ffeabc5](https://github.com/ecmwf/anemoi-registry/commit/ffeabc5f8cae118daf6ff8057dfca5b3e2846159))
+
 ## [0.2.1](https://github.com/ecmwf/anemoi-registry/compare/0.2.0...0.2.1) (2025-05-20)
 
 
