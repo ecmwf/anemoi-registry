@@ -52,6 +52,7 @@ class Weights(BaseCommand):
         self.process_task(entry, args, "register", overwrite=args.overwrite)
         self.process_task(entry, args, "add_location", path=args.location_path)
         self.set_get_remove_metadata(entry, args)
+
         if args.url:
             print(entry.url)
         if args.view:
