@@ -237,12 +237,12 @@ class DatasetCatalogueEntry(CatalogueEntry):
         ds = open_dataset(path)
 
         metadata = ds.metadata
-
-        # statistics = {}
-        # for grp, v in ds.statistics.items():
-        #    statistics[grp] = {k: v_.tolist() for k, v_ in v.items()}
-
         groups = ds.groups
+
+        statistics = {}
+        for grp, v in ds.statistics.items():
+            statistics[grp] = {k: v_.tolist() for k, v_ in v.items()}
+        metadata["statistics_nested"] = statistics
 
         statistics = {}
         stat_keys = ds.statistics[groups[0]].keys()
@@ -260,6 +260,9 @@ class DatasetCatalogueEntry(CatalogueEntry):
             for k in ds.variables[grp]:
                 variables.append(f"{grp}.{k}")
         metadata["variables"] = variables
+        metadata["variables_nested"] = ds.variables
+
+        metadata["kind"] = "records_dataset"
 
         self.key = name
         self.record = dict(name=name, metadata=metadata)
@@ -294,6 +297,8 @@ class DatasetCatalogueEntry(CatalogueEntry):
         if "chunks" in metadata:
             assert tuple(metadata["chunks"]) == ds.chunks, (metadata["chunks"], ds.chunks)
         metadata["chunks"] = ds.chunks
+
+        metadata["kind"] = "fields_dataset"
 
         self.key = name
         self.record = dict(name=name, metadata=metadata)
