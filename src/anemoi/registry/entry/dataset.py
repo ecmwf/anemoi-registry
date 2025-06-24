@@ -229,7 +229,7 @@ class DatasetCatalogueEntry(CatalogueEntry):
             return self._load_from_vz_path(path)
 
         raise ValueError(f"Dataset path extension is not supported ({path})")
-    
+
     def _load_from_vz_path(self, path):
         from anemoi.datasets import open_dataset
 
@@ -238,8 +238,8 @@ class DatasetCatalogueEntry(CatalogueEntry):
 
         metadata = ds.metadata
 
-        #statistics = {}
-        #for grp, v in ds.statistics.items():
+        # statistics = {}
+        # for grp, v in ds.statistics.items():
         #    statistics[grp] = {k: v_.tolist() for k, v_ in v.items()}
 
         groups = ds.groups
@@ -252,7 +252,7 @@ class DatasetCatalogueEntry(CatalogueEntry):
             for grp in groups:
                 assert key in ds.statistics[grp], f"Key {key} not found in group {grp} statistics."
                 grp_statistics = ds.statistics[grp][key]
-                statistics[key] +=grp_statistics.tolist()
+                statistics[key] += grp_statistics.tolist()
         metadata["statistics"] = statistics
 
         variables = []
@@ -266,6 +266,7 @@ class DatasetCatalogueEntry(CatalogueEntry):
 
     def _load_from_zarr_path(self, path):
         import zarr
+
         name, _ = os.path.splitext(os.path.basename(path))
 
         z = zarr.open(path)
