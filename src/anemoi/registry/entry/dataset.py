@@ -215,16 +215,57 @@ class DatasetCatalogueEntry(CatalogueEntry):
         self.patch([{"op": "add", "path": "/metadata/variables_metadata", "value": variables_metadata}], robust=True)
 
     def load_from_path(self, path):
-        import zarr
 
         if not path.startswith("/") and not path.startswith("s3://"):
             LOG.warning(f"Dataset path is not absolute: {path}")
             path = os.path.abspath(path)
         if not os.path.exists(path) and not path.startswith("s3://"):
             raise ValueError(f"Dataset path does not exist: {path}")
-        if not path.endswith(".zarr") or path.endswith(".zip"):
-            raise ValueError(f"Dataset path extension is not supported ({path})")
 
+        if path.endswith(".zarr") or path.endswith(".zip"):
+            return self._load_from_zarr_path(path)
+
+        if path.endswith(".vz"):
+            return self._load_from_vz_path(path)
+
+        raise ValueError(f"Dataset path extension is not supported ({path})")
+    
+    def _load_from_vz_path(self, path):
+        from anemoi.datasets import open_dataset
+
+        name, _ = os.path.splitext(os.path.basename(path))
+        ds = open_dataset(path)
+
+        metadata = ds.metadata
+
+        #statistics = {}
+        #for grp, v in ds.statistics.items():
+        #    statistics[grp] = {k: v_.tolist() for k, v_ in v.items()}
+
+        groups = ds.groups
+
+        statistics = {}
+        stat_keys = ds.statistics[groups[0]].keys()
+        for key in stat_keys:
+            if key not in statistics:
+                statistics[key] = []
+            for grp in groups:
+                assert key in ds.statistics[grp], f"Key {key} not found in group {grp} statistics."
+                grp_statistics = ds.statistics[grp][key]
+                statistics[key] +=grp_statistics.tolist()
+        metadata["statistics"] = statistics
+
+        variables = []
+        for grp in groups:
+            for k in ds.variables[grp]:
+                variables.append(f"{grp}.{k}")
+        metadata["variables"] = variables
+
+        self.key = name
+        self.record = dict(name=name, metadata=metadata)
+
+    def _load_from_zarr_path(self, path):
+        import zarr
         name, _ = os.path.splitext(os.path.basename(path))
 
         z = zarr.open(path)
