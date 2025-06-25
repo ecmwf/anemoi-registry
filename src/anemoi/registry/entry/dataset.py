@@ -55,7 +55,7 @@ def delete_on_local(path):
         raise
 
     # Now do the actual deletion, of any <dataset>.deleting.* directories
-    for glob in os.listdir(path + ".deleting.*"):
+    for glob in os.listdir(path + ".deleting*"):
         try:
             shutil.rmtree(tmp_path)
         except OSError as e:
