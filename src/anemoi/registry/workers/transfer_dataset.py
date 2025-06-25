@@ -102,6 +102,7 @@ class TransferDatasetWorker(Worker):
         if not self.destination:
             raise ValueError("No destination platform specified")
 
+    def worker_process_task(self, task):
         if (
             not os.path.exists(self.target_dir)
             and not self.target_dir.startswith("s3://")
@@ -109,7 +110,6 @@ class TransferDatasetWorker(Worker):
         ):
             raise ValueError(f"Target directory {self.target_dir} must already exist")
 
-    def worker_process_task(self, task):
         from anemoi.utils.remote import transfer
 
         destination, source, dataset = self.parse_task(task)

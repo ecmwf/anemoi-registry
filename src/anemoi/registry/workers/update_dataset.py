@@ -43,13 +43,17 @@ class UpdateDatasetWorker(Worker):
 
         if self.directory:
             if not os.path.exists(self.directory):
-                raise ValueError(f"Directory {self.directory} does not exist")
+                LOG.warning(f"Directory {self.directory} does not exist")
 
         self.filter_tasks.update(filter_tasks)
         self.filter_tasks["destination"] = self.destination
 
     def worker_process_task(self, task):
         from anemoi.registry.commands.update import zarr_file_from_catalogue
+
+        if self.directory:
+            if not os.path.exists(self.directory):
+                raise ValueError(f"Directory {self.directory} does not exist")
 
         (destination,) = self.parse_task(task)
         assert destination == self.destination, (destination, self.destination)
