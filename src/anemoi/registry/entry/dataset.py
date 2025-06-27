@@ -9,6 +9,7 @@
 
 
 import datetime
+import glob
 import logging
 import os
 import shutil
@@ -54,12 +55,12 @@ def delete_on_local(path):
         LOG.error(f"Failed to rename {path} to {tmp_path}: {e}")
         raise
 
-    # Now do the actual deletion, of any <dataset>.deleting.* directories
-    for glob in os.listdir(path + ".deleting*"):
+    # Now do the actual deletion, of any <dataset>.deleting* directories
+    for to_delete in glob.glob(path + ".deleting*"):
         try:
-            shutil.rmtree(tmp_path)
+            shutil.rmtree(to_delete)
         except OSError as e:
-            LOG.error(f"Failed to delete {tmp_path}: {e}")
+            LOG.error(f"Failed to delete {to_delete}: {e}")
 
 
 class DatasetCatalogueEntryList(RestItemList):
