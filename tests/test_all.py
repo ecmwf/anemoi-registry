@@ -71,7 +71,7 @@ def setup_trainings():
 
 
 def setup_checkpoints():
-    run("anemoi-registry", "weights", "./dummy-checkpoint.ckpt", "--register")
+    run("anemoi-registry", "weights", "./dummy-checkpoint.ckpt", "--register", "--no-upload")
     run("anemoi-registry", "weights", "./dummy-checkpoint.ckpt")
 
 
@@ -246,8 +246,9 @@ def test_datasets():
     )
     run("anemoi-registry", "datasets", TMP_DATASET, "--add-location", "ewc")
 
-    # This is poluting the s3 bucket, we should have a way to clean it up automatically
-    run("anemoi-registry", "datasets", TMP_DATASET_PATH, "--add-location", "ewc", "--upload")
+    run("anemoi-registry", "datasets", TMP_DATASET_PATH, "--add-location", "ewc")
+    # This would actually upload the dataset to the EWC location, but we don't want to do that in tests
+    # run("anemoi-registry", "datasets", TMP_DATASET_PATH, "--add-location", "ewc", "--upload")
 
     # Disable this for now, we need that open_dataset ask the catalogue for the location of the dataset
     # if os.path.exists("/usr/local/bin/mars"):
@@ -273,8 +274,9 @@ def test_weights():
 @pytest.mark.skipif(IN_CI, reason="Test requires access to S3")
 def test_experiments():
     run("anemoi-registry", "experiments", "i4df")
-    run("anemoi-registry", "experiments", "i4df", "--add-plots", "./dummy-quaver.pdf")
-    run("anemoi-registry", "experiments", "i4df", "--add-weights", "./dummy-checkpoint.ckpt")
+    # re-enable when test buckets have been created
+    # run("anemoi-registry", "experiments", "i4df", "--add-plots", "./dummy-quaver.pdf")
+    # run("anemoi-registry", "experiments", "i4df", "--add-weights", "./dummy-checkpoint.ckpt")
 
 
 @pytest.mark.skipif(IN_CI and not ANEMOI_CATALOGUE_TOKEN, reason="Test requires access to the ANEMOI_CATALOGUE_TOKEN")

@@ -48,7 +48,7 @@ class TrainingCatalogueEntry(CatalogueEntry):
 
         return cls(
             config["name"],
-            dict(uuid=config["uuid"], metadata=config["metadata"]),
+            dict(uuid=config["uuid"], metadata=config),
             path=path,
         )
 

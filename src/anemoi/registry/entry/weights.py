@@ -78,14 +78,15 @@ class WeightCatalogueEntry(CatalogueEntry):
         upload(path, target, overwrite=overwrite, resume=not overwrite)
         return target
 
-    def register(self, **kwargs):
+    def register(self, upload=False, **kwargs):
         assert self.path is not None, "path must be provided"
 
         super().register(**kwargs)
 
-        platform = self.default_platform()
-        target = self.upload(self.path)
-        self.add_location(platform=platform, path=target)
+        if upload:
+            platform = self.default_platform()
+            target = self.upload(self.path)
+            self.add_location(platform=platform, path=target)
 
     @classmethod
     def load_from_path(cls, path):
@@ -107,3 +108,11 @@ class WeightCatalogueEntry(CatalogueEntry):
             dict(uuid=uuid, metadata=metadata),
             path=path,
         )
+
+    @classmethod
+    def search_requests(cls, **kwargs):
+        """Get the request for the entry."""
+        requests = super().search_requests(**kwargs)
+        request = dict(name=kwargs["NAME_OR_PATH"], type=kwargs["type"])
+        requests.append(request)
+        return requests
