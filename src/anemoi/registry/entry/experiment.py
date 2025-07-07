@@ -47,13 +47,14 @@ class ExperimentCatalogueEntry(CatalogueEntry):
     collection = COLLECTION
     main_key = "expver"
 
-    def create_from_new_key(self, key):
-        assert self.key_exists(key) is False, f"{self.collection} with key={key} already exists"
+    @classmethod
+    def create_from_new_key(cls, key):
+        assert cls.key_exists(key) is False, f"{cls.collection} with key={key} already exists"
         metadata = dict(expver=key, user=getuser())
-        self.key = key
-        self.record = dict(expver=key, metadata=metadata, runs={})
+        return cls(key, dict(expver=key, metadata=metadata, runs={}))
 
-    def load_from_path(self, path):
+    @classmethod
+    def load_from_path(cls, path):
         assert os.path.exists(path), f"{path} does not exist"
         assert path.endswith(".yaml"), f"{path} must be a yaml file"
 
@@ -64,8 +65,11 @@ class ExperimentCatalogueEntry(CatalogueEntry):
         metadata["config"] = config
         expver = metadata["expver"]
 
-        self.key = expver
-        self.record = dict(expver=expver, metadata=metadata, runs={})
+        return cls(
+            expver,
+            dict(expver=expver, metadata=metadata, runs={}),
+            path=path,
+        )
 
     def add_plots(self, *paths, **kwargs):
         for path in paths:

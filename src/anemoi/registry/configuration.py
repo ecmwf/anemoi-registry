@@ -93,7 +93,14 @@ class SingletonConfig:
         conf = self.package_config["registry"]
 
         # overwritten by server config
-        for k, v in self._config_from_server()["registry"].items():
+        config_from_server = self._config_from_server()
+        if "registry" not in config_from_server:
+            raise ValueError(
+                "No 'registry' section found in the server configuration. "
+                + "Please check your server settings or contact the administrator."
+                + str(config_from_server)
+            )
+        for k, v in config_from_server["registry"].items():
             if k not in conf:
                 conf[k] = v
             elif isinstance(conf[k], dict) and isinstance(v, dict):
