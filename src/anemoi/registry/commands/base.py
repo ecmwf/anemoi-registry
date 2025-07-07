@@ -79,18 +79,20 @@ class BaseCommand(Command):
 
     def run(self, args):
         LOG.debug(f"anemoi-registry args: {args}")
-        name_or_path = args.NAME_OR_PATH
-        entry = self.get_entry(name_or_path)
+        entry = self.get_entry(args)
         self._run(entry, args)
 
-    def get_entry(self, name_or_path):
-        if self.is_path(name_or_path):
-            LOG.debug(f"Found local {self.kind} at {name_or_path}")
-            return self.entry_class(path=name_or_path)
+    def search_requests(self, args):
+        """Get the request for the entry."""
+        return []
 
-        if self.is_identifier(name_or_path):
-            LOG.debug(f"Processing {self.kind} with identifier '{name_or_path}'")
-            return self.entry_class(key=name_or_path)
+    def get_entry(self, args, must_exist=False):
+        return self.entry_class.load_from_anything(
+            key=args.NAME_OR_PATH,
+            path=args.NAME_OR_PATH if self.is_path(args.NAME_OR_PATH) else None,
+            requests=self.search_requests(args),
+            must_exist=must_exist,
+        )
 
     def run_from_identifier(self, *args, **kwargs):
         raise NotImplementedError()
