@@ -82,16 +82,12 @@ class BaseCommand(Command):
         entry = self.get_entry(args)
         self._run(entry, args)
 
-    def search_requests(self, args):
-        """Get the request for the entry."""
-        return []
-
     def get_entry(self, args, must_exist=False):
         return self.entry_class.load_from_anything(
             key=args.NAME_OR_PATH,
             path=args.NAME_OR_PATH if self.is_path(args.NAME_OR_PATH) else None,
-            requests=self.search_requests(args),
             must_exist=must_exist,
+            kwargs=vars(args),
         )
 
     def run_from_identifier(self, *args, **kwargs):

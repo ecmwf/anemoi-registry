@@ -94,6 +94,11 @@ class CatalogueEntry:
         raise NotImplementedError("Subclasses must implement this method")
 
     @classmethod
+    def search_requests(cls, **kwargs):
+        """Get the request for the entry."""
+        return []
+
+    @classmethod
     def load_from_request(cls, request, params=None):
         results = cls.rest_collection().get(params=request)
         request_str = ", ".join(f"{k}={v}" for k, v in request.items())
@@ -122,11 +127,12 @@ class CatalogueEntry:
             return cls(key=key, record=record, must_exist=True, params=params)
 
     @classmethod
-    def load_from_anything(cls, key=None, path=None, requests=[], must_exist=True, params=None):
+    def load_from_anything(cls, key=None, path=None, kwargs={}, must_exist=True, params=None):
 
         if path is not None and os.path.exists(path):
             return cls.load_from_path(path)
 
+        requests = cls.search_requests(**kwargs)
         for request in requests:
             obj = cls.load_from_request(request, params=params)
             if obj is not None:

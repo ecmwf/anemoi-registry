@@ -31,6 +31,12 @@ class Weights(BaseCommand):
         )
         command_parser.add_argument("--register", help="Register the weights in the catalogue.", action="store_true")
         command_parser.add_argument("--download", help="Download the weights from the catalogue.")
+
+        group = command_parser.add_mutually_exclusive_group()
+        group.add_argument("--upload", dest="upload", action="store_true", help="Enable upload (default)")
+        group.add_argument("--no-upload", dest="upload", action="store_false", help="Disable upload")
+        command_parser.set_defaults(upload=True)
+
         command_parser.add_argument(
             "--unregister",
             help="Remove from catalogue (without deleting it from its actual locations). Ignore all other options.",
@@ -50,7 +56,7 @@ class Weights(BaseCommand):
         if args.unregister:
             entry.unregister()
             return
-        self.process_task(entry, args, "register", overwrite=args.overwrite)
+        self.process_task(entry, args, "register", overwrite=args.overwrite, upload=args.upload)
         self.process_task(entry, args, "add_location", path=args.location_path)
         self.set_get_remove_metadata(entry, args)
 
@@ -62,12 +68,6 @@ class Weights(BaseCommand):
             webbrowser.open(entry.url)
 
         self.process_task(entry, args, "download", platform="ewc")
-
-    def search_requests(self, args):
-        """Get the request for the entry."""
-        requests = super().search_requests(args)
-        requests.append({"name": args.NAME_OR_PATH, "type": args.type})
-        return requests
 
 
 command = Weights
