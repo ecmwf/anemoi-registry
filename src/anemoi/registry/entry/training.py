@@ -67,3 +67,11 @@ class TrainingCatalogueEntry(CatalogueEntry):
 
     def set_key(self, key, value):
         self.patch([{"op": "add", "path": f"/{key}", "value": value}])
+
+    @classmethod
+    def search_requests(cls, **kwargs):
+        """Get the request for the entry."""
+        requests = super().search_requests(**kwargs)
+        request = dict(name=kwargs["NAME_OR_PATH"])
+        requests.append(request)
+        return requests
