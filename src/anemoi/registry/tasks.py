@@ -37,10 +37,12 @@ class TaskCatalogueEntryList:
         self.kwargs = kwargs
         self.sort = sort
 
-        self.rest_collection = RestItemList(self.collection)
+    @classmethod
+    def rest_collection(cls):
+        return RestItemList(cls.collection)
 
     def get(self):
-        data = self.rest_collection.get(params=self.kwargs)
+        data = self.rest_collection().get(params=self.kwargs)
         return sorted(data, key=lambda x: x[self.sort])
 
     def __iter__(self):
@@ -58,7 +60,7 @@ class TaskCatalogueEntryList:
         assert "action" in kwargs, kwargs
         kwargs["action"] = kwargs["action"].replace("_", "-").lower()
 
-        res = self.rest_collection.post(kwargs)
+        res = self.rest_collection().post(kwargs)
         uuid = res["uuid"]
         LOG.debug(f"New task created {uuid}: {res}")
         return uuid

@@ -214,7 +214,8 @@ class DatasetCatalogueEntry(CatalogueEntry):
         variables_metadata = self._file_or_dict(file)
         self.patch([{"op": "add", "path": "/metadata/variables_metadata", "value": variables_metadata}], robust=True)
 
-    def load_from_path(self, path):
+    @classmethod
+    def load_from_path(cls, path):
         import zarr
 
         if not path.startswith("/") and not path.startswith("s3://"):
@@ -253,5 +254,8 @@ class DatasetCatalogueEntry(CatalogueEntry):
             assert tuple(metadata["chunks"]) == ds.chunks, (metadata["chunks"], ds.chunks)
         metadata["chunks"] = ds.chunks
 
-        self.key = name
-        self.record = dict(name=name, metadata=metadata)
+        return cls(
+            name,
+            dict(name=name, metadata=metadata),
+            path=path,
+        )

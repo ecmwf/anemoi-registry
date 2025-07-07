@@ -119,7 +119,7 @@ def teardown_experiments(errors, raise_if_error):
         run(
             "anemoi-registry",
             "experiments",
-            "./dummp-recipe-experiment.yaml",
+            "./dummy-recipe-experiment.yaml",
             "--unregister",
             raise_if_error=raise_if_error,
         )
@@ -182,10 +182,10 @@ def teardown_module():
 
 def _teardown_module(raise_if_error):
     errors = []
-    teardown_experiments(errors)
-    teardown_trainings(errors)
-    teardown_checkpoints(errors)
-    teardown_datasets(errors)
+    teardown_experiments(errors, raise_if_error=False)
+    teardown_trainings(errors, raise_if_error=False)
+    teardown_checkpoints(errors, raise_if_error=False)
+    teardown_datasets(errors, raise_if_error=False)
     if errors and raise_if_error:
         for e in errors:
             print(e)
@@ -298,7 +298,7 @@ if __name__ == "__main__":
         test_datasets()
     finally:
         print("# Start teardown")
-        teardown_datasets(errors)
+        teardown_datasets(errors, raise_if_error=False)
 
     print()
 
@@ -308,14 +308,14 @@ if __name__ == "__main__":
         test_experiments()
     finally:
         print("# Start teardown")
-        teardown_experiments(errors)
+        teardown_experiments(errors, raise_if_error=False)
 
     print()
 
     print("# Start setup")
     setup_trainings()
     print("# Start teardown")
-    teardown_trainings(errors)
+    teardown_trainings(errors, raise_if_error=False)
 
     print()
 
@@ -325,7 +325,7 @@ if __name__ == "__main__":
         test_weights()
     finally:
         print("# Start teardown")
-        teardown_checkpoints(errors)
+        teardown_checkpoints(errors, raise_if_error=False)
 
     if errors:
         for e in errors:
