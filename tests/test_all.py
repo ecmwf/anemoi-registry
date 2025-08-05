@@ -71,7 +71,7 @@ def setup_trainings():
 
 
 def setup_checkpoints():
-    run("anemoi-registry", "weights", "./dummy-checkpoint.ckpt", "--register")
+    run("anemoi-registry", "weights", "./dummy-checkpoint.ckpt", "--register", "--no-upload")
     run("anemoi-registry", "weights", "./dummy-checkpoint.ckpt")
 
 
@@ -119,7 +119,7 @@ def teardown_experiments(errors, raise_if_error):
         run(
             "anemoi-registry",
             "experiments",
-            "./dummp-recipe-experiment.yaml",
+            "./dummy-recipe-experiment.yaml",
             "--unregister",
             raise_if_error=raise_if_error,
         )
@@ -128,16 +128,18 @@ def teardown_experiments(errors, raise_if_error):
 
 
 def teardown_trainings(errors, raise_if_error):
-    try:
-        run(
-            "anemoi-registry",
-            "trainings",
-            "./dummy-recipe-training.json",
-            "--unregister",
-            raise_if_error=raise_if_error,
-        )
-    except Exception as e:
-        errors.append(e)
+    # don't tear down because it is created somewhere else
+    pass
+    # try:
+    #     run(
+    #         "anemoi-registry",
+    #         "trainings",
+    #         "./dummy-recipe-training.json",
+    #         "--unregister",
+    #         raise_if_error=raise_if_error,
+    #     )
+    # except Exception as e:
+    #     errors.append(e)
 
 
 def teardown_checkpoints(errors, raise_if_error):
@@ -182,10 +184,10 @@ def teardown_module():
 
 def _teardown_module(raise_if_error):
     errors = []
-    teardown_experiments(errors)
-    teardown_trainings(errors)
-    teardown_checkpoints(errors)
-    teardown_datasets(errors)
+    teardown_experiments(errors, raise_if_error=False)
+    teardown_trainings(errors, raise_if_error=False)
+    teardown_checkpoints(errors, raise_if_error=False)
+    teardown_datasets(errors, raise_if_error=False)
     if errors and raise_if_error:
         for e in errors:
             print(e)
@@ -246,8 +248,9 @@ def test_datasets():
     )
     run("anemoi-registry", "datasets", TMP_DATASET, "--add-location", "ewc")
 
-    # This is poluting the s3 bucket, we should have a way to clean it up automatically
-    run("anemoi-registry", "datasets", TMP_DATASET_PATH, "--add-location", "ewc", "--upload")
+    run("anemoi-registry", "datasets", TMP_DATASET_PATH, "--add-location", "ewc")
+    # This would actually upload the dataset to the EWC location, but we don't want to do that in tests
+    # run("anemoi-registry", "datasets", TMP_DATASET_PATH, "--add-location", "ewc", "--upload")
 
     # Disable this for now, we need that open_dataset ask the catalogue for the location of the dataset
     # if os.path.exists("/usr/local/bin/mars"):
@@ -273,8 +276,9 @@ def test_weights():
 @pytest.mark.skipif(IN_CI, reason="Test requires access to S3")
 def test_experiments():
     run("anemoi-registry", "experiments", "i4df")
-    run("anemoi-registry", "experiments", "i4df", "--add-plots", "./dummy-quaver.pdf")
-    run("anemoi-registry", "experiments", "i4df", "--add-weights", "./dummy-checkpoint.ckpt")
+    # re-enable when test buckets have been created
+    # run("anemoi-registry", "experiments", "i4df", "--add-plots", "./dummy-quaver.pdf")
+    # run("anemoi-registry", "experiments", "i4df", "--add-weights", "./dummy-checkpoint.ckpt")
 
 
 @pytest.mark.skipif(IN_CI and not ANEMOI_CATALOGUE_TOKEN, reason="Test requires access to the ANEMOI_CATALOGUE_TOKEN")
@@ -298,7 +302,7 @@ if __name__ == "__main__":
         test_datasets()
     finally:
         print("# Start teardown")
-        teardown_datasets(errors)
+        teardown_datasets(errors, raise_if_error=False)
 
     print()
 
@@ -308,14 +312,14 @@ if __name__ == "__main__":
         test_experiments()
     finally:
         print("# Start teardown")
-        teardown_experiments(errors)
+        teardown_experiments(errors, raise_if_error=False)
 
     print()
 
     print("# Start setup")
     setup_trainings()
     print("# Start teardown")
-    teardown_trainings(errors)
+    teardown_trainings(errors, raise_if_error=False)
 
     print()
 
@@ -325,7 +329,7 @@ if __name__ == "__main__":
         test_weights()
     finally:
         print("# Start teardown")
-        teardown_checkpoints(errors)
+        teardown_checkpoints(errors, raise_if_error=False)
 
     if errors:
         for e in errors:

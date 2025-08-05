@@ -80,7 +80,8 @@ class Datasets(BaseCommand):
             metavar="PLATFORM",
         )
 
-    def _run(self, entry, args):
+    def run(self, args):
+        entry = self.get_entry(args)
         if entry is None:
             raise ValueError(f"Dataset {args.NAME_OR_PATH} not found in the catalogue and path does not exists.")
 
