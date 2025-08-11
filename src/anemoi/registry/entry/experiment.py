@@ -76,7 +76,7 @@ class ExperimentCatalogueEntry(CatalogueEntry):
             self._add_one_weights(path, **kwargs)
 
     def set_run_status(self, run_number, status):
-        self.rest_item.patch([{"op": "add", "path": f"/runs/{run_number}/status", "value": status}])
+        self.patch([{"op": "add", "path": f"/runs/{run_number}/status", "value": status}], robust=True)
 
     def create_new_run(self, **kwargs):
         runs = self.record.get("runs", {})
@@ -90,16 +90,17 @@ class ExperimentCatalogueEntry(CatalogueEntry):
 
         if "runs" not in e.record:
             # for backwards compatibility, create '/runs' if it does not exist
-            e.rest_item.patch([{"op": "add", "path": "/runs", "value": {}}])
+            e.patch([{"op": "add", "path": "/runs", "value": {}}], robust=True)
             e.record["runs"] = {}
 
         # add run_number if it does not exist
         if str(run_number) not in self.record.get("runs", {}):
-            e.rest_item.patch(
+            e.patch(
                 [
                     {"op": "test", "path": "/runs", "value": e.record["runs"]},
                     {"op": "add", "path": f"/runs/{run_number}", "value": dict(archives={}, **kwargs)},
-                ]
+                ],
+                robust=True,
             )
             e.record["runs"] = {str(run_number): dict(archives={}, **kwargs)}
         self.record = e.record
@@ -128,7 +129,7 @@ class ExperimentCatalogueEntry(CatalogueEntry):
 
         self._ensure_run_exists(run_number)
 
-        self.rest_item.patch([{"op": "add", "path": f"/runs/{run_number}/archives/{platform}", "value": dic}])
+        self.patch([{"op": "add", "path": f"/runs/{run_number}/archives/{platform}", "value": dic}], robust=True)
 
     def remove_archive(self, platform, run_number):
         if platform is None:
@@ -149,7 +150,7 @@ class ExperimentCatalogueEntry(CatalogueEntry):
 
             url = run_record["archives"][platform]["url"]
             delete(url)
-            self.rest_item.patch([{"op": "remove", "path": f"/runs/{run_number}/archives/{platform}"}])
+            self.patch([{"op": "remove", "path": f"/runs/{run_number}/archives/{platform}"}], robust=True)
 
     def _list_run_numbers(self):
         return [int(k) for k in self.record.get("runs", {}).keys()]
@@ -228,11 +229,12 @@ class ExperimentCatalogueEntry(CatalogueEntry):
                 LOG.warning(f"Skipping deletion of {url} because it does not belong to this experiment")
                 continue
             delete(url)
-        self.rest_item.patch(
+        self.patch(
             [
                 {"op": "test", "path": "/plots", "value": plots},
                 {"op": "add", "path": "/plots", "value": []},
-            ]
+            ],
+            robust=True,
         )
 
     def _add_one_plot(self, path, **kwargs):
@@ -247,7 +249,7 @@ class ExperimentCatalogueEntry(CatalogueEntry):
         upload(path, target, overwrite=True)
 
         dic = dict(url=target, name=basename, path=path)
-        self.rest_item.patch([{"op": "add", "path": "/plots/-", "value": dic}])
+        self.patch([{"op": "add", "path": "/plots/-", "value": dic}], robust=True)
 
     def set_key_json(self, key, file, run_number):
         with open(file, "r") as f:
@@ -256,10 +258,10 @@ class ExperimentCatalogueEntry(CatalogueEntry):
 
     def set_key(self, key, value, run_number):
         if run_number is None:
-            self.rest_item.patch([{"op": "add", "path": f"/{key}", "value": value}])
+            self.patch([{"op": "add", "path": f"/{key}", "value": value}])
         else:
             self._ensure_run_exists(run_number)
-            self.rest_item.patch([{"op": "add", "path": f"/runs/{run_number}/{key}", "value": value}])
+            self.patch([{"op": "add", "path": f"/runs/{run_number}/{key}", "value": value}])
 
     def _add_one_weights(self, path, **kwargs):
         weights = WeightCatalogueEntry(path=path)
@@ -282,4 +284,4 @@ class ExperimentCatalogueEntry(CatalogueEntry):
                 raise ValueError(f"Conflicting weights with key={weights.key}")
 
         dic = dict(uuid=weights.key, path=path)
-        self.rest_item.patch([{"op": "add", "path": "/checkpoints/-", "value": dic}])
+        self.patch([{"op": "add", "path": "/checkpoints/-", "value": dic}], robust=True)

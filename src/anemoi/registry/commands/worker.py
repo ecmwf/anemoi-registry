@@ -8,10 +8,6 @@
 # nor does it submit to any jurisdiction.
 
 
-"""Command place holder. Delete when we have real commands.
-
-"""
-
 import logging
 
 from anemoi.registry.commands.base import BaseCommand
@@ -50,7 +46,7 @@ class WorkerCommand(BaseCommand):
         update.add_argument("--directory", help="The directory where the datasets are located.")
 
         delete = subparsers.add_parser("delete-dataset", help="Delete dataset")
-        delete.add_argument("--platform", help="Platform destination (e.g. leonardo, lumi, marenostrum)")
+        delete.add_argument("--platform", help="Platform to delete (e.g. ewc, leonardo, lumi, marenostrum)")
         delete.add_argument("--filter-tasks", help="Filter tasks to process (key=value list)", nargs="*", default=[])
 
         dummy = subparsers.add_parser("dummy", help="Dummy worker for test purposes")

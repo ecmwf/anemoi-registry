@@ -8,13 +8,23 @@
 # nor does it submit to any jurisdiction.
 
 import os
+import shlex
 import shutil
 import subprocess
 import uuid
 
+import pytest
 import yaml
 import zarr
 from anemoi.utils.remote import transfer
+
+from anemoi.registry import Dataset
+
+IN_CI = (os.environ.get("GITHUB_WORKFLOW") is not None) or (os.environ.get("IN_CI_HPC") is not None)
+ANEMOI_CATALOGUE_TOKEN = os.environ.get("ANEMOI_CATALOGUE_TOKEN")
+
+FORCE_TEST_ENV_VARIABLE = "TEST"
+os.environ["ANEMOI_CATALOGUE"] = FORCE_TEST_ENV_VARIABLE
 
 DATASET = "aifs-ea-an-oper-0001-mars-20p0-1979-1979-6h-v0-testing"
 DATASET_PATH = f"{DATASET}.zarr"
@@ -25,20 +35,27 @@ TMP_DATASET = f"{DATASET}-{pid}"
 TMP_DATASET_PATH = f"{TMP_DATASET}.zarr"
 TMP_RECIPE = f"./{TMP_DATASET}.yaml"
 
-DATASET_URL = "s3://ml-tests/test-data/anemoi-datasets/create/pipe.zarr/"
+REFERENCE_DATASET_URL = "s3://ml-tests/test-data/anemoi-datasets/create/pipe.zarr/"
 
 
-def run(*args):
-    print(" ".join(args))
+def run(*args, raise_if_error=True):
+    print(" ".join(shlex.quote(arg) for arg in args))
+    # input("Press Enter to continue...")
     try:
-        result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        env = os.environ.copy()
+        env["ANEMOI_CATALOGUE"] = FORCE_TEST_ENV_VARIABLE
+        result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
         result.check_returncode()
+        return result.stdout
     except Exception as e:
-        print("----------------SDTOUT----------------")
-        print(result.stdout)
-        print("----------------SDERR----------------")
-        print(result.stderr)
-        print("-------------------------------------")
+        if raise_if_error:
+            print("----------------SDTOUT----------------")
+            print(result.stdout)
+            print("----------------SDERR----------------")
+            print(result.stderr)
+            print("-------------------------------------")
+        else:
+            print("Command failed, but this is expected")
         e.add_note = f"Command failed: {' '.join(args)}"
         raise
 
@@ -46,6 +63,11 @@ def run(*args):
 def setup_experiments():
     run("anemoi-registry", "experiments", "./dummy-recipe-experiment.yaml", "--register")
     run("anemoi-registry", "experiments", "./dummy-recipe-experiment.yaml")
+
+
+def setup_trainings():
+    run("anemoi-registry", "trainings", "./dummy-recipe-training.json", "--register")
+    run("anemoi-registry", "trainings", "./dummy-recipe-training.json")
 
 
 def setup_checkpoints():
@@ -56,7 +78,7 @@ def setup_checkpoints():
 def setup_datasets():
     # cache to avoid downloading the dataset when re-running the tests
     if not os.path.exists(DATASET_PATH):
-        transfer(DATASET_URL, DATASET_PATH, overwrite=True)
+        transfer(REFERENCE_DATASET_URL, DATASET_PATH, overwrite=True)
     assert os.path.exists(DATASET_PATH)
 
     # create a temporary recipe file with the right name in
@@ -77,36 +99,61 @@ def setup_datasets():
     # check that the dataset is registered
     run("anemoi-registry", "datasets", TMP_DATASET_PATH)
 
-    print("# Setup done")
 
-
-def _setup_module():
+def setup_module():
+    if IN_CI:
+        return
+    print("# Setup started")
     _teardown_module(raise_if_error=False)
+    print()
     setup_experiments()
+    setup_trainings()
     setup_checkpoints()
     setup_datasets()
+    print("# Setup done")
+    print()
 
 
-def teardown_experiments(errors):
+def teardown_experiments(errors, raise_if_error):
     try:
-        run("anemoi-registry", "experiments", "./dummp-recipe-experiment.yaml", "--unregister")
+        run(
+            "anemoi-registry",
+            "experiments",
+            "./dummp-recipe-experiment.yaml",
+            "--unregister",
+            raise_if_error=raise_if_error,
+        )
     except Exception as e:
         errors.append(e)
 
 
-def teardown_checkpoints(errors):
+def teardown_trainings(errors, raise_if_error):
     try:
-        run("anemoi-registry", "weights", "a5275e04-0000-0000-a0f6-be19591b09fe", "--unregister")
+        run(
+            "anemoi-registry",
+            "trainings",
+            "./dummy-recipe-training.json",
+            "--unregister",
+            raise_if_error=raise_if_error,
+        )
     except Exception as e:
         errors.append(e)
 
 
-def teardown_datasets(errors):
+def teardown_checkpoints(errors, raise_if_error):
     try:
-        run("anemoi-registry", "datasets", TMP_DATASET, "--unregister")
+        run(
+            "anemoi-registry",
+            "weights",
+            "a5275e04-0000-0000-a0f6-be19591b09fe",
+            "--unregister",
+            raise_if_error=raise_if_error,
+        )
     except Exception as e:
         errors.append(e)
 
+
+def teardown_datasets(errors, raise_if_error):
     try:
         os.remove(TMP_RECIPE)
     except Exception as e:
@@ -117,10 +164,26 @@ def teardown_datasets(errors):
     except Exception as e:
         errors.append(e)
 
+    try:
+        run("anemoi-registry", "datasets", TMP_DATASET, "--unregister", raise_if_error=raise_if_error)
+    except Exception as e:
+        errors.append(e)
 
-def _teardown_module(raise_if_error=True):
+
+def teardown_module():
+    if IN_CI:
+        return
+    print()
+    print("# Teardown")
+    _teardown_module(raise_if_error=True)
+    print("# Teardown ended")
+    print()
+
+
+def _teardown_module(raise_if_error):
     errors = []
     teardown_experiments(errors)
+    teardown_trainings(errors)
     teardown_checkpoints(errors)
     teardown_datasets(errors)
     if errors and raise_if_error:
@@ -129,7 +192,14 @@ def _teardown_module(raise_if_error=True):
         raise e
 
 
-def _test_datasets():
+@pytest.mark.skipif(IN_CI and not ANEMOI_CATALOGUE_TOKEN, reason="Test requires access to the ANEMOI_CATALOGUE_TOKEN")
+def test_settings():
+    out = run("anemoi-registry", "settings")
+    print(out)
+
+
+@pytest.mark.skipif(IN_CI, reason="Test requires access to S3")
+def test_datasets():
     # assert run("anemoi-registry", "datasets", TMP_DATASET) == 1
     run("anemoi-registry", "datasets", TMP_DATASET)
     run("anemoi-registry", "datasets", TMP_DATASET, "--set-recipe", TMP_RECIPE)
@@ -143,6 +213,28 @@ def _test_datasets():
         "--uri-pattern",
         "/the/dataset/path/{name}",
     )
+
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST={}", "yaml")
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.a={}", "yaml")
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.a.string=ok")
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.a.int=42", "int")
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.a.float=42", "float")
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.a.datetime=2015-04-18", "datetime")
+    # run("echo", "45", "|", "anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.b=-", "stdin")
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.c={a: 43}", "yaml")
+    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.d=test.json", "path")
+    actual = Dataset(TMP_DATASET).record["metadata"]["TEST"]
+    expected = {
+        "a": {"string": "ok", "int": 42, "float": 42.0, "datetime": "2015-04-18T00:00:00"},
+        "c": {"a": 43},
+        "d": {"a": 45},
+    }
+    assert actual == expected, (actual, expected)
+
+    run("anemoi-registry", "datasets", TMP_DATASET, "--remove-metadata", "TEST")
+    metadata = Dataset(TMP_DATASET).record["metadata"]
+    assert "TEST" not in metadata, metadata["TEST"]
+
     run(
         "anemoi-registry",
         "datasets",
@@ -157,12 +249,14 @@ def _test_datasets():
     # This is poluting the s3 bucket, we should have a way to clean it up automatically
     run("anemoi-registry", "datasets", TMP_DATASET_PATH, "--add-location", "ewc", "--upload")
 
-    if os.path.exists("/usr/local/bin/mars"):
-        run("anemoi-registry", "update", "--catalogue-from-recipe-file", TMP_RECIPE, "--force", "--update")
-    run("anemoi-registry", "update", "--zarr-file-from-catalogue", TMP_DATASET_PATH, "--force")
+    # Disable this for now, we need that open_dataset ask the catalogue for the location of the dataset
+    # if os.path.exists("/usr/local/bin/mars"):
+    #    run("anemoi-registry", "update", "--catalogue-from-recipe-file", TMP_RECIPE, "--force", "--update")
+    # run("anemoi-registry", "update", "--zarr-file-from-catalogue", TMP_DATASET_PATH, "--force")
 
 
-def _test_weights():
+@pytest.mark.skipif(IN_CI, reason="Test requires access to S3")
+def test_weights():
     # assert run("anemoi-registry", "weights", "a5275e04-0000-0000-a0f6-be19591b09fe") == 1
     run("anemoi-registry", "weights", "a5275e04-0000-0000-a0f6-be19591b09fe")
     run(
@@ -176,32 +270,32 @@ def _test_weights():
     )
 
 
-def _test_experiments():
+@pytest.mark.skipif(IN_CI, reason="Test requires access to S3")
+def test_experiments():
     run("anemoi-registry", "experiments", "i4df")
     run("anemoi-registry", "experiments", "i4df", "--add-plots", "./dummy-quaver.pdf")
     run("anemoi-registry", "experiments", "i4df", "--add-weights", "./dummy-checkpoint.ckpt")
 
 
-def _test_list_commands():
+@pytest.mark.skipif(IN_CI and not ANEMOI_CATALOGUE_TOKEN, reason="Test requires access to the ANEMOI_CATALOGUE_TOKEN")
+def test_list_commands():
     run("anemoi-registry", "list", "experiments")
     run("anemoi-registry", "list", "weights")
     run("anemoi-registry", "list", "datasets")
 
 
-def test_print():
-    print("test")
-
-
 if __name__ == "__main__":
-    _test_list_commands()
+    test_list_commands()
     print()
 
     errors = []
+    out = run("anemoi-registry", "settings")
+    print(out)
 
     print("# Start setup")
     setup_datasets()
     try:
-        _test_datasets()
+        test_datasets()
     finally:
         print("# Start teardown")
         teardown_datasets(errors)
@@ -211,7 +305,7 @@ if __name__ == "__main__":
     print("# Start setup")
     setup_experiments()
     try:
-        _test_experiments()
+        test_experiments()
     finally:
         print("# Start teardown")
         teardown_experiments(errors)
@@ -219,9 +313,16 @@ if __name__ == "__main__":
     print()
 
     print("# Start setup")
+    setup_trainings()
+    print("# Start teardown")
+    teardown_trainings(errors)
+
+    print()
+
+    print("# Start setup")
     setup_checkpoints()
     try:
-        _test_weights()
+        test_weights()
     finally:
         print("# Start teardown")
         teardown_checkpoints(errors)
