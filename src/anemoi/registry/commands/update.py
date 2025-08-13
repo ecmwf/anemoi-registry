@@ -8,6 +8,7 @@
 # nor does it submit to any jurisdiction.
 
 
+import glob
 import json
 import logging
 import os
@@ -255,6 +256,16 @@ def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore,
 
 
 def zarr_file_from_catalogue(path, *, dry_run, ignore, _error=print):
+    if "*" in path:
+        LOG.info(f"Processing pattern {path}")
+        paths = glob.glob(path)
+        if not paths:
+            raise ValueError(f"No files found matching pattern: {path}")
+        for p in paths:
+            LOG.info(f"Processing {p}")
+            zarr_file_from_catalogue(p, dry_run=dry_run, ignore=ignore, _error=_error)
+        return
+
     import zarr
 
     LOG.info(f"Updating zarr file from catalogue: {path}")

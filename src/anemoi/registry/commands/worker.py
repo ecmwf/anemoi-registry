@@ -41,10 +41,6 @@ class WorkerCommand(BaseCommand):
         transfer.add_argument("--threads", help="Number of threads to use", type=int)
         transfer.add_argument("--filter-tasks", help="Filter tasks to process (key=value list)", nargs="*", default=[])
 
-        update = subparsers.add_parser("update-dataset", help="Update datasets from the catalogue")
-        update.add_argument("--destination", help="Platform destination (e.g. leonardo, lumi, marenostrum)")
-        update.add_argument("--directory", help="The directory where the datasets are located.")
-
         delete = subparsers.add_parser("delete-dataset", help="Delete dataset")
         delete.add_argument("--platform", help="Platform to delete (e.g. ewc, leonardo, lumi, marenostrum)")
         delete.add_argument("--filter-tasks", help="Filter tasks to process (key=value list)", nargs="*", default=[])
@@ -52,7 +48,7 @@ class WorkerCommand(BaseCommand):
         dummy = subparsers.add_parser("dummy", help="Dummy worker for test purposes")
         dummy.add_argument("--arg")
 
-        for subparser in [transfer, delete, dummy, update]:
+        for subparser in [transfer, delete, dummy]:
             subparser.add_argument("--timeout", help="Die with timeout (SIGALARM) after TIMEOUT seconds.", type=int)
             subparser.add_argument("--timeout-exit-code", help="Exit code when timeout is reached")
             subparser.add_argument("--wait", help="Check for new task every WAIT seconds.", type=int)
