@@ -222,7 +222,6 @@ def run_worker(action, **kwargs):
 
     from .delete_dataset import DeleteDatasetWorker
     from .transfer_dataset import TransferDatasetWorker
-    from .update_dataset import UpdateDatasetWorker
 
     workers_config = config().get("workers", {})
     worker_config = workers_config.get(action, {})
@@ -246,7 +245,6 @@ def run_worker(action, **kwargs):
     cls = {
         "transfer-dataset": TransferDatasetWorker,
         "delete-dataset": DeleteDatasetWorker,
-        "update-dataset": UpdateDatasetWorker,
         "dummy": DummyWorker,
     }[action]
     cls(**kwargs).run()
