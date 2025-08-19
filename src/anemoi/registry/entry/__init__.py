@@ -9,6 +9,7 @@
 
 import json
 import logging
+import os
 
 import yaml
 from anemoi.utils.config import load_any_dict_format
@@ -69,32 +70,96 @@ class CatalogueEntry:
     def url(self):
         return f"{config()['web_url']}/{self.collection}/{self.key}"
 
-    def load_from_path(self, path):
-        raise NotImplementedError("Subclasses must implement this method")
+    def __init__(self, key, record=None, must_exist=True, params=None, path=None):
+        # Ensure that exactly one of key, path or request is provided
+        self.path = path
+        self.key = key
 
-    def __init__(self, key=None, path=None, must_exist=True, params=None):
-        assert key is not None or path is not None, "key or path must be provided"
-        assert key is None or path is None, "key and path are mutually exclusive"
+        if not record:
+            entry = self.__class__.load_from_key(key, params=params)
+            if entry is None:
+                raise CatalogueEntryNotFound(f"Could not find any {self.collection} with key={key}")
+            record = entry.record
 
-        if path is not None:
-            self.load_from_path(path)
-
-        if key is not None:
-            if self.key_exists(key):
-                # found in catalogue so load it
-                self.load_from_key(key, params=params)
-            else:
-                # not found in catalogue, so create a new one
-                if must_exist:
-                    raise CatalogueEntryNotFound(f"Could not find any {self.collection} with key={key}")
-                else:
-                    self.create_from_new_key(key)
-
-        assert self.record is not None
-        assert self.key is not None, "key must be provided"
+        self.record = record
 
         self._rest_item = RestItem(self.collection, self.key)
-        self.rest_collection = RestItemList(self.collection)
+
+    @classmethod
+    def rest_collection(cls):
+        return RestItemList(cls.collection)
+
+    @classmethod
+    def load_from_path(cls, path):
+        raise NotImplementedError("Subclasses must implement this method")
+
+    @classmethod
+    def search_requests(cls, **kwargs):
+        """Get the request for the entry."""
+        return []
+
+    @classmethod
+    def load_from_request(cls, request, params=None):
+        results = cls.rest_collection().get(params=request)
+        request_str = ", ".join(f"{k}={v}" for k, v in request.items())
+
+        if len(results) > 1:
+            raise ValueError(
+                f"Found {len(results)} {cls.collection} with request {request}. "
+                "Please provide a more specific request to find the right one."
+            )
+
+        if len(results) == 1:
+            key = results[0][cls.main_key]
+            LOG.debug(f"Found {len(results)} element on {cls.collection} with request {request_str} : {key}")
+            return cls.load_from_key(key, params=params)
+
+        if len(results) == 0:
+            return None
+
+        assert False, (request_str, results, cls.collection, cls.main_key)
+
+    @classmethod
+    def load_from_key(cls, key, params=None):
+        _rest_item = RestItem(cls.collection, key)
+        if _rest_item.exists():
+            record = _rest_item.get(params=params)
+            return cls(key=key, record=record, must_exist=True, params=params)
+
+    @classmethod
+    def load_from_anything(cls, key=None, path=None, kwargs={}, must_exist=True, params=None):
+
+        if path is not None and os.path.exists(path):
+            return cls.load_from_path(path)
+
+        requests = cls.search_requests(**kwargs)
+        for request in requests:
+            obj = cls.load_from_request(request, params=params)
+            if obj is not None:
+                return obj
+
+        if key is not None:
+            obj = cls.load_from_request({cls.main_key: key}, params=params)
+            if obj is not None:
+                return obj
+
+            # not found in catalogue
+            if must_exist:
+                raise CatalogueEntryNotFound(f"Could not find any {cls.collection} with key={key}")
+
+            # then create a new one
+            return cls.create_from_new_key(key)
+
+        if must_exist:
+            raise CatalogueEntryNotFound(
+                f"Could not find any {cls.collection} with {key=}, {path=}, {requests=}, {params=}"
+            )
+
+        assert False, f"Cannot build an entry from {key}, {path}, {requests}, {params}. "
+
+    @classmethod
+    def create_from_new_key(cls, key):
+        raise CatalogueEntryNotFound(f"Could not find any {cls.collection} with key={key}")
 
     def as_json(self):
         return json_pretty_dump(self.record)
@@ -106,14 +171,6 @@ class CatalogueEntry:
     def exists(self):
         return self._rest_item.exists()
 
-    def load_from_key(self, key, params=None):
-        _rest_item = RestItem(self.collection, key)
-        if _rest_item.exists():
-            self.key = key
-            self.record = _rest_item.get(params=params)
-        else:
-            raise CatalogueEntryNotFound(f"Could not find any {self.collection} with key={key}")
-
     @property
     def main_key(self):
         raise NotImplementedError("Subclasses must implement this property")
@@ -121,7 +178,7 @@ class CatalogueEntry:
     def register(self, overwrite=False, ignore_existing=True, **kwargs):
         assert self.record, "record must be set"
         try:
-            return self.rest_collection.post(self.record, **kwargs)
+            return self.rest_collection().post(self.record, **kwargs)
         except AlreadyExists:
             if overwrite is True:
                 LOG.warning(f"{self.key} already exists. Overwriting existing one.")
@@ -248,4 +305,4 @@ class CatalogueEntry:
         self.patch(patches)
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.rest_collection}, {self.key})"
+        return f"{self.__class__.__name__}({self.rest_collection()}, {self.key})"

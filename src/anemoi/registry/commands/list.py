@@ -43,9 +43,18 @@ class List(Command):
 
         checkpoint = sub_parser.add_parser("weights", help="List weights in the catalogue.")
         checkpoint.add_argument(
-            "filter", nargs="*", help="Filter experiments with a list of key=value.", metavar="key=value"
+            "filter", nargs="*", help="Filter weights with a list of key=value.", metavar="key=value"
         )
         checkpoint.add_argument("--json", help="Output as JSON", action="store_true")
+
+        training = sub_parser.add_parser(
+            "trainings",
+            help="List trainings in the catalogue, for admin and debug purposes Current output is JSON and may change.",
+        )
+        training.add_argument(
+            "filter", nargs="*", help="Filter trainings with a list of key=value.", metavar="key=value"
+        )
+        training.add_argument("--json", help="Output as JSON", action="store_true")
 
         dataset = sub_parser.add_parser("datasets", help="List datasets in the catalogue.")
         dataset.add_argument("filter", nargs="*", help="Filter datasets with a list of key=value.", metavar="key=value")

@@ -39,14 +39,18 @@ class TrainingCatalogueEntry(CatalogueEntry):
     collection = COLLECTION
     main_key = "name"
 
-    def load_from_path(self, path):
+    @classmethod
+    def load_from_path(cls, path):
         assert os.path.exists(path), f"{path} does not exist"
         assert path.endswith(".json"), f"{path} must be a json file"
 
         config = load_any_dict_format(path)
 
-        self.key = config["name"]
-        self.record = dict(uuid=config["uuid"], metadata=config["metadata"])
+        return cls(
+            config["name"],
+            dict(uuid=config["uuid"], metadata=config),
+            path=path,
+        )
 
     def register(self, overwrite=False, ignore_existing=True, **kwargs):
         assert self.record, "record must be set"
@@ -63,3 +67,11 @@ class TrainingCatalogueEntry(CatalogueEntry):
 
     def set_key(self, key, value):
         self.patch([{"op": "add", "path": f"/{key}", "value": value}])
+
+    @classmethod
+    def search_requests(cls, **kwargs):
+        """Get the request for the entry."""
+        requests = super().search_requests(**kwargs)
+        request = dict(name=kwargs["NAME_OR_PATH"])
+        requests.append(request)
+        return requests

@@ -12,6 +12,7 @@ import logging
 import os
 
 from anemoi.utils.checkpoints import load_metadata as load_checkpoint_metadata
+from anemoi.utils.remote.s3 import download
 from anemoi.utils.remote.s3 import upload
 
 from anemoi.registry.rest import RestItemList
@@ -51,6 +52,24 @@ class WeightCatalogueEntry(CatalogueEntry):
     def default_platform(self):
         return config()["weights_platform"]
 
+    def download(self, path, platform):
+        """Download the weights to the specified path."""
+        LOG.info(f"Downloading {self.key} to {path}.")
+        dirname = os.path.dirname(path)
+        if dirname and not os.path.exists(dirname):
+            LOG.info(f"Creating directory {dirname} for downloading weights.")
+            os.makedirs(dirname, exist_ok=True)
+        if self.record.get("locations") is None:
+            LOG.error(f"No locations found for {self.key}. Cannot download.")
+            return
+        if platform not in self.record["locations"]:
+            LOG.error(
+                f"Platform {platform} not found in locations for {self.key}. Available platforms: {list(self.record['locations'].keys())}"
+            )
+            return
+        source = self.record["locations"][platform]["path"]
+        download(source, path, resume=True)
+
     def upload(self, path, target=None, overwrite=False):
         if target is None:
             target = self.default_location()
@@ -59,17 +78,18 @@ class WeightCatalogueEntry(CatalogueEntry):
         upload(path, target, overwrite=overwrite, resume=not overwrite)
         return target
 
-    def register(self, **kwargs):
+    def register(self, upload=False, **kwargs):
         assert self.path is not None, "path must be provided"
 
         super().register(**kwargs)
 
-        platform = self.default_platform()
-        target = self.upload(self.path)
-        self.add_location(platform=platform, path=target)
+        if upload:
+            platform = self.default_platform()
+            target = self.upload(self.path)
+            self.add_location(platform=platform, path=target)
 
-    def load_from_path(self, path):
-        self.path = path
+    @classmethod
+    def load_from_path(cls, path):
         assert os.path.exists(path), f"{path} does not exist"
 
         metadata = load_checkpoint_metadata(path)
@@ -83,5 +103,16 @@ class WeightCatalogueEntry(CatalogueEntry):
             uuid = metadata["run_id"]
             LOG.warning(f"Could not find 'uuid' in {path}, using 'run_id' instead: {uuid}")
 
-        self.key = uuid
-        self.record = dict(uuid=uuid, metadata=metadata)
+        return cls(
+            uuid,
+            dict(uuid=uuid, metadata=metadata),
+            path=path,
+        )
+
+    @classmethod
+    def search_requests(cls, **kwargs):
+        """Get the request for the entry."""
+        requests = super().search_requests(**kwargs)
+        request = dict(name=kwargs["NAME_OR_PATH"], type=kwargs["type"])
+        requests.append(request)
+        return requests

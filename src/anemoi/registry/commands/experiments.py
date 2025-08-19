@@ -111,7 +111,8 @@ class Experiments(BaseCommand):
             return False
         return True
 
-    def _run(self, entry, args):
+    def run(self, args):
+        entry = self.get_entry(args)
         self.process_task(entry, args, "delete_artefacts", _skip_if_not_found=True)
         self.process_task(entry, args, "unregister", _skip_if_not_found=True)
         self.process_task(entry, args, "register", overwrite=args.overwrite)
