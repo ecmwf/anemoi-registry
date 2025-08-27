@@ -20,7 +20,7 @@ The second config file is ``~/.config/anemoi/settings.secrets.toml``.
 This file must have the right permissions set to avoid unauthorized
 access (`chmod 600 <filename>`). All keys in this file have no default
 values. For users wanting to download data from the S3 storage they will
-need to fill provide the following:
+need to provide the following:
 
 .. code::
 
