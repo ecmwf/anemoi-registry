@@ -31,7 +31,7 @@ need to provide the following:
 
 For users needing to interact with the catalogue, e.g. register a
 dataset, they will also require the following in this second config
-file: .. code:
+file:
 
 .. code::
 
