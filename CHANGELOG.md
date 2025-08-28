@@ -8,6 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Please add your functional changes to the appropriate section in the PR.
 Keep it human-readable, your future self will thank you!
 
+## [0.2.3](https://github.com/ecmwf/anemoi-registry/compare/0.2.2...0.2.3) (2025-08-28)
+
+
+### Features
+
+* Downloading weights ([#97](https://github.com/ecmwf/anemoi-registry/issues/97)) ([a50e80c](https://github.com/ecmwf/anemoi-registry/commit/a50e80cefa72d704318b537146c35e8f14ddca4d))
+
+
+### Bug Fixes
+
+* Update docs for credentials ([#108](https://github.com/ecmwf/anemoi-registry/issues/108)) ([3eec402](https://github.com/ecmwf/anemoi-registry/commit/3eec4028f8cb3811c93fea16ce370256c063c530))
+
+
+### Documentation
+
+* Fix typo in naming-conventions.rst ([#64](https://github.com/ecmwf/anemoi-registry/issues/64)) ([c477540](https://github.com/ecmwf/anemoi-registry/commit/c477540a8018effb2e31faacf11463f5758449ea))
+
 ## [0.2.2](https://github.com/ecmwf/anemoi-registry/compare/0.2.1...0.2.2) (2025-06-30)
 
 
