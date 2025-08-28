@@ -19,14 +19,21 @@ this file are optional and have default values.
 The second config file is ``~/.config/anemoi/settings.secrets.toml``.
 This file must have the right permissions set to avoid unauthorized
 access (`chmod 600 <filename>`). All keys in this file have no default
-values.
+values. For users wanting to download data from the S3 storage they will
+need to provide the following:
 
 .. code::
-
-   [registry]
-   api_token = "xxxxxxxxxxx"
 
    [object-storage]
    endpoint_url = "https://xxxxxxxxxxxx.xxx"
    aws_access_key_id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
    aws_secret_access_key = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+For users needing to interact with the catalogue, e.g. register a
+dataset, they will also require the following in this second config
+file:
+
+.. code::
+
+   [registry]
+   api_token = "xxxxxxxxxxx"
