@@ -30,8 +30,8 @@ need to provide the following:
    aws_secret_access_key = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 For users needing to interact with the catalogue, e.g. register a
-dataset, they will also require the following in this second config file:
-.. code:
+dataset, they will also require the following in this second config
+file: .. code:
 
 .. code::
 
