@@ -56,7 +56,7 @@ class Update(Command):
 
         command_parser.add_argument("--dry-run", help="Dry run.", action="store_true")
         command_parser.add_argument("--force", help="Force.", action="store_true")
-        command_parser.add_argument("--update", help="Update.", action="store_true")
+        command_parser.add_argument("--update", help="Update.", choices=["all", "origins"])
         command_parser.add_argument("--ignore", help="Ignore some trivial errors.", action="store_true")
         command_parser.add_argument("--resume", help="Resume from progress", action="store_true")
         command_parser.add_argument("--progress", help="Progress file")
@@ -232,7 +232,7 @@ def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore,
 
     for new_key in ("variables_metadata", "origins"):
         LOG.info("Checking %s for %s", name, new_key)
-        if new_key not in entry.record["metadata"] or force:
+        if new_key not in entry.record["metadata"] or force or update == "all" or update == new_key:
             LOG.info("%s, setting `%s`  🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥", name, new_key)
 
             dir = os.path.join(workdir, f"anemoi-registry-commands-update-{time.time()}")
