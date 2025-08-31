@@ -244,7 +244,13 @@ def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore,
                 creator_factory("init", config=path, path=tmp, overwrite=True).run()
 
                 with open(f"{tmp}/.zattrs") as f:
-                    new_value = yaml.safe_load(f)[new_key]
+                    attrs = yaml.safe_load(f)
+
+                new_value = attrs.get(new_key)
+                if new_value is None:
+                    LOG.warning("%s does not have a %s attribute", tmp, new_key)
+                    continue
+
                 if debug:
                     with open(f"{name}.{new_key}.json", "w") as f:
                         print(json.dumps(new_value, indent=2), file=f)
