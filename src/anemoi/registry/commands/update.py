@@ -22,6 +22,8 @@ from anemoi.registry import Dataset
 from anemoi.registry.entry import CatalogueEntryNotFound
 from anemoi.registry.entry.dataset import DatasetCatalogueEntryList
 
+from . import Command
+
 LOG = logging.getLogger(__name__)
 
 
@@ -29,7 +31,7 @@ def _shorten(d):
     return textwrap.shorten(json.dumps(d, ensure_ascii=False, default=str), width=80, placeholder="...")
 
 
-class Update:
+class Update(Command):
     """Update"""
 
     internal = True
@@ -54,7 +56,7 @@ class Update:
 
         command_parser.add_argument("--dry-run", help="Dry run.", action="store_true")
         command_parser.add_argument("--force", help="Force.", action="store_true")
-        command_parser.add_argument("--update", help="Update.", action="store_true")
+        command_parser.add_argument("--update", help="Update.", choices=["all", "origins"])
         command_parser.add_argument("--ignore", help="Ignore some trivial errors.", action="store_true")
         command_parser.add_argument("--resume", help="Resume from progress", action="store_true")
         command_parser.add_argument("--progress", help="Progress file")
@@ -128,14 +130,14 @@ def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore,
     from anemoi.datasets import open_dataset
     from anemoi.datasets.create import creator_factory
 
+    LOG.info(f"Updating catalogue entry from recipe: {path} {dry_run=} {force=} {update=}")
+
     def entry_set_value(path, value, **kwargs):
         if dry_run:
             LOG.info(f"Would set value {path} to {_shorten(value)}")
         else:
             LOG.info(f"Setting value {path} to {_shorten(value)}")
             entry.set_value(path, value, **kwargs)
-
-    LOG.info(f"Updating catalogue entry from recipe: {path}")
 
     with open(path) as f:
         recipe = yaml.safe_load(f)
@@ -161,8 +163,9 @@ def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore,
     updated = entry.record["metadata"].get("updated", 0)
 
     if "recipe" in entry.record["_original"]["metadata"]:
-        LOG.info("%s: `recipe` already in original. Use --force and --update to update", name)
-        if not update or not force:
+
+        if not update and not force:
+            LOG.info("%s: `recipe` already in original. Use --force and --update to update", name)
             return
 
         # Remove stuff added by prepml
@@ -204,10 +207,10 @@ def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore,
         if "constant_fields" in entry.record["metadata"] and "variables_metadata" in entry.record["metadata"]:
             LOG.info("%s, checking `variables_metadata` and `constant_fields`", name)
             constants = entry.record["metadata"]["constant_fields"]
-            variables_metadata = entry.record["metadata"]["variables_metadata"]
+            new_value = entry.record["metadata"]["variables_metadata"]
 
         changed = False
-        for k, v in variables_metadata.items():
+        for k, v in new_value.items():
 
             if k in constants and v.get("constant_in_time") is not True:
                 v["constant_in_time"] = True
@@ -221,18 +224,16 @@ def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore,
         if changed:
             if debug:
                 with open(f"{name}.variables_metadata.json", "w") as f:
-                    print(json.dumps(variables_metadata, indent=2), file=f)
-            entry_set_value("/metadata/variables_metadata", variables_metadata)
+                    print(json.dumps(new_value, indent=2), file=f)
+            entry_set_value("/metadata/variables_metadata", new_value)
             entry_set_value("/metadata/updated", updated + 1)
         else:
             LOG.info("No changes required")
 
-    if "variables_metadata" not in entry.record["metadata"] or force:
-        LOG.info("%s, setting `variables_metadata`  🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥", name)
-
-        if dry_run:
-            LOG.info("Would set `variables_metadata` %s", name)
-        else:
+    for new_key in ("variables_metadata", "origins"):
+        LOG.info("Checking %s for %s", name, new_key)
+        if new_key not in entry.record["metadata"] or force or update == "all" or update == new_key:
+            LOG.info("%s, setting `%s`  🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥", name, new_key)
 
             dir = os.path.join(workdir, f"anemoi-registry-commands-update-{time.time()}")
             os.makedirs(dir)
@@ -243,12 +244,18 @@ def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore,
                 creator_factory("init", config=path, path=tmp, overwrite=True).run()
 
                 with open(f"{tmp}/.zattrs") as f:
-                    variables_metadata = yaml.safe_load(f)["variables_metadata"]
+                    attrs = yaml.safe_load(f)
+
+                new_value = attrs.get(new_key)
+                if new_value is None:
+                    LOG.warning("%s does not have a %s attribute", tmp, new_key)
+                    continue
+
                 if debug:
-                    with open(f"{name}.variables_metadata.json", "w") as f:
-                        print(json.dumps(variables_metadata, indent=2), file=f)
-                LOG.info("Setting variables_metadata %s", name)
-                entry_set_value("/metadata/variables_metadata", variables_metadata)
+                    with open(f"{name}.{new_key}.json", "w") as f:
+                        print(json.dumps(new_value, indent=2), file=f)
+                LOG.info("Setting %s %s", new_key, name)
+                entry_set_value(f"/metadata/{new_key}", new_value)
                 entry_set_value("/metadata/updated", updated + 1)
 
             finally:

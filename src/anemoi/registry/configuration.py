@@ -122,7 +122,7 @@ class SingletonConfig:
                 LOG.warning(
                     (
                         f"Ignoring user config for {k}: {v} != {conf.get(k)}."
-                        "Please delete this entry from your config file."
+                        " Please delete this entry from your config file."
                     )
                 )
         conf.pop("catalogue")

@@ -190,6 +190,7 @@ class RestItem:
         except HTTPError as e:
             if e.response.status_code == 404:
                 return False
+            raise
 
     def get(self, *args, **kwargs):
         return self.rest.get(self.path, *args, **kwargs)
