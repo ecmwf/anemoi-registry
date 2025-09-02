@@ -41,11 +41,15 @@ class Worker:
         timeout=None,
         timeout_exit_code=None,
         dry_run=False,
+        **kwargs,
     ):
         """Run a worker that will process tasks in the queue.
         timeout: Kill itself after `timeout` seconds.
         wait: When no task is found, wait `wait` seconds before checking again.
         """
+        if kwargs:
+            LOG.warning(f"Unknown arguments for Worker: {kwargs}")
+
         self.heartbeat = heartbeat
         self.max_no_heartbeat = max_no_heartbeat
         self.loop = loop
