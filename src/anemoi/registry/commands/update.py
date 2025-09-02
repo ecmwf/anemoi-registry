@@ -287,6 +287,7 @@ def zarr_file_from_catalogue(path, *, dry_run, ignore, _error=print):
 
     if "uuid" not in metadata:
         _error("Zarr metadata does not have a 'uuid' field.")
+        return
 
     match = None
     for e in DatasetCatalogueEntryList().get(params={"uuid": metadata["uuid"]}):
@@ -296,6 +297,7 @@ def zarr_file_from_catalogue(path, *, dry_run, ignore, _error=print):
 
     if match is None:
         _error(f"No entry found for uuid {metadata['uuid']}")
+        return
 
     name = match["name"]
     base, _ = os.path.splitext(os.path.basename(path))
