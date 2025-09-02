@@ -258,6 +258,7 @@ def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore,
 def zarr_file_from_catalogue(path, *, dry_run, ignore, _error=print):
     if "*" in path:
         LOG.info(f"Processing pattern {path}")
+        path = os.path.expanduser(path)
         paths = glob.glob(path)
         if not paths:
             raise ValueError(f"No files found matching pattern: {path}")
