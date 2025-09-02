@@ -73,6 +73,7 @@ class WorkerCommand(BaseCommand):
         kwargs.pop("command")
         kwargs.pop("debug")
         kwargs.pop("version")
+        kwargs.pop("rich", None)
         action = kwargs.pop("action")
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
         run_worker(action, **kwargs)
