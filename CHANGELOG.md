@@ -8,6 +8,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Please add your functional changes to the appropriate section in the PR.
 Keep it human-readable, your future self will thank you!
 
+## [0.2.3](https://github.com/ecmwf/anemoi-registry/compare/0.2.2...0.2.3) (2025-09-02)
+
+
+### Features
+
+* Downloading weights ([#97](https://github.com/ecmwf/anemoi-registry/issues/97)) ([a50e80c](https://github.com/ecmwf/anemoi-registry/commit/a50e80cefa72d704318b537146c35e8f14ddca4d))
+* Fix updating datasets metadata ([#111](https://github.com/ecmwf/anemoi-registry/issues/111)) ([41813d2](https://github.com/ecmwf/anemoi-registry/commit/41813d2d69259928fd91bcd6325e569f5a7cbc03))
+* More robust metadata update ([#112](https://github.com/ecmwf/anemoi-registry/issues/112)) ([bc25ec7](https://github.com/ecmwf/anemoi-registry/commit/bc25ec71eeff9cedf115330b66909d48b540cbc0))
+* Support new origins attribute when patching zarrs ([#109](https://github.com/ecmwf/anemoi-registry/issues/109)) ([153ecb3](https://github.com/ecmwf/anemoi-registry/commit/153ecb36d0549115f9cbabf175ad51484fc1a60f))
+* Update to new anemoi-utils ([#113](https://github.com/ecmwf/anemoi-registry/issues/113)) ([7650d28](https://github.com/ecmwf/anemoi-registry/commit/7650d28e98a64021374bd42478d33910deddb093))
+
+
+### Bug Fixes
+
+* Update docs for credentials ([#108](https://github.com/ecmwf/anemoi-registry/issues/108)) ([3eec402](https://github.com/ecmwf/anemoi-registry/commit/3eec4028f8cb3811c93fea16ce370256c063c530))
+
+
+### Documentation
+
+* Fix typo in naming-conventions.rst ([#64](https://github.com/ecmwf/anemoi-registry/issues/64)) ([c477540](https://github.com/ecmwf/anemoi-registry/commit/c477540a8018effb2e31faacf11463f5758449ea))
+
 ## [0.2.2](https://github.com/ecmwf/anemoi-registry/compare/0.2.1...0.2.2) (2025-06-30)
 
 
