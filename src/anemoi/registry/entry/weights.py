@@ -33,7 +33,7 @@ class WeightsCatalogueEntryList(RestItemList):
 
     def __iter__(self):
         for v in self.get():
-            yield WeightCatalogueEntry(key=v["uuid"])
+            yield WeightCatalogueEntry.load_from_key(key=v["uuid"])
 
 
 class WeightCatalogueEntry(CatalogueEntry):

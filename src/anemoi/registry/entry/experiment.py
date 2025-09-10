@@ -268,7 +268,7 @@ class ExperimentCatalogueEntry(CatalogueEntry):
             self.patch([{"op": "add", "path": f"/runs/{run_number}/{key}", "value": value}])
 
     def _add_one_weights(self, path, **kwargs):
-        weights = WeightCatalogueEntry(path=path)
+        weights = WeightCatalogueEntry.load_from_path(path=path)
 
         if not WeightCatalogueEntry.key_exists(weights.key):
             # weights with this uuid does not exist, register and upload them
@@ -279,7 +279,7 @@ class ExperimentCatalogueEntry(CatalogueEntry):
             # Weights with this uuid already exist
             # Skip if the weights are the same
             # Raise an error if the weights are different
-            other = WeightCatalogueEntry(key=weights.key)
+            other = WeightCatalogueEntry.load_from_key(key=weights.key)
             if other.record["metadata"]["timestamp"] == weights.record["metadata"]["timestamp"]:
                 LOG.info(
                     f"Not updating weights with key={weights.key}, because it already exists and has the same timestamp"
