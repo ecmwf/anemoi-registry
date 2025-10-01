@@ -8,6 +8,7 @@
 # nor does it submit to any jurisdiction.
 
 
+import argparse
 import logging
 
 import yaml
@@ -22,6 +23,10 @@ class Settings:
 
     internal = True
     timestamp = True
+
+    def check(self, parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
+        """Check the command arguments."""
+        pass
 
     def add_arguments(self, command_parser):
         command_parser.add_argument("--show-secrets", help="Show the token in the output", action="store_true")
