@@ -15,7 +15,6 @@ import os
 import shutil
 
 import yaml
-from anemoi.datasets import open_dataset
 from anemoi.utils.humanize import when
 from anemoi.utils.sanitise import sanitise
 
@@ -218,6 +217,7 @@ class DatasetCatalogueEntry(CatalogueEntry):
     @classmethod
     def load_from_path(cls, path):
         import zarr
+        from anemoi.datasets import open_dataset
 
         if not path.startswith("/") and not path.startswith("s3://"):
             LOG.warning(f"Dataset path is not absolute: {path}")
