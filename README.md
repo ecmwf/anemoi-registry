@@ -1,10 +1,20 @@
 # anemoi-registry
 
-[![Static Badge](https://github.com/ecmwf/codex/raw/refs/heads/main/Project%20Maturity/incubating_badge.svg)](https://github.com/ecmwf/codex/raw/refs/heads/main/Project%20Maturity#incubating)
-
+<p align="center">
+  <a href="https://github.com/ecmwf/codex/raw/refs/heads/main/Project Maturity">
+    <img src="https://github.com/ecmwf/codex/raw/refs/heads/main/Project Maturity/incubating_badge.svg" alt="Maturity Level">
+  </a>
+  <a href="https://opensource.org/licenses/apache-2-0">
+    <img src="https://img.shields.io/badge/Licence-Apache 2.0-blue.svg" alt="Licence">
+  </a>
+  <a href="https://github.com/ecmwf/anemoi-registry/releases">
+    <img src="https://img.shields.io/github/v/release/ecmwf/anemoi-registry?color=purple&label=Release" alt="Latest Release">
+  </a>
+</p>
 
 > \[!IMPORTANT\]
 > This software is **Incubating** and subject to ECMWF's guidelines on [Software Maturity](https://github.com/ecmwf/codex/raw/refs/heads/main/Project%20Maturity).
+
 
 
 ## Documentation
@@ -22,7 +32,7 @@ $ pip install anemoi-registry
 ## License
 
 ```
-Copyright 2024-2025, Anemoi Contributors.
+Copyright , .
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
