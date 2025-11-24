@@ -8,6 +8,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Please add your functional changes to the appropriate section in the PR.
 Keep it human-readable, your future self will thank you!
 
+## [0.2.3](https://github.com/ecmwf/anemoi-registry/compare/0.2.2...0.2.3) (2025-11-24)
+
+
+### Features
+
+* Add weights before registering experiment to be robust to crashes ([#119](https://github.com/ecmwf/anemoi-registry/issues/119)) ([a2b1835](https://github.com/ecmwf/anemoi-registry/commit/a2b18351e9e8696f87ff81b5514f0e2383dca22f))
+* Downloading weights ([#97](https://github.com/ecmwf/anemoi-registry/issues/97)) ([a50e80c](https://github.com/ecmwf/anemoi-registry/commit/a50e80cefa72d704318b537146c35e8f14ddca4d))
+* Fix updating datasets metadata ([#111](https://github.com/ecmwf/anemoi-registry/issues/111)) ([41813d2](https://github.com/ecmwf/anemoi-registry/commit/41813d2d69259928fd91bcd6325e569f5a7cbc03))
+* More robust metadata update ([#112](https://github.com/ecmwf/anemoi-registry/issues/112)) ([bc25ec7](https://github.com/ecmwf/anemoi-registry/commit/bc25ec71eeff9cedf115330b66909d48b540cbc0))
+* Support new origins attribute when patching zarrs ([#109](https://github.com/ecmwf/anemoi-registry/issues/109)) ([153ecb3](https://github.com/ecmwf/anemoi-registry/commit/153ecb36d0549115f9cbabf175ad51484fc1a60f))
+* Update anemoi dependencies ([#126](https://github.com/ecmwf/anemoi-registry/issues/126)) ([32eeb88](https://github.com/ecmwf/anemoi-registry/commit/32eeb882cd9185dc844ec115d3a3300216a443e3))
+* Update to new anemoi-utils ([#113](https://github.com/ecmwf/anemoi-registry/issues/113)) ([7650d28](https://github.com/ecmwf/anemoi-registry/commit/7650d28e98a64021374bd42478d33910deddb093))
+
+
+### Bug Fixes
+
+* Fix anemoi-registry settings ([#118](https://github.com/ecmwf/anemoi-registry/issues/118)) ([17cfb74](https://github.com/ecmwf/anemoi-registry/commit/17cfb74663a7746600f5bad6c0ac10f7d1ec7678))
+* Lazy loading of anemoi-datasets ([#120](https://github.com/ecmwf/anemoi-registry/issues/120)) ([f50ca49](https://github.com/ecmwf/anemoi-registry/commit/f50ca4906cffd5925a801061348b9fc60dd13091))
+* Move to use loading methods instead of class constructor ([#115](https://github.com/ecmwf/anemoi-registry/issues/115)) ([298c7c9](https://github.com/ecmwf/anemoi-registry/commit/298c7c9774a8dc3ecc32f8116066ca8fb8e012a2))
+* Revise project disclaimer and add maturity badge ([#123](https://github.com/ecmwf/anemoi-registry/issues/123)) ([c8c0787](https://github.com/ecmwf/anemoi-registry/commit/c8c0787b13aa74bd13c7bcaa399af620c2cb222f))
+* Update docs for credentials ([#108](https://github.com/ecmwf/anemoi-registry/issues/108)) ([3eec402](https://github.com/ecmwf/anemoi-registry/commit/3eec4028f8cb3811c93fea16ce370256c063c530))
+
+
+### Documentation
+
+* Fix typo in naming-conventions.rst ([#64](https://github.com/ecmwf/anemoi-registry/issues/64)) ([c477540](https://github.com/ecmwf/anemoi-registry/commit/c477540a8018effb2e31faacf11463f5758449ea))
+
 ## [0.2.2](https://github.com/ecmwf/anemoi-registry/compare/0.2.1...0.2.2) (2025-06-30)
 
 
