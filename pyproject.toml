@@ -38,7 +38,7 @@ classifiers = [
 
 dynamic = [ "version" ]
 
-dependencies = [ "anemoi-datasets>=0.5.23", "anemoi-utils[text]>=0.4.23", "jsonpatch", "requests" ]
+dependencies = [ "anemoi-datasets>=0.5.28", "anemoi-utils[text]>=0.4.39", "jsonpatch", "requests" ]
 
 optional-dependencies.all = [
   "anemoi-utils[s3]",
