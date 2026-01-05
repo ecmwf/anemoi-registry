@@ -129,6 +129,7 @@ class ExperimentCatalogueEntry(CatalogueEntry):
         LOG.info(f"Uploading {path} to {target}.")
         upload(path, target, overwrite=overwrite)
 
+        # NOTE: if format of this dict changes, also update the list of excluded extra keys in archive_moved
         dic = dict(url=target, path=path, updated=datetime.datetime.utcnow().isoformat(), **extras)
 
         self._ensure_run_exists(run_number)
@@ -186,7 +187,11 @@ class ExperimentCatalogueEntry(CatalogueEntry):
                 if not os.path.exists(tmp_path):
                     LOG.info(f"Skipping {old} -> {new} for run {run_number} because it does not exist")
                     continue
-                self.set_archive(tmp_path, platform=new, run_number=run_number, overwrite=overwrite)
+                run_record = self._get_run_record(run_number)
+                extras = {k: v for k, v in run_record["archives"][old].items() if k not in ["url", "path", "updated"]}
+                if extras:
+                    LOG.info(f"Copying extras: {extras}")
+                self.set_archive(tmp_path, platform=new, run_number=run_number, overwrite=overwrite, extras=extras)
                 self.remove_archive(old, run_number)
 
     def _get_run_record(self, run_number):
