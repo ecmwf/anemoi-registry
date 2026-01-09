@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Please add your functional changes to the appropriate section in the PR.
 Keep it human-readable, your future self will thank you!
 
+## [0.2.4](https://github.com/ecmwf/anemoi-registry/compare/0.2.3...0.2.4) (2026-01-09)
+
+
+### Features
+
+* Copy extra metadata when moving archives ([#130](https://github.com/ecmwf/anemoi-registry/issues/130)) ([5cd106c](https://github.com/ecmwf/anemoi-registry/commit/5cd106cd389a52883ee0743436998aa5533d6799))
+
+
+### Bug Fixes
+
+* Crash in delete_all_plots if no plots ([#128](https://github.com/ecmwf/anemoi-registry/issues/128)) ([4b423d0](https://github.com/ecmwf/anemoi-registry/commit/4b423d046006c8f59b011f9e6d9507bb2fb54891))
+
 ## [0.2.3](https://github.com/ecmwf/anemoi-registry/compare/0.2.2...0.2.3) (2025-11-24)
 
 
