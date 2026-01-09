@@ -228,6 +228,8 @@ class ExperimentCatalogueEntry(CatalogueEntry):
 
     def delete_all_plots(self):
         plots = self.record.get("plots", [])
+        if not plots:
+            return
         for plot in plots:
             url = plot["url"]
             LOG.info(f"Deleting {url}")
