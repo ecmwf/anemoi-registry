@@ -36,12 +36,12 @@ class AlreadyExists(ValueError):
     pass
 
 
-def tidy(d):
+def tidy(d, *path):
     if isinstance(d, dict):
-        return {k: tidy(v) for k, v in d.items()}
+        return {k: tidy(v, *path, k) for k, v in d.items()}
 
     if isinstance(d, list):
-        return [tidy(v) for v in d if v is not None]
+        return [tidy(v, *path, str(i)) for i, v in enumerate(d)]
 
     # jsonschema does not support datetime.date
     if isinstance(d, datetime.datetime):
@@ -49,6 +49,11 @@ def tidy(d):
 
     if isinstance(d, datetime.date):
         return d.isoformat()
+
+    if isinstance(d, float):
+        if d != d or d == float("inf") or d == float("-inf"):
+            LOG.warning(f"Converting {'.'.join(path)} non-finite float {d} to string")
+            return str(d)
 
     return d
 
