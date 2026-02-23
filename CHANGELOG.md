@@ -8,8 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Please add your functional changes to the appropriate section in the PR.
 Keep it human-readable, your future self will thank you!
 
-## [0.2.4](https://github.com/ecmwf/anemoi-registry/compare/0.2.3...0.2.4) (2026-01-09)
+## [Unreleased](https://github.com/ecmwf/anemoi-registry/compare/0.2.4...HEAD) 
 
+### Fixed
+
+* Add missing dependency `obstore` to `pyproject.toml` ([#137](https://github.com/ecmwf/anemoi-registry/pull/137)), @leifdenby
+
+
+## [0.2.4](https://github.com/ecmwf/anemoi-registry/compare/0.2.3...0.2.4) (2026-01-09)
 
 ### Features
 
