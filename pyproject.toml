@@ -12,17 +12,13 @@ requires = [ "setuptools>=60", "setuptools-scm>=8" ]
 
 [project]
 name = "anemoi-registry"
-
 description = "A package to manage a registry or data-driven forecasts."
 keywords = [ "ai", "registry", "tools" ]
-
 license = { file = "LICENSE" }
 authors = [
   { name = "European Centre for Medium-Range Weather Forecasts (ECMWF)", email = "software.support@ecmwf.int" },
 ]
-
 requires-python = ">=3.11"
-
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
@@ -34,15 +30,11 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
-
 dynamic = [ "version" ]
-
 dependencies = [ "anemoi-datasets>=0.5.28", "anemoi-utils[text]>=0.4.39", "jsonpatch", "requests" ]
-
 optional-dependencies.all = [
   "anemoi-utils[s3]",
 ]
-
 optional-dependencies.dev = [
   "anemoi-utils[s3]",
   "nbsphinx",
@@ -52,7 +44,6 @@ optional-dependencies.dev = [
   "sphinx-argparse<0.5",
   "sphinx-rtd-theme",
 ]
-
 optional-dependencies.docs = [
   "nbsphinx",
   "pandoc",
@@ -60,23 +51,20 @@ optional-dependencies.docs = [
   "sphinx-argparse<0.5",
   "sphinx-rtd-theme",
 ]
-
 optional-dependencies.s3 = [
   "anemoi-utils[s3]",
 ]
-
 optional-dependencies.tests = [
   "pytest",
 ]
-
 urls.Documentation = "https://anemoi-registry.readthedocs.io/"
 urls.Homepage = "https://github.com/ecmwf/anemoi-registry/"
 urls.Issues = "https://github.com/ecmwf/anemoi-registry/issues"
 urls.Repository = "https://github.com/ecmwf/anemoi-registry/"
 scripts.anemoi-registry = "anemoi.registry.__main__:main_PYTHON_ARGCOMPLETE_OK"
 
-[tool.setuptools.package-data]
-"anemoi.registry" = [ "*.yaml" ]
+[tool.setuptools]
+package-data."anemoi.registry" = [ "*.yaml" ]
 
 [tool.setuptools_scm]
 version_file = "src/anemoi/registry/_version.py"
