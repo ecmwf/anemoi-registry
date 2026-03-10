@@ -154,7 +154,7 @@ class Rest:
         LOG.debug(f"{verb} {collection} {data}")
 
     def trace_info_dict(self):
-        return dict(_trace_info=self.trace_info())
+        return dict(_trace_info=trace_info())
 
     def raise_for_status(self, r, errors={}):
         try:
