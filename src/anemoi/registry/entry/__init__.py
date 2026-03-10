@@ -288,11 +288,11 @@ class CatalogueEntry:
         patches = [patch]
         if "/" in path[1:]:
             parent_path = path.rsplit("/", 1)[0]
-            parent_key = parent_path.rsplit("/", 1)[1]
+            parent_name = parent_path.rsplit("/", 1)[1]
             try:
                 self.get_value(parent_path)
             except KeyError:
-                if parent_key.isdigit():
+                if parent_name.isdigit():
                     patches = [{"op": "add", "path": parent_path, "value": []}] + patches
                 else:
                     patches = [{"op": "add", "path": parent_path, "value": {}}] + patches
