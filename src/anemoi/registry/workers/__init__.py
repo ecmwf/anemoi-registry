@@ -105,7 +105,7 @@ class Worker:
                     self.process_one_task()
                     break
                 except Exception as e:
-                    LOG.error(f"Error for task {task}: {e}")
+                    LOG.error(f"Error : {e}")
                     if i < retries - 1:
                         LOG.error("Retrying after this error.")
                     else:
