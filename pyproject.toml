@@ -39,7 +39,7 @@ dynamic = [ "version" ]
 
 dependencies = [
   "anemoi-datasets>=0.5.28",
-  "anemoi-utils[text,s3]>=0.4.39",
+  "anemoi-utils[s3,text]>=0.4.39",
   "jsonpatch",
   "requests",
 ]
