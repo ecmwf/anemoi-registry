@@ -288,7 +288,7 @@ class CatalogueEntry:
         patches = [patch]
         if "/" in path[1:]:
             parent_path = path.rsplit("/", 1)[0]
-            parent_name = parent_path.rsplit("/", 1)[1]
+            parent_name = parent_path.rsplit("/", 1)[0]
             try:
                 self.get_value(parent_path)
             except KeyError:
