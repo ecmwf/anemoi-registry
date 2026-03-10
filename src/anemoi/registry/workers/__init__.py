@@ -146,7 +146,7 @@ class Worker:
 
     @classmethod
     def parse_task(cls, task: TaskCatalogueEntry, *keys: list[str]):
-        """Parse a task (from the catalogue) and return a dict of values for the given keys."""
+        """Parse a task (from the catalogue) and return a list of values for the given keys."""
         data = task.record.copy()
         assert isinstance(data, dict), data
 
