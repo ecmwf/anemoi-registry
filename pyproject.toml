@@ -45,7 +45,6 @@ dependencies = [
 ]
 
 optional-dependencies.all = [
-  "anemoi-utils[s3]",
 ]
 
 optional-dependencies.dev = [
