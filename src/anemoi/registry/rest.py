@@ -227,6 +227,9 @@ class RestItemList:
     def get(self, *args, **kwargs):
         return self.rest.get(self.path, *args, **kwargs)
 
+    def __len__(self):
+        return len(self.get())
+
     def post(self, data, **kwargs):
         return self.rest.post(self.path, data, errors={409: AlreadyExists}, **kwargs)
 
