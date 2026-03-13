@@ -8,6 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Please add your functional changes to the appropriate section in the PR.
 Keep it human-readable, your future self will thank you!
 
+## [0.3.0](https://github.com/ecmwf/anemoi-registry/compare/0.2.4...0.3.0) (2026-03-13)
+
+
+### ⚠ BREAKING CHANGES
+
+* Update pyproject remove python 3.10 ([#134](https://github.com/ecmwf/anemoi-registry/issues/134))
+
+### Features
+
+* Fix-log-message ([#142](https://github.com/ecmwf/anemoi-registry/issues/142)) ([c448c58](https://github.com/ecmwf/anemoi-registry/commit/c448c5839cb91608c74eed02b89d91d5eb4834da))
+* Update pyproject remove python 3.10 ([#134](https://github.com/ecmwf/anemoi-registry/issues/134)) ([abf632d](https://github.com/ecmwf/anemoi-registry/commit/abf632dd1bd9f4cd0684c9dc14cbc69850872031))
+
+
+### Bug Fixes
+
+* Add-s3-dependency ([#143](https://github.com/ecmwf/anemoi-registry/issues/143)) ([9a9128a](https://github.com/ecmwf/anemoi-registry/commit/9a9128ae26229d5c87ecf0013ec7f9c5c899f964))
+* Catter for nans in json ([#131](https://github.com/ecmwf/anemoi-registry/issues/131)) ([082d9d7](https://github.com/ecmwf/anemoi-registry/commit/082d9d7fe56d150c234947f832e85cdc07736a46))
+* Make data transfer more robust ([#141](https://github.com/ecmwf/anemoi-registry/issues/141)) ([4418688](https://github.com/ecmwf/anemoi-registry/commit/4418688ddf8656a9859c3b78422dc0c03f43080b))
+
 ## [0.2.4](https://github.com/ecmwf/anemoi-registry/compare/0.2.3...0.2.4) (2026-01-09)
 
 
