@@ -31,12 +31,12 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dynamic = [ "version" ]
-dependencies = [ "anemoi-datasets>=0.5.28", "anemoi-utils[text]>=0.4.39", "jsonpatch", "requests" ]
+
+dependencies = [ "anemoi-datasets>=0.5.28", "anemoi-utils[s3,text]>=0.4.39", "jsonpatch", "requests" ]
+
 optional-dependencies.all = [
-  "anemoi-utils[s3]",
 ]
 optional-dependencies.dev = [
-  "anemoi-utils[s3]",
   "nbsphinx",
   "pandoc",
   "pytest",
@@ -51,9 +51,9 @@ optional-dependencies.docs = [
   "sphinx-argparse<0.5",
   "sphinx-rtd-theme",
 ]
-optional-dependencies.s3 = [
-  "anemoi-utils[s3]",
-]
+
+optional-dependencies.s3 = [  ]
+
 optional-dependencies.tests = [
   "pytest",
 ]
