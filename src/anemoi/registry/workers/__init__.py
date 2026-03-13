@@ -93,7 +93,7 @@ class Worker:
                     LOG.info(f"Waiting {self.wait} seconds before checking again.")
                     time.sleep(self.wait)
                 except Exception as e:
-                    LOG.error(f"Error for task {task}: {e}")
+                    LOG.error(f"Error processing task {task}: {e}")
                     LOG.error("Waiting 60 seconds after this error before checking again.")
                     time.sleep(60)
 
@@ -134,28 +134,25 @@ class Worker:
         LOG.info(f"Task {uuid} deleted.")
 
     def process_task_with_heartbeat(self, task):
-        STOP = []
+        stop_event = threading.Event()
 
         # create another thread to send heartbeat
         def send_heartbeat():
-            while True:
+            while not stop_event.is_set():
                 try:
                     self.set_status(task, "running")
                 except Exception:
                     return
-                for _ in range(self.heartbeat):
-                    time.sleep(1)
-                    if len(STOP) > 0:
-                        STOP.pop()
-                        return
+                # wait heartbeat seconds, but wake immediately if stop_event is set
+                stop_event.wait(timeout=self.heartbeat)
 
-        thread = threading.Thread(target=send_heartbeat)
+        thread = threading.Thread(target=send_heartbeat, daemon=True)
         thread.start()
 
         try:
             self.worker_process_task(task)
         finally:
-            STOP.append(1)  # stop the heartbeat thread
+            stop_event.set()  # stop the heartbeat thread
             thread.join()
 
     @classmethod
