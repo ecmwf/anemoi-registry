@@ -128,7 +128,7 @@ def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore,
     """Update the catalogue entry a recipe file."""
 
     from anemoi.datasets import open_dataset
-    from anemoi.datasets.create import creator_factory
+    from anemoi.datasets.build.gridded import creator_factory
 
     LOG.info(f"Updating catalogue entry from recipe: {path} {dry_run=} {force=} {update=}")
 
