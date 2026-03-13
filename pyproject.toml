@@ -21,7 +21,7 @@ authors = [
   { name = "European Centre for Medium-Range Weather Forecasts (ECMWF)", email = "software.support@ecmwf.int" },
 ]
 
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -29,24 +29,20 @@ classifiers = [
   "License :: OSI Approved :: Apache Software License",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 
 dynamic = [ "version" ]
 
-dependencies = [ "anemoi-datasets>=0.5.28", "anemoi-utils[text]>=0.4.23", "jsonpatch", "requests" ]
+dependencies = [ "anemoi-datasets>=0.5.28", "anemoi-utils[s3,text]>=0.4.39", "jsonpatch", "requests" ]
 
 optional-dependencies.all = [
-  "anemoi-utils[s3]",
 ]
 
 optional-dependencies.dev = [
-  "anemoi-utils[s3]",
   "nbsphinx",
   "pandoc",
   "pytest",
@@ -63,9 +59,7 @@ optional-dependencies.docs = [
   "sphinx-rtd-theme",
 ]
 
-optional-dependencies.s3 = [
-  "anemoi-utils[s3]",
-]
+optional-dependencies.s3 = [  ]
 
 optional-dependencies.tests = [
   "pytest",
