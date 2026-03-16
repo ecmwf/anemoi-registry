@@ -161,7 +161,7 @@ class Rest:
     def trace_info_dict(self):
         return dict(_trace_info=self.trace_info())
 
-    def raise_for_status(self, r, errors={}):
+    def raise_for_status(self, r, errors={}, message=None):
         try:
             r.raise_for_status()
         except HTTPError as e:
@@ -169,6 +169,7 @@ class Rest:
             text = r.text
             text = text[:1000] + "..." if len(text) > 1000 else text
             e.args = (f"{e.args[0]} : {text}",)
+            e.args = (f"{e.args[0]} : {message}",) if message else e.args
 
             exception_handler = errors.get(e.response.status_code)
             errcode = e.response.status_code
