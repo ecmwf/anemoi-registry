@@ -28,6 +28,7 @@ from .entry.dataset import DatasetCatalogueEntry as Dataset
 from .entry.dataset import DatasetCatalogueEntryList as DatasetsList
 from .entry.experiment import ExperimentCatalogueEntry as Experiment
 from .entry.experiment import ExperimentCatalogueEntryList as ExperimentsList
+from .entry.resource import ResourceCatalogueEntryList as ResourcesList
 from .entry.weights import WeightCatalogueEntry as Weights
 from .entry.weights import WeightsCatalogueEntryList as WeightsList
 from .tasks import TaskCatalogueEntry as Task
@@ -49,6 +50,7 @@ __all__ = [
     "ExperimentsList",
     "Dataset",
     "DatasetsList",
+    "ResourcesList",
     "Task",
     "TasksList",
     "config",
