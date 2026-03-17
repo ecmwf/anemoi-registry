@@ -218,6 +218,30 @@ class DatasetCatalogueEntry(CatalogueEntry):
         variables_metadata = self._file_or_dict(file)
         self.patch([{"op": "add", "path": "/metadata/variables_metadata", "value": variables_metadata}], robust=True)
 
+    @staticmethod
+    def location_rows(record):
+        """Return one row tuple per location for tabular display.
+
+        Parameters
+        ----------
+        record : dict
+            Raw dataset record dict from the catalogue API.
+
+        Returns
+        -------
+        list of tuple
+            Each tuple is ``(name, platform, path, total_size, total_number_of_files)``.
+        """
+        name = record.get("name", "")
+        meta = record.get("metadata", {})
+        total_size = record.get("total_size") or meta.get("total_size")
+        total_files = record.get("total_number_of_files") or meta.get("total_number_of_files")
+        rows = []
+        for platform, info in record.get("locations", {}).items():
+            path = info.get("path", "")
+            rows.append((name, platform, path, total_size, total_files))
+        return rows
+
     @classmethod
     def load_from_path(cls, path):
         import zarr
