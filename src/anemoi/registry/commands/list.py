@@ -68,6 +68,12 @@ class List(Command):
             help="Show a table of all locations with name, platform, path, bytes and object count.",
             action="store_true",
         )
+        dataset.add_argument(
+            "--group-by-location",
+            dest="group_by_location",
+            help="Group datasets by platform and directory, summing bytes and object counts.",
+            action="store_true",
+        )
 
     #        tasks = sub_parser.add_parser("tasks")
     #        tasks.add_argument("filter", nargs="*")
@@ -101,7 +107,7 @@ class List(Command):
         request = list_to_dict(args.filter)
         payload = RestItemList(collection).get(params=request)
 
-        needs_full_records = args.json or args.locations or args.output_csv
+        needs_full_records = args.json or args.locations or args.output_csv or args.group_by_location
         if needs_full_records:
             records = [RestItem(collection, v["name"]).get() for v in payload]
 
@@ -113,6 +119,27 @@ class List(Command):
             for record in records:
                 for row in DatasetCatalogueEntry.location_rows(record):
                     writer.writerow([row["name"], row["platform"], row["path"], row["bytes"], row["objects"]])
+        elif args.group_by_location:
+            import os
+            from collections import defaultdict
+
+            groups = defaultdict(lambda: {"bytes": 0, "objects": 0})
+            for record in records:
+                for row in DatasetCatalogueEntry.location_rows(record):
+                    directory = os.path.dirname(row["path"])
+                    key = (row["platform"], directory)
+                    groups[key]["bytes"] += row["bytes"] or 0
+                    groups[key]["objects"] += row["objects"] or 0
+            rows = [
+                (
+                    platform,
+                    directory,
+                    bytes_to_human(g["bytes"]) if g["bytes"] else "",
+                    f"{g['objects']:,}" if g["objects"] else "",
+                )
+                for (platform, directory), g in sorted(groups.items())
+            ]
+            print(table(rows, ["Platform", "Path", "Bytes", "Objects"], ["<", "<", ">", ">"]))
         elif args.locations:
             rows = []
             for record in records:
