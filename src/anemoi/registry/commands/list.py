@@ -111,18 +111,19 @@ class List(Command):
             writer = csv_module.writer(sys.stdout)
             writer.writerow(["name", "platform", "path", "bytes", "objects"])
             for record in records:
-                writer.writerows(DatasetCatalogueEntry.location_rows(record))
+                for row in DatasetCatalogueEntry.location_rows(record):
+                    writer.writerow([row["name"], row["platform"], row["path"], row["bytes"], row["objects"]])
         elif args.locations:
             rows = []
             for record in records:
-                for name, platform, path, size, files in DatasetCatalogueEntry.location_rows(record):
+                for row in DatasetCatalogueEntry.location_rows(record):
                     rows.append(
                         (
-                            name,
-                            platform,
-                            path,
-                            bytes_to_human(size) if size is not None else "",
-                            f"{files:,}" if files is not None else "",
+                            row["name"],
+                            row["platform"],
+                            row["path"],
+                            bytes_to_human(row["bytes"]) if row["bytes"] is not None else "",
+                            f"{row['objects']:,}" if row["objects"] is not None else "",
                         )
                     )
             print(table(rows, ["Name", "Platform", "Path", "Bytes", "Objects"], ["<", "<", "<", ">", ">"]))

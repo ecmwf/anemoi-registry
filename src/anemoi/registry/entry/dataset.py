@@ -219,7 +219,7 @@ class DatasetCatalogueEntry(CatalogueEntry):
         self.patch([{"op": "add", "path": "/metadata/variables_metadata", "value": variables_metadata}], robust=True)
 
     @staticmethod
-    def location_rows(record):
+    def location_rows(record) -> list[dict]:
         """Return one row tuple per location for tabular display.
 
         Parameters
@@ -229,8 +229,8 @@ class DatasetCatalogueEntry(CatalogueEntry):
 
         Returns
         -------
-        list of tuple
-            Each tuple is ``(name, platform, path, total_size, total_number_of_files)``.
+        list of dict
+            Each dict contains ``name``, ``platform``, ``path``, ``bytes``, and ``objects``.
         """
         name = record.get("name", "")
         meta = record.get("metadata", {})
@@ -238,8 +238,15 @@ class DatasetCatalogueEntry(CatalogueEntry):
         total_files = record.get("total_number_of_files") or meta.get("total_number_of_files")
         rows = []
         for platform, info in record.get("locations", {}).items():
-            path = info.get("path", "")
-            rows.append((name, platform, path, total_size, total_files))
+            rows.append(
+                dict(
+                    name=name,
+                    platform=platform,
+                    path=info.get("path", ""),
+                    bytes=total_size,
+                    objects=total_files,
+                )
+            )
         return rows
 
     @classmethod
