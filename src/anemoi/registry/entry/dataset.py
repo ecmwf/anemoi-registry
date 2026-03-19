@@ -119,9 +119,9 @@ class DatasetCatalogueEntry(CatalogueEntry):
         self.patch([{"op": "add", "path": f"/locations/{platform}", "value": {"path": path}}], robust=True)
         return path
 
-    def update_location_accessed_time(self, platform, accessed_time):
-        accessed_time = accessed_time.isoformat()
-        self.patch([{"op": "add", "path": f"/locations/{platform}/last_accessed", "value": accessed_time}], robust=True)
+    def update_location(self, platform, **kwargs):
+        patches = [{"op": "add", "path": f"/locations/{platform}/{k}", "value": value} for k, value in kwargs.items()]
+        self.patch(patches, robust=True)
 
     def remove_location(self, platform):
         self.patch([{"op": "remove", "path": f"/locations/{platform}"}], robust=True)
