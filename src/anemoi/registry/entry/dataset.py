@@ -119,7 +119,7 @@ class DatasetCatalogueEntry(CatalogueEntry):
         self.patch([{"op": "add", "path": f"/locations/{platform}", "value": {"path": path}}], robust=True)
         return path
 
-    def update_location(self, platform, **kwargs):
+    def update_location(self, platform, kwargs):
         patches = [{"op": "add", "path": f"/locations/{platform}/{k}", "value": value} for k, value in kwargs.items()]
         self.patch(patches, robust=True)
 
