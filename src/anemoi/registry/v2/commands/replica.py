@@ -1,4 +1,4 @@
-# (C) Copyright 2024 Anemoi contributors.
+# (C) Copyright 2026 Anemoi contributors.
 #
 # This software is licensed under the terms of the Apache Licence Version 2.0
 # which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
@@ -90,6 +90,11 @@ class Replica(Command):
             metavar="FIELDS",
         )
         command_parser.add_argument(
+            "--list-sort",
+            help="Comma-separated fields to sort by.",
+            metavar="FIELDS",
+        )
+        command_parser.add_argument(
             "--list-format",
             help="Output format for --list.",
             choices=["text", "csv", "json", "rich"],
@@ -175,6 +180,9 @@ class Replica(Command):
 
         # Pass requested fields to the server for validation + projection
         filters["fields"] = ",".join(fields)
+        sort = getattr(args, "list_sort", None)
+        if sort:
+            filters["sort"] = sort
 
         try:
             replicas = ReplicaCatalogueEntryList(**filters).get()

@@ -1,4 +1,4 @@
-# (C) Copyright 2024 Anemoi contributors.
+# (C) Copyright 2026 Anemoi contributors.
 #
 # This software is licensed under the terms of the Apache Licence Version 2.0
 # which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
@@ -52,6 +52,61 @@ def parse_value(value, type_):
         raise ValueError(f"Invalid type {type_}. Supported types are: {list(VALUES_PARSERS.keys())}")
 
     return VALUES_PARSERS[type_](value)
+
+
+def resolve_path(path, check=True):
+    """Resolve a dotted or slash-separated path to an absolute JSON-Patch path.
+
+    Adds ``/metadata/`` prefix unless the path already starts with ``/`` or
+    ``.``.
+
+    Parameters
+    ----------
+    path : str
+        The user-supplied path (e.g. ``"updated"``, ``"a.b"``,
+        ``"/top/value"``, ``".top.value"``).
+    check : bool, optional
+        When *True* (default) and the resolved path is outside
+        ``/metadata/``, raise if the configuration forbids entry edits.
+
+    Returns
+    -------
+    str
+        An absolute path suitable for JSON-Patch operations.
+    """
+    # Add /metadata/ to the path if it is not there, because the rest of the catalogue record should not be changed.
+    # But, if the user configuration allows it, allow to top level paths anyway with
+    #  - path starting with '//', containing '/' as separators
+    #  - path starting with '...' or '..'
+
+    def raise_if_needed(p):
+        if p.startswith("/metadata/"):
+            return p
+        if check and not config().get("allow_edit_entries"):
+            raise ValueError(
+                "Editing entries is not allowed, only metadata can be changed. "
+                "Please set value to true in your config file if you know what you are doing."
+            )
+        return p
+
+    if path.startswith("/"):
+        # This is a top level path
+        # separator is now '/' and path is absolute
+        return raise_if_needed(path)
+
+    if path.startswith("."):
+        path = path.replace(".", "/")
+        # This is a top level path
+        # separator is now '/' and path is absolute
+        return raise_if_needed(path)
+
+    if "/" not in path:
+        path = path.replace(".", "/")
+
+    path = "/metadata/" + path
+
+    # separator is now '/' and path is absolute
+    return raise_if_needed(path)
 
 
 class CatalogueEntryNotFound(Exception):
@@ -202,39 +257,7 @@ class CatalogueEntry:
 
     @classmethod
     def resolve_path(cls, path, check=True):
-        # Add /metadata/ to the path if it is not there, because the rest of the catalogue record should not be changed.
-        # But, if the user configuration allows it, allow to top level paths anyway with
-        #  - path starting with '//', containing '/' as separators
-        #  - path starting with '...' or '..'
-
-        def raise_if_needed(p):
-            if p.startswith("/metadata/"):
-                return p
-            if check and not config().get("allow_edit_entries"):
-                raise ValueError(
-                    "Editing entries is not allowed, only metadata can be changed. "
-                    "Please set value to true in your config file if you know what you are doing."
-                )
-            return p
-
-        if path.startswith("/"):
-            # This is a top level path
-            # separator is now '/' and path is absolute
-            return raise_if_needed(path)
-
-        if path.startswith("."):
-            path = path.replace(".", "/")
-            # This is a top level path
-            # separator is now '/' and path is absolute
-            return raise_if_needed(path)
-
-        if "/" not in path:
-            path = path.replace(".", "/")
-
-        path = "/metadata/" + path
-
-        # separator is now '/' and path is absolute
-        return raise_if_needed(path)
+        return resolve_path(path, check=check)
 
     def _path_to_list(self, path):
         parts = path.split("/")

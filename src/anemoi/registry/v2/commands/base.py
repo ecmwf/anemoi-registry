@@ -1,4 +1,4 @@
-# (C) Copyright 2024 Anemoi contributors.
+# (C) Copyright 2026 Anemoi contributors.
 #
 # This software is licensed under the terms of the Apache Licence Version 2.0
 # which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
@@ -201,12 +201,15 @@ class BaseCommand(Command):
         request = list_to_dict(args.list) if args.list else {}
         fmt = getattr(args, "list_format", "text")
         fields = getattr(args, "list_fields", None)
+        sort = getattr(args, "list_sort", None)
         if not fields:
             fields = self.list_default_fields or [self.entry_class.main_key]
 
         params = dict(request)
         # Pass requested fields to the server for validation + projection
         params["fields"] = ",".join(fields)
+        if sort:
+            params["sort"] = sort
 
         try:
             payload = RestItemList(self.entry_class.collection).get(params=params)
@@ -227,6 +230,11 @@ class BaseCommand(Command):
             "--list-fields",
             help="Comma-separated field names to display (supports dotted paths, e.g. metadata.shape).",
             type=lambda s: [f.strip() for f in s.split(",")],
+            metavar="FIELDS",
+        )
+        command_parser.add_argument(
+            "--list-sort",
+            help="Comma-separated fields to sort by.",
             metavar="FIELDS",
         )
         command_parser.add_argument(

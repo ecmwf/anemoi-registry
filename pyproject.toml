@@ -63,7 +63,16 @@ optional-dependencies.s3 = [  ]
 
 optional-dependencies.tests = [
   "pytest",
+  "responses",
 ]
+
+[tool.pytest.ini_options]
+markers = [
+  "integration: requires live test server (ANEMOI_CATALOGUE=TEST)",
+  "cli: tests running the CLI via subprocess",
+  "s3: requires S3 credentials and test buckets",
+]
+testpaths = ["tests"]
 
 urls.Documentation = "https://anemoi-registry.readthedocs.io/"
 urls.Homepage = "https://github.com/ecmwf/anemoi-registry/"

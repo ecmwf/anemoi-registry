@@ -1,4 +1,4 @@
-# (C) Copyright 2024 Anemoi contributors.
+# (C) Copyright 2026 Anemoi contributors.
 #
 # This software is licensed under the terms of the Apache Licence Version 2.0
 # which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
@@ -46,9 +46,8 @@ class Tasks(BaseCommand):
         group.add_argument("--delete-many", help="Batch remove multiple tasks", nargs="*", metavar="K=V")
 
         command_parser.add_argument(
-            "--sort",
-            help="Sort by date. Use with --list, --take-one",
-            choices=["created", "updated"],
+            "--list-sort",
+            help="Comma-separated fields to sort by.",
             default="updated",
         )
         command_parser.add_argument("-l", "--long", help="Details, use with --list", action="store_true")
@@ -104,20 +103,20 @@ class Tasks(BaseCommand):
 
         if fmt == "text" and not fields:
             # Legacy mode: use the built-in to_str formatting
-            cat = TaskCatalogueEntryList(*args.list, sort=args.sort)
+            cat = TaskCatalogueEntryList(*args.list, sort=args.list_sort)
             print(cat.to_str(args.long))
             return
 
         from .base import format_list_output
 
-        cat = TaskCatalogueEntryList(*args.list, sort=args.sort)
+        cat = TaskCatalogueEntryList(*args.list, sort=args.list_sort)
         rows = list(cat.get())
         if not fields:
             fields = ["uuid", "action", "status", "created", "updated"]
         format_list_output(rows, fields, fmt)
 
     def run_delete_many(self, args):
-        cat = TaskCatalogueEntryList(*args.delete_many, sort=args.sort)
+        cat = TaskCatalogueEntryList(*args.delete_many, sort=args.list_sort)
         if not cat:
             LOG.info("No tasks found")
             return
@@ -137,7 +136,7 @@ class Tasks(BaseCommand):
         LOG.info(f"{count} tasks deleted.")
 
     def run_take_one(self, args):
-        cat = TaskCatalogueEntryList(*args.take_one, status="queued", sort=args.sort)
+        cat = TaskCatalogueEntryList(*args.take_one, status="queued", sort=args.list_sort)
         uuid = cat.take_last()
         if uuid is None:
             return

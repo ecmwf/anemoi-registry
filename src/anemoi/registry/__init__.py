@@ -1,4 +1,4 @@
-# (C) Copyright 2024 Anemoi contributors.
+# (C) Copyright 2026 Anemoi contributors.
 #
 # This software is licensed under the terms of the Apache Licence Version 2.0
 # which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
@@ -27,6 +27,7 @@ _active = importlib.import_module(f".v{_CLI_VERSION}", __name__)
 
 config = _active.config
 
+CatalogueEntryNotFound = _active.CatalogueEntryNotFound
 Dataset = _active.Dataset
 DatasetsList = _active.DatasetsList
 Experiment = _active.Experiment
@@ -35,6 +36,13 @@ Weights = _active.Weights
 WeightsList = _active.WeightsList
 Task = _active.Task
 TasksList = _active.TasksList
+
+# v2-only entry types (Site, Replica)
+if _CLI_VERSION == "2":
+    Site = _active.Site
+    SitesList = _active.SitesList
+    Replica = _active.Replica
+    ReplicasList = _active.ReplicasList
 
 
 def publish_dataset(*args, **kwargs):
@@ -51,13 +59,22 @@ except ImportError:  # pragma: no cover
 
 
 __all__ = [
-    "Weights",
-    "WeightsList",
-    "Experiment",
-    "ExperimentsList",
+    "CatalogueEntryNotFound",
     "Dataset",
     "DatasetsList",
+    "Experiment",
+    "ExperimentsList",
     "Task",
     "TasksList",
+    "Weights",
+    "WeightsList",
     "config",
 ]
+
+if _CLI_VERSION == "2":
+    __all__ += [
+        "Replica",
+        "ReplicasList",
+        "Site",
+        "SitesList",
+    ]
