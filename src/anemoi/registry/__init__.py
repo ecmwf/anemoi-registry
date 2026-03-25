@@ -9,29 +9,37 @@
 
 # ruff: noqa: E402
 
+import importlib
 import logging
+import os
 
 LOG = logging.getLogger(__name__)
 
+_CLI_VERSION = os.environ.get("ANEMOI_REGISTRY_CLI_VERSION", "1")
 
-def config(*args, **kwargs):
-    from anemoi.registry.configuration import CONF
+if _CLI_VERSION not in ("1", "2"):
+    raise ValueError(
+        f"Invalid ANEMOI_REGISTRY_CLI_VERSION={_CLI_VERSION!r}. "
+        "Supported values: '1' (legacy, default), '2' (new)."
+    )
 
-    return CONF(*args, **kwargs)
+_active = importlib.import_module(f".v{_CLI_VERSION}", __name__)
+
+config = _active.config
+
+Dataset = _active.Dataset
+DatasetsList = _active.DatasetsList
+Experiment = _active.Experiment
+ExperimentsList = _active.ExperimentsList
+Weights = _active.Weights
+WeightsList = _active.WeightsList
+Task = _active.Task
+TasksList = _active.TasksList
 
 
 def publish_dataset(*args, **kwargs):
     return Dataset.publish(*args, **kwargs)
 
-
-from .entry.dataset import DatasetCatalogueEntry as Dataset
-from .entry.dataset import DatasetCatalogueEntryList as DatasetsList
-from .entry.experiment import ExperimentCatalogueEntry as Experiment
-from .entry.experiment import ExperimentCatalogueEntryList as ExperimentsList
-from .entry.weights import WeightCatalogueEntry as Weights
-from .entry.weights import WeightsCatalogueEntryList as WeightsList
-from .tasks import TaskCatalogueEntry as Task
-from .tasks import TaskCatalogueEntryList as TasksList
 
 try:
     # NOTE: the `_version.py` file must not be present in the git repository
