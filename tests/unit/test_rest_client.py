@@ -9,7 +9,6 @@
 
 """Unit tests for :mod:`anemoi.registry.v*.rest` — HTTP mocked, no server."""
 
-
 import pytest
 import responses
 
