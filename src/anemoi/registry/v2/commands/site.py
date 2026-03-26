@@ -20,6 +20,9 @@ Workflow:
   1. Setup (once, runs check + fetches configs):
      %(prog)s --setup https://server/api/v1/sites/<site>
 
+     Or use the interactive guide:
+     %(prog)s --setup-assistant
+
   2. Run monitoring (e.g., cron job):
      %(prog)s --storage     # report quota usage
      %(prog)s --datasets    # report dataset replica status
@@ -42,6 +45,11 @@ class Site(Command):
             "--setup",
             metavar="URL",
             help="Set up bootstrap, check server, and fetch configs",
+        )
+        command_parser.add_argument(
+            "--setup-assistant",
+            action="store_true",
+            help="Interactive step-by-step setup guide",
         )
         command_parser.add_argument(
             "--update-auxiliary",
@@ -72,6 +80,12 @@ class Site(Command):
         command_parser.epilog = WORKFLOW
 
     def run(self, args):
+        if args.setup_assistant:
+            from ..site.setup_assistant import run_setup_assistant
+
+            run_setup_assistant()
+            return
+
         from ..entry.site import SiteCatalogueEntry
 
         site = SiteCatalogueEntry(name="local")
