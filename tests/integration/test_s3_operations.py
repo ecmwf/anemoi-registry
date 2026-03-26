@@ -17,11 +17,18 @@ Run with::
 They are skipped by default when running ``pytest`` without the ``-m s3`` flag.
 """
 
+import os
 import uuid
 
 import pytest
 
-pytestmark = [pytest.mark.integration, pytest.mark.s3]
+IN_GITHUB = os.environ.get("GITHUB_ACTIONS") == "true"
+
+pytestmark = [
+    pytest.mark.integration,
+    pytest.mark.s3,
+    pytest.mark.skipif(IN_GITHUB, reason="No catalogue token available in GitHub Actions"),
+]
 
 # Skip the entire module if S3 credentials are not configured
 try:
