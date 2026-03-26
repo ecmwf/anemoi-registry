@@ -47,6 +47,7 @@ def _reload_registry(version):
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.skipif(IN_GITHUB, reason="No catalogue token available in GitHub Actions")
 class TestConfig:
     """Verify config() returns sane values from the test server."""
 
@@ -96,6 +97,7 @@ class TestListEntries:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.skipif(IN_GITHUB, reason="No catalogue token available in GitHub Actions")
 class TestExperimentCRUD:
     """Register, read, patch, and unregister an experiment."""
 
@@ -130,6 +132,7 @@ class TestExperimentCRUD:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.skipif(IN_GITHUB, reason="No catalogue token available in GitHub Actions")
 class TestTaskLifecycle:
     """Test the task state machine against the live server."""
 
@@ -181,6 +184,7 @@ class TestTaskLifecycle:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.skipif(IN_GITHUB, reason="No catalogue token available in GitHub Actions")
 class TestErrorHandling:
     """Verify proper exceptions for bad requests."""
 

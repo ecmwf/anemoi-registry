@@ -19,7 +19,14 @@ import os
 
 import pytest
 
-pytestmark = [pytest.mark.integration, pytest.mark.cli, pytest.mark.s3]
+IN_GITHUB = os.environ.get("GITHUB_ACTIONS") == "true"
+
+pytestmark = [
+    pytest.mark.integration,
+    pytest.mark.cli,
+    pytest.mark.s3,
+    pytest.mark.skipif(IN_GITHUB, reason="No catalogue token available in GitHub Actions"),
+]
 
 DUMMY_CKPT = os.path.join(os.path.dirname(__file__), "..", "dummy-checkpoint.ckpt")
 WEIGHTS_UUID = "a5275e04-0000-0000-a0f6-be19591b09fe"

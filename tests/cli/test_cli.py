@@ -13,7 +13,11 @@ These tests cover both v1 and v2 CLI layouts.  They use the ``run_cli``
 fixture defined in the top-level conftest.
 """
 
+import os
+
 import pytest
+
+IN_GITHUB = os.environ.get("GITHUB_ACTIONS") == "true"
 
 pytestmark = [pytest.mark.integration, pytest.mark.cli]
 
@@ -23,6 +27,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.cli]
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.skipif(IN_GITHUB, reason="No catalogue token available in GitHub Actions")
 class TestSettingsCLI:
     """``anemoi-registry settings`` should succeed and print config."""
 
@@ -42,6 +47,7 @@ class TestSettingsCLI:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.skipif(IN_GITHUB, reason="No catalogue token available in GitHub Actions")
 class TestListCLI:
     """``anemoi-registry list <collection>`` (v1) / ``anemoi-registry <collection> --list`` (v2)."""
 
@@ -113,6 +119,7 @@ class TestVersionCLI:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.skipif(IN_GITHUB, reason="No catalogue token available in GitHub Actions")
 class TestExperimentCLICRUD:
     """Register and unregister an experiment through the CLI."""
 

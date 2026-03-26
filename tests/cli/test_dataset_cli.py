@@ -23,7 +23,14 @@ import pytest
 import yaml
 import zarr
 
-pytestmark = [pytest.mark.integration, pytest.mark.cli, pytest.mark.s3]
+IN_GITHUB = os.environ.get("GITHUB_ACTIONS") == "true"
+
+pytestmark = [
+    pytest.mark.integration,
+    pytest.mark.cli,
+    pytest.mark.s3,
+    pytest.mark.skipif(IN_GITHUB, reason="No catalogue token available in GitHub Actions"),
+]
 
 REFERENCE_ARCHIVE = "anemoi-datasets/create/mock-mars-0.14/pipe.zarr.tgz"
 BASE_DATASET_NAME = "aifs-ea-an-oper-0001-mars-20p0-1979-1979-6h-v0-testing"
