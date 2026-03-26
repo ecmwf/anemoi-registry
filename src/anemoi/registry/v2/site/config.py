@@ -21,15 +21,13 @@ LOG = logging.getLogger(__name__)
 
 def get_config_dir() -> Path:
     """Return the config directory from bootstrap."""
-    from .bootstrap import load_bootstrap, BOOTSTRAP_PATH
+    from .bootstrap import BOOTSTRAP_PATH
+    from .bootstrap import load_bootstrap
 
     bootstrap = load_bootstrap()
     config_dir = bootstrap.get("config_dir")
     if not config_dir:
-        raise ValueError(
-            f"No config_dir in {BOOTSTRAP_PATH}\n"
-            "Run with --setup first."
-        )
+        raise ValueError(f"No config_dir in {BOOTSTRAP_PATH}\n" "Run with --setup first.")
     return Path(config_dir)
 
 
@@ -38,10 +36,7 @@ def load_site_config(section: str) -> dict:
     config_dir = get_config_dir()
     path = config_dir / f"{section}.json"
     if not path.exists():
-        raise ValueError(
-            f"Config not found: {path}\n"
-            "Run with --setup first."
-        )
+        raise ValueError(f"Config not found: {path}\n" "Run with --setup first.")
     with open(path) as f:
         return json.load(f)
 
@@ -53,7 +48,9 @@ def fetch_and_save_configs():
     2. Read site_config_path from the bootstrap section
     3. Save each config section as {key}.json in site_config_path
     """
-    from .bootstrap import load_bootstrap, BOOTSTRAP_PATH, check_group_readable
+    from .bootstrap import BOOTSTRAP_PATH
+    from .bootstrap import check_group_readable
+    from .bootstrap import load_bootstrap
 
     bootstrap = load_bootstrap()
     base_url = bootstrap.get("base_url")

@@ -18,11 +18,10 @@ from datetime import timezone
 import tqdm
 
 from ..rest import Rest
-
 from .bootstrap import load_bootstrap
 from .config import load_site_config
-from .parsers import PARSERS
 from .parsers import COMMAND_BUILDERS
+from .parsers import PARSERS
 
 LOG = logging.getLogger(__name__)
 

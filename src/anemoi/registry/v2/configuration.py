@@ -40,7 +40,7 @@ def package_config(module_name, missing_ok=False):
 class SingletonConfig:
     def __init__(self):
         self._cache = None
-        self.package_config = package_config(__name__.rsplit('.', 1)[0])
+        self.package_config = package_config(__name__.rsplit(".", 1)[0])
 
     @cached_property
     def url(self):
@@ -139,4 +139,3 @@ class SingletonConfig:
 
 
 CONF = SingletonConfig()
-

@@ -22,6 +22,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.cli]
 # Settings
 # ---------------------------------------------------------------------------
 
+
 class TestSettingsCLI:
     """``anemoi-registry settings`` should succeed and print config."""
 
@@ -39,6 +40,7 @@ class TestSettingsCLI:
 # ---------------------------------------------------------------------------
 # List commands
 # ---------------------------------------------------------------------------
+
 
 class TestListCLI:
     """``anemoi-registry list <collection>`` (v1) / ``anemoi-registry <collection> --list`` (v2)."""
@@ -58,20 +60,36 @@ class TestListCLI:
 # Help
 # ---------------------------------------------------------------------------
 
+
 class TestHelpCLI:
     """Every subcommand should respond to ``--help``."""
 
-    @pytest.mark.parametrize("subcmd", [
-        "datasets", "experiments", "weights", "list", "settings", "tasks",
-    ])
+    @pytest.mark.parametrize(
+        "subcmd",
+        [
+            "datasets",
+            "experiments",
+            "weights",
+            "list",
+            "settings",
+            "tasks",
+        ],
+    )
     def test_v1_help(self, run_cli, subcmd):
         result = run_cli(subcmd, "--help", version="1")
         assert result.returncode == 0
         assert "usage:" in result.stdout.lower()
 
-    @pytest.mark.parametrize("subcmd", [
-        "dataset", "experiment", "weights", "settings", "task",
-    ])
+    @pytest.mark.parametrize(
+        "subcmd",
+        [
+            "dataset",
+            "experiment",
+            "weights",
+            "settings",
+            "task",
+        ],
+    )
     def test_v2_help(self, run_cli, subcmd):
         result = run_cli(subcmd, "--help", version="2")
         assert result.returncode == 0
@@ -81,6 +99,7 @@ class TestHelpCLI:
 # ---------------------------------------------------------------------------
 # Version flag
 # ---------------------------------------------------------------------------
+
 
 class TestVersionCLI:
     @pytest.mark.parametrize("version", ["1", "2"])
@@ -92,6 +111,7 @@ class TestVersionCLI:
 # ---------------------------------------------------------------------------
 # Experiment register / unregister via CLI
 # ---------------------------------------------------------------------------
+
 
 class TestExperimentCLICRUD:
     """Register and unregister an experiment through the CLI."""

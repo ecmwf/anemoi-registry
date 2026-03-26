@@ -27,7 +27,8 @@ class Experiments(BaseCommand):
 
     def add_arguments(self, command_parser):
         command_parser.add_argument(
-            "NAME_OR_PATH", help="Name of an experiment of a path of an experiment config file.",
+            "NAME_OR_PATH",
+            help="Name of an experiment of a path of an experiment config file.",
             nargs="?",
         )
         self.add_list_arguments(command_parser)

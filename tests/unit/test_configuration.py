@@ -13,10 +13,10 @@ import importlib
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # URL resolution
 # ---------------------------------------------------------------------------
+
 
 class TestConfigURL:
     """Test that ``SingletonConfig.url`` respects the env-var priority chain."""
@@ -30,6 +30,7 @@ class TestConfigURL:
 
         # Force a fresh instance — SingletonConfig is a module-level singleton
         import anemoi.registry.v1.configuration as mod
+
         importlib.reload(mod)
         return mod.SingletonConfig()
 
@@ -47,6 +48,7 @@ class TestConfigURL:
 # Version selector
 # ---------------------------------------------------------------------------
 
+
 class TestVersionSelector:
     """Test ``ANEMOI_REGISTRY_CLI_VERSION`` routing."""
 
@@ -54,16 +56,19 @@ class TestVersionSelector:
         monkeypatch.setenv("ANEMOI_REGISTRY_CLI_VERSION", "99")
         with pytest.raises(ValueError, match="Invalid ANEMOI_REGISTRY_CLI_VERSION"):
             import anemoi.registry as mod
+
             importlib.reload(mod)
 
     def test_version_1_loads_v1(self, monkeypatch):
         monkeypatch.setenv("ANEMOI_REGISTRY_CLI_VERSION", "1")
         import anemoi.registry as mod
+
         importlib.reload(mod)
         assert "v1" in mod.Dataset.__module__
 
     def test_version_2_loads_v2(self, monkeypatch):
         monkeypatch.setenv("ANEMOI_REGISTRY_CLI_VERSION", "2")
         import anemoi.registry as mod
+
         importlib.reload(mod)
         assert "v2" in mod.Dataset.__module__

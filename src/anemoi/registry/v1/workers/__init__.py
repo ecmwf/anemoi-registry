@@ -233,9 +233,8 @@ class Worker:
 
 
 def run_worker(action, **kwargs):
-    from .dummy import DummyWorker
-
     from .delete_dataset import DeleteDatasetWorker
+    from .dummy import DummyWorker
     from .transfer_dataset import TransferDatasetWorker
 
     workers_config = config().get("workers", {})

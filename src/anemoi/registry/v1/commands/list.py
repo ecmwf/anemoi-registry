@@ -17,7 +17,6 @@ from anemoi.utils.text import table
 
 from ..rest import RestItemList
 from ..utils import list_to_dict
-
 from . import Command
 
 LOG = logging.getLogger(__name__)

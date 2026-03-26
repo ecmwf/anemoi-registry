@@ -7,6 +7,7 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 
+from .auxiliary import update_auxiliary
 from .bootstrap import load_bootstrap
 from .bootstrap import setup_bootstrap
 from .config import get_config_dir
@@ -14,7 +15,6 @@ from .config import load_site_config
 from .monitoring import SiteStatus
 from .monitoring import datasets_status
 from .monitoring import load_monitoring_manifest
-from .auxiliary import update_auxiliary
 
 __all__ = [
     "load_bootstrap",

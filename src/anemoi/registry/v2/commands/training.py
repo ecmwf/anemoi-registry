@@ -26,7 +26,9 @@ class Trainings(BaseCommand):
     kind = "training"
 
     def add_arguments(self, command_parser):
-        command_parser.add_argument("NAME_OR_PATH", help="Name of a training of a path of a training config file.", nargs="?")
+        command_parser.add_argument(
+            "NAME_OR_PATH", help="Name of a training of a path of a training config file.", nargs="?"
+        )
         self.add_list_arguments(command_parser)
         command_parser.add_argument(
             "--register", help=f"Register the {self.kind} in the catalogue.", action="store_true"

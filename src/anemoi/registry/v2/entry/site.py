@@ -11,7 +11,8 @@
 
 import logging
 
-from ..rest import Rest, RestItemList
+from ..rest import Rest
+from ..rest import RestItemList
 
 LOG = logging.getLogger(__name__)
 
@@ -112,10 +113,7 @@ class SiteCatalogueEntry:
         bootstrap = load_bootstrap()
         url = bootstrap.get("base_url")
         if not url:
-            raise ValueError(
-                "No base_url in bootstrap config. "
-                "Run: anemoi-registry site --setup URL"
-            )
+            raise ValueError("No base_url in bootstrap config. " "Run: anemoi-registry site --setup URL")
         return url
 
     # ------------------------------------------------------------------
@@ -124,7 +122,8 @@ class SiteCatalogueEntry:
 
     def report_storage(self, dry_run=False):
         """Run quota commands and POST results to the server."""
-        from ..site.monitoring import SiteStatus, load_monitoring_manifest
+        from ..site.monitoring import SiteStatus
+        from ..site.monitoring import load_monitoring_manifest
 
         manifest = load_monitoring_manifest()
         status = SiteStatus(manifest)

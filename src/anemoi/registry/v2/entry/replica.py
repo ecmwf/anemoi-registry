@@ -13,7 +13,8 @@ import logging
 import os
 
 from .. import config
-from ..rest import Rest, RestItemList
+from ..rest import Rest
+from ..rest import RestItemList
 from ..tasks import TaskCatalogueEntryList
 
 LOG = logging.getLogger(__name__)

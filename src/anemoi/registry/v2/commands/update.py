@@ -18,10 +18,9 @@ import time
 
 import yaml
 
-from ..entry.dataset import DatasetCatalogueEntry as Dataset
 from ..entry import CatalogueEntryNotFound
+from ..entry.dataset import DatasetCatalogueEntry as Dataset
 from ..entry.dataset import DatasetCatalogueEntryList
-
 from . import Command
 
 LOG = logging.getLogger(__name__)

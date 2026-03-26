@@ -34,7 +34,6 @@ from .entry.weights import WeightsCatalogueEntryList as WeightsList
 from .tasks import TaskCatalogueEntry as Task
 from .tasks import TaskCatalogueEntryList as TasksList
 
-
 __all__ = [
     "CatalogueEntryNotFound",
     "Dataset",

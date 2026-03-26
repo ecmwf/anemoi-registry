@@ -11,58 +11,71 @@
 
 import pytest
 
-from anemoi.registry.v1.entry import parse_value, resolve_path
-
+from anemoi.registry.v1.entry import parse_value
+from anemoi.registry.v1.entry import resolve_path
 
 # ---------------------------------------------------------------------------
 # resolve_path — expanded from the original test_entry.py
 # ---------------------------------------------------------------------------
+
 
 class TestResolvePath:
     """Test path resolution logic (metadata prefix, top-level escapes, etc.)."""
 
     # --- Basic metadata paths (no leading slash/dot) ---
 
-    @pytest.mark.parametrize("inp, expected", [
-        ("updated", "/metadata/updated"),
-        ("a.b", "/metadata/a/b"),
-        ("a.b.c", "/metadata/a/b/c"),
-        ("status", "/metadata/status"),
-        ("recipe", "/metadata/recipe"),
-    ])
+    @pytest.mark.parametrize(
+        "inp, expected",
+        [
+            ("updated", "/metadata/updated"),
+            ("a.b", "/metadata/a/b"),
+            ("a.b.c", "/metadata/a/b/c"),
+            ("status", "/metadata/status"),
+            ("recipe", "/metadata/recipe"),
+        ],
+    )
     def test_simple_dotted_paths(self, inp, expected):
         assert resolve_path(inp, check=False) == expected
 
     # --- Absolute paths (leading /) ---
 
-    @pytest.mark.parametrize("inp, expected", [
-        ("/top/value", "/top/value"),
-        ("/metadata/updated", "/metadata/updated"),
-        ("/metadata/key.with.dot", "/metadata/key.with.dot"),
-    ])
+    @pytest.mark.parametrize(
+        "inp, expected",
+        [
+            ("/top/value", "/top/value"),
+            ("/metadata/updated", "/metadata/updated"),
+            ("/metadata/key.with.dot", "/metadata/key.with.dot"),
+        ],
+    )
     def test_absolute_paths(self, inp, expected):
         assert resolve_path(inp, check=False) == expected
 
     # --- Dot-prefixed top-level paths ---
 
-    @pytest.mark.parametrize("inp, expected", [
-        (".top.value", "/top/value"),
-        (".metadata.updated", "/metadata/updated"),
-        ("..deep.path", "//deep/path"),
-    ])
+    @pytest.mark.parametrize(
+        "inp, expected",
+        [
+            (".top.value", "/top/value"),
+            (".metadata.updated", "/metadata/updated"),
+            ("..deep.path", "//deep/path"),
+        ],
+    )
     def test_dot_prefixed_paths(self, inp, expected):
         assert resolve_path(inp, check=False) == expected
 
     # --- Idempotency: resolving an already-resolved path ---
 
-    @pytest.mark.parametrize("inp", [
-        "updated",
-        "a.b",
-        "/top/value",
-        ".top.value",
-        ".metadata.updated",
-        "/metadata/key.with.dot",
-    ])
+    @pytest.mark.parametrize(
+        "inp",
+        [
+            "updated",
+            "a.b",
+            "/top/value",
+            ".top.value",
+            ".metadata.updated",
+            "/metadata/key.with.dot",
+        ],
+    )
     def test_idempotent(self, inp):
         first = resolve_path(inp, check=False)
         second = resolve_path(first, check=False)
@@ -72,6 +85,7 @@ class TestResolvePath:
 # ---------------------------------------------------------------------------
 # parse_value — type coercion
 # ---------------------------------------------------------------------------
+
 
 class TestParseValue:
     def test_none_type_passthrough(self):

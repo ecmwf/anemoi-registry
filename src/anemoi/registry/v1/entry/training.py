@@ -14,7 +14,6 @@ import os
 from anemoi.utils.config import load_any_dict_format
 
 from ..rest import RestItemList
-
 from . import CatalogueEntry
 
 COLLECTION = "trainings"

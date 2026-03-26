@@ -35,9 +35,12 @@ class TestWeightsAddLocation:
             run_cli(cmd, WEIGHTS_UUID, version=version)
 
             run_cli(
-                cmd, DUMMY_CKPT,
-                "--add-location", "ewc",
-                "--location-path", f"s3://ml-weights/{WEIGHTS_UUID}.ckpt",
+                cmd,
+                DUMMY_CKPT,
+                "--add-location",
+                "ewc",
+                "--location-path",
+                f"s3://ml-weights/{WEIGHTS_UUID}.ckpt",
                 version=version,
             )
         finally:

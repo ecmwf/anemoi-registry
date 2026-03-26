@@ -15,9 +15,8 @@ from anemoi.utils.checkpoints import load_metadata as load_checkpoint_metadata
 from anemoi.utils.remote.s3 import download
 from anemoi.utils.remote.s3 import upload
 
-from ..rest import RestItemList
-
 from .. import config
+from ..rest import RestItemList
 from . import CatalogueEntry
 
 COLLECTION = "weights"

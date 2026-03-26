@@ -17,7 +17,6 @@ Run with::
 They are skipped by default when running ``pytest`` without the ``-m s3`` flag.
 """
 
-import os
 import uuid
 
 import pytest
@@ -27,6 +26,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.s3]
 # Skip the entire module if S3 credentials are not configured
 try:
     from anemoi.utils.remote.s3 import upload as _s3_upload  # noqa: F401
+
     _HAS_S3 = True
 except Exception:
     _HAS_S3 = False
@@ -39,11 +39,14 @@ if not _HAS_S3:
 # Weights — upload a tiny file then download it
 # ---------------------------------------------------------------------------
 
+
 class TestWeightsS3RoundTrip:
     """Upload a dummy checkpoint to the test bucket, verify, then clean up."""
 
     def test_upload_and_download(self, tmp_path):
-        from anemoi.utils.remote.s3 import delete, download, upload
+        from anemoi.utils.remote.s3 import delete
+        from anemoi.utils.remote.s3 import download
+        from anemoi.utils.remote.s3 import upload
 
         # Create a tiny dummy file
         src = tmp_path / "dummy.ckpt"
@@ -71,6 +74,7 @@ class TestWeightsS3RoundTrip:
 # ---------------------------------------------------------------------------
 # Dataset — add_location round-trip via catalogue
 # ---------------------------------------------------------------------------
+
 
 class TestDatasetLocationRoundTrip:
     """Register a location in the catalogue, read it back, then remove it.
@@ -100,9 +104,9 @@ class TestDatasetLocationRoundTrip:
 
             # Re-fetch to verify
             refreshed = DatasetCatalogueEntry.load_from_key(ds_name)
-            assert platform in refreshed.record.get("locations", {}), (
-                f"Platform '{platform}' not in locations after add"
-            )
+            assert platform in refreshed.record.get(
+                "locations", {}
+            ), f"Platform '{platform}' not in locations after add"
             assert refreshed.record["locations"][platform]["path"] == fake_path
         finally:
             try:

@@ -19,9 +19,8 @@ from anemoi.utils.remote.s3 import delete
 from anemoi.utils.remote.s3 import download
 from anemoi.utils.remote.s3 import upload
 
-from ..rest import RestItemList
-
 from .. import config
+from ..rest import RestItemList
 from . import CatalogueEntry
 from .weights import WeightCatalogueEntry
 

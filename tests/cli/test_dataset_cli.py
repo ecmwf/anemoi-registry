@@ -79,6 +79,7 @@ def dataset_env(cached_zarr, tmp_path):
 # v1 dataset lifecycle
 # -------------------------------------------------------------------
 
+
 class TestDatasetRegisterV1:
     """Register a dataset from a local zarr, manipulate metadata, unregister."""
 
@@ -116,17 +117,23 @@ class TestDatasetRegisterV1:
 
             # Named platform with uri-pattern
             run_cli(
-                "datasets", name,
-                "--add-location", "atos",
-                "--uri-pattern", "/the/dataset/path/{name}",
+                "datasets",
+                name,
+                "--add-location",
+                "atos",
+                "--uri-pattern",
+                "/the/dataset/path/{name}",
                 version="1",
             )
 
             # Another platform
             run_cli(
-                "datasets", name,
-                "--add-location", "leonardo",
-                "--uri-pattern", "https://other/{name}/path",
+                "datasets",
+                name,
+                "--add-location",
+                "leonardo",
+                "--uri-pattern",
+                "https://other/{name}/path",
                 version="1",
             )
 
@@ -154,6 +161,7 @@ class TestDatasetRegisterV1:
 
             # Verify via Python API
             from anemoi.registry import Dataset
+
             actual = Dataset(name).record["metadata"]["TEST"]
             expected = {
                 "a": {"string": "ok", "int": 42, "float": 42.0, "datetime": "2015-04-18T00:00:00"},
@@ -173,6 +181,7 @@ class TestDatasetRegisterV1:
 # -------------------------------------------------------------------
 # v2 dataset lifecycle (no location management in v2)
 # -------------------------------------------------------------------
+
 
 class TestDatasetRegisterV2:
     """Register a dataset from a local zarr via v2, manipulate metadata, unregister."""
@@ -218,6 +227,7 @@ class TestDatasetRegisterV2:
             run_cli("dataset", name, "--set-metadata", f"TEST.d={test_json}", "path", version="2")
 
             from anemoi.registry import Dataset
+
             actual = Dataset(name).record["metadata"]["TEST"]
             expected = {
                 "a": {"string": "ok", "int": 42, "float": 42.0, "datetime": "2015-04-18T00:00:00"},

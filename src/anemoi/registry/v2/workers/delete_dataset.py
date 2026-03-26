@@ -11,7 +11,6 @@
 import logging
 
 from ..entry.dataset import DatasetCatalogueEntry
-
 from . import Worker
 
 LOG = logging.getLogger(__name__)

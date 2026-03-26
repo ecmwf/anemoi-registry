@@ -11,7 +11,8 @@
 import logging
 import os
 
-from ..entry.replica import ReplicaCatalogueEntry, ReplicaCatalogueEntryList
+from ..entry.replica import ReplicaCatalogueEntry
+from ..entry.replica import ReplicaCatalogueEntryList
 from ..utils import list_to_dict
 from . import Command
 
@@ -167,7 +168,8 @@ class Replica(Command):
     def _run_list(self, args):
         from requests.exceptions import HTTPError
 
-        from .base import _handle_field_error, format_list_output
+        from .base import _handle_field_error
+        from .base import format_list_output
 
         filters = list_to_dict(args.list) if args.list else {}
         if args.dataset_name:

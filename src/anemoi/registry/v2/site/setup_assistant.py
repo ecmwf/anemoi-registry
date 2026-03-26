@@ -10,7 +10,6 @@
 """Interactive setup assistant for site agents."""
 
 import logging
-import os
 import sys
 from pathlib import Path
 
@@ -104,8 +103,9 @@ def _step(number, title):
 
 def run_setup_assistant():
     """Run the interactive setup assistant."""
-    from .bootstrap import BOOTSTRAP_PATH, setup_bootstrap, load_bootstrap
-    from .parsers import PARSERS
+    from .bootstrap import BOOTSTRAP_PATH
+    from .bootstrap import load_bootstrap
+    from .bootstrap import setup_bootstrap
 
     print(BANNER)
     print(OVERVIEW)
@@ -229,7 +229,7 @@ def run_setup_assistant():
     # ──────────────────────────────────────────────────────────
     _step(4, "What to do next — Monitoring")
 
-    print(f"""\
+    print("""\
   Your site agent is now configured. The next step is to run
   monitoring commands, either manually or via a cron job.
 
@@ -267,6 +267,7 @@ def run_setup_assistant():
         print()
         try:
             from ..entry.site import SiteCatalogueEntry
+
             site = SiteCatalogueEntry(name="local")
             site.report_storage(dry_run=True)
             print("\n  ✓ Storage dry-run completed successfully!")
@@ -282,6 +283,7 @@ def run_setup_assistant():
         print()
         try:
             from ..entry.site import SiteCatalogueEntry
+
             site = SiteCatalogueEntry(name="local")
             site.report_datasets(dry_run=True)
             print("\n  ✓ Datasets dry-run completed successfully!")

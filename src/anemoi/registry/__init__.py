@@ -19,8 +19,7 @@ _CLI_VERSION = os.environ.get("ANEMOI_REGISTRY_CLI_VERSION", "1")
 
 if _CLI_VERSION not in ("1", "2"):
     raise ValueError(
-        f"Invalid ANEMOI_REGISTRY_CLI_VERSION={_CLI_VERSION!r}. "
-        "Supported values: '1' (legacy, default), '2' (new)."
+        f"Invalid ANEMOI_REGISTRY_CLI_VERSION={_CLI_VERSION!r}. " "Supported values: '1' (legacy, default), '2' (new)."
     )
 
 _active = importlib.import_module(f".v{_CLI_VERSION}", __name__)

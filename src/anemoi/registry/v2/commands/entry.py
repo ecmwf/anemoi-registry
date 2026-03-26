@@ -18,7 +18,6 @@ import jsonpatch
 import yaml
 
 from ..rest import Rest
-
 from . import Command
 
 LOG = logging.getLogger(__name__)

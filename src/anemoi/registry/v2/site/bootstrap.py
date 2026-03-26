@@ -16,7 +16,6 @@ import tomllib
 from pathlib import Path
 
 from ..rest import Rest
-
 from .config import fetch_and_save_configs
 
 LOG = logging.getLogger(__name__)
@@ -151,7 +150,7 @@ def check_server_setup():
                 print(f"   FAIL: quota.method '{method}' not in {list(PARSERS.keys())}")
         else:
             errors.append("Manifest missing quota.method")
-            print(f"   FAIL: Missing 'quota.method'")
+            print("   FAIL: Missing 'quota.method'")
 
     # Check 2: Fetch datasets config
     print("\n2. Checking datasets config...")

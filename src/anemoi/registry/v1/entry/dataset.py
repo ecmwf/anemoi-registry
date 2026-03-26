@@ -20,7 +20,6 @@ from anemoi.utils.sanitise import sanitise
 
 from .. import config
 from ..rest import RestItemList
-
 from . import CatalogueEntry
 
 LOG = logging.getLogger(__name__)

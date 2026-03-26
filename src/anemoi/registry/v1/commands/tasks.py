@@ -10,11 +10,11 @@
 
 import logging
 
-from .base import BaseCommand
 from ..entry import CatalogueEntryNotFound
 from ..tasks import TaskCatalogueEntry
 from ..tasks import TaskCatalogueEntryList
 from ..utils import list_to_dict
+from .base import BaseCommand
 
 LOG = logging.getLogger(__name__)
 

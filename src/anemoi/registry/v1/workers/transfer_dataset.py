@@ -14,7 +14,6 @@ import os
 from copy import deepcopy
 
 from ..entry.dataset import DatasetCatalogueEntry
-
 from . import Worker
 
 LOG = logging.getLogger(__name__)

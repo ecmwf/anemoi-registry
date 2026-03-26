@@ -19,7 +19,6 @@ import sys
 
 import yaml
 from anemoi.utils.humanize import json_pretty_dump
-
 from requests.exceptions import HTTPError
 
 from ..entry import VALUES_PARSERS
@@ -70,10 +69,7 @@ def _validate_fields(rows, fields):
     if bad:
         suggestion = ", ".join(sorted(available))
         bad_str = ", ".join(bad)
-        raise ValueError(
-            f"Unknown field(s): {bad_str}. "
-            f"Available fields: {suggestion}"
-        )
+        raise ValueError(f"Unknown field(s): {bad_str}. " f"Available fields: {suggestion}")
 
 
 def format_list_output(rows, fields, fmt="text"):

@@ -263,6 +263,7 @@ PARSERS = {
 
 # ---- Command builders ----
 
+
 def expand_path(path: str) -> str:
     """Expand ~ and $ENV_VAR in paths."""
     return os.path.expandvars(os.path.expanduser(path))

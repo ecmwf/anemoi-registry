@@ -13,7 +13,8 @@ Tests cover path construction, catalogue patches during upload/download,
 task lifecycle during transfer, and location management.
 """
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
 import pytest
 
@@ -110,7 +111,6 @@ class TestDatasetDeleteLocation:
         return entry
 
 
-
 # ---------------------------------------------------------------------------
 # Dataset — transfer (task lifecycle during upload)
 # ---------------------------------------------------------------------------
@@ -204,8 +204,10 @@ class TestWeightsUploadDownload:
         target = entry.upload("/tmp/model.ckpt")
         assert target == "s3://ml-weights/abc-123.ckpt"
         mock_upload.assert_called_once_with(
-            "/tmp/model.ckpt", "s3://ml-weights/abc-123.ckpt",
-            overwrite=False, resume=True,
+            "/tmp/model.ckpt",
+            "s3://ml-weights/abc-123.ckpt",
+            overwrite=False,
+            resume=True,
         )
 
     @patch("anemoi.registry.v1.entry.weights.upload")
@@ -217,12 +219,12 @@ class TestWeightsUploadDownload:
 
     @patch("anemoi.registry.v1.entry.weights.download")
     def test_download_calls_s3(self, mock_download):
-        entry = self._make_entry(
-            locations={"ewc": {"path": "s3://ml-weights/abc-123.ckpt"}}
-        )
+        entry = self._make_entry(locations={"ewc": {"path": "s3://ml-weights/abc-123.ckpt"}})
         entry.download("/tmp/out.ckpt", "ewc")
         mock_download.assert_called_once_with(
-            "s3://ml-weights/abc-123.ckpt", "/tmp/out.ckpt", resume=True,
+            "s3://ml-weights/abc-123.ckpt",
+            "/tmp/out.ckpt",
+            resume=True,
         )
 
     @patch("anemoi.registry.v1.entry.weights.download")

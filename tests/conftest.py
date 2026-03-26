@@ -24,10 +24,10 @@ import uuid
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # Markers
 # ---------------------------------------------------------------------------
+
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "integration: requires live test server (ANEMOI_CATALOGUE=TEST)")
@@ -38,6 +38,7 @@ def pytest_configure(config):
 # ---------------------------------------------------------------------------
 # Environment helpers
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(autouse=True)
 def _force_test_env(monkeypatch):
@@ -55,6 +56,7 @@ def cli_version(request, monkeypatch):
     monkeypatch.setenv("ANEMOI_REGISTRY_CLI_VERSION", request.param)
     # Invalidate cached module state
     import anemoi.registry
+
     importlib.reload(anemoi.registry)
     return request.param
 
@@ -63,6 +65,7 @@ def cli_version(request, monkeypatch):
 def v1_only(monkeypatch):
     monkeypatch.setenv("ANEMOI_REGISTRY_CLI_VERSION", "1")
     import anemoi.registry
+
     importlib.reload(anemoi.registry)
 
 
@@ -70,12 +73,14 @@ def v1_only(monkeypatch):
 def v2_only(monkeypatch):
     monkeypatch.setenv("ANEMOI_REGISTRY_CLI_VERSION", "2")
     import anemoi.registry
+
     importlib.reload(anemoi.registry)
 
 
 # ---------------------------------------------------------------------------
 # Unique identifiers (per-test isolation)
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def unique_id():
@@ -87,6 +92,7 @@ def unique_id():
 # CLI runner
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def run_cli():
     """Return a helper that calls ``anemoi-registry`` as a subprocess.
@@ -95,6 +101,7 @@ def run_cli():
     a ``subprocess.CompletedProcess``.  ``ANEMOI_CATALOGUE`` is always
     set to ``TEST``.
     """
+
     def _run(*args, version=None, check=True):
         env = os.environ.copy()
         env["ANEMOI_CATALOGUE"] = "TEST"
@@ -115,9 +122,7 @@ def run_cli():
                     f"--- stdout ---\n{result.stdout}\n"
                     f"--- stderr ---\n{result.stderr}"
                 )
-                raise subprocess.CalledProcessError(
-                    result.returncode, cmd, result.stdout, result.stderr
-                )
+                raise subprocess.CalledProcessError(result.returncode, cmd, result.stdout, result.stderr)
         return result
 
     return _run
@@ -127,10 +132,12 @@ def run_cli():
 # REST client (for integration tests that talk to the server directly)
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def rest_client():
     """A pre-configured ``Rest`` client pointing at the test catalogue."""
     from anemoi.registry.v1.rest import Rest
+
     return Rest()
 
 
@@ -139,10 +146,5 @@ def experiment_yaml(tmp_path):
     """Create a minimal experiment YAML in a temporary directory."""
     path = tmp_path / "test-experiment.yaml"
     expver = f"t{uuid.uuid4().hex[:3]}"
-    path.write_text(
-        f"description: Test experiment\n"
-        f"metadata:\n"
-        f"  expver: {expver}\n"
-        f"  owner: ci-test\n"
-    )
+    path.write_text(f"description: Test experiment\n" f"metadata:\n" f"  expver: {expver}\n" f"  owner: ci-test\n")
     return str(path), expver

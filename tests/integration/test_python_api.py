@@ -27,11 +27,14 @@ pytestmark = pytest.mark.integration
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _reload_registry(version):
     """Force-reload the registry package for the given version string."""
     import os
+
     os.environ["ANEMOI_REGISTRY_CLI_VERSION"] = version
     import anemoi.registry as reg
+
     importlib.reload(reg)
     return reg
 
@@ -40,22 +43,26 @@ def _reload_registry(version):
 # Configuration (read-only, safe)
 # ---------------------------------------------------------------------------
 
+
 class TestConfig:
     """Verify config() returns sane values from the test server."""
 
     def test_config_returns_api_url(self):
         from anemoi.registry import config
+
         c = config()
         assert "api_url" in c
         assert "test" in c["api_url"].lower()
 
     def test_config_returns_web_url(self):
         from anemoi.registry import config
+
         c = config()
         assert "web_url" in c
 
     def test_config_has_expected_keys(self):
         from anemoi.registry import config
+
         c = config()
         for key in ("api_url", "web_url", "datasets_platform", "datasets_uri_pattern"):
             assert key in c, f"Expected key '{key}' in config"
@@ -64,6 +71,7 @@ class TestConfig:
 # ---------------------------------------------------------------------------
 # Listing (read-only, safe)
 # ---------------------------------------------------------------------------
+
 
 class TestListEntries:
     """List operations via REST — read-only, no data created.
@@ -83,6 +91,7 @@ class TestListEntries:
 # Experiment CRUD (creates + cleans up)
 # ---------------------------------------------------------------------------
 
+
 class TestExperimentCRUD:
     """Register, read, patch, and unregister an experiment."""
 
@@ -92,6 +101,7 @@ class TestExperimentCRUD:
         yaml_path, expver = experiment_yaml
 
         from anemoi.registry.v1.entry.experiment import ExperimentCatalogueEntry
+
         entry = ExperimentCatalogueEntry.load_from_path(yaml_path)
 
         try:
@@ -114,6 +124,7 @@ class TestExperimentCRUD:
 # ---------------------------------------------------------------------------
 # Task lifecycle
 # ---------------------------------------------------------------------------
+
 
 class TestTaskLifecycle:
     """Test the task state machine against the live server."""
@@ -165,15 +176,20 @@ class TestTaskLifecycle:
 # Error handling
 # ---------------------------------------------------------------------------
 
+
 class TestErrorHandling:
     """Verify proper exceptions for bad requests."""
 
     def test_nonexistent_dataset_raises(self):
-        from anemoi.registry import CatalogueEntryNotFound, Dataset
+        from anemoi.registry import CatalogueEntryNotFound
+        from anemoi.registry import Dataset
+
         with pytest.raises(CatalogueEntryNotFound):
             Dataset(f"this-dataset-does-not-exist-{uuid.uuid4().hex[:8]}")
 
     def test_nonexistent_experiment_raises(self):
-        from anemoi.registry import CatalogueEntryNotFound, Experiment
+        from anemoi.registry import CatalogueEntryNotFound
+        from anemoi.registry import Experiment
+
         with pytest.raises(CatalogueEntryNotFound):
             Experiment(f"x{uuid.uuid4().hex[:4]}")

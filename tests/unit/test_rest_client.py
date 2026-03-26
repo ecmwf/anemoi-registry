@@ -9,13 +9,12 @@
 
 """Unit tests for :mod:`anemoi.registry.v*.rest` — HTTP mocked, no server."""
 
-import datetime
-import math
 
 import pytest
 import responses
 
-from anemoi.registry.v1.rest import AlreadyExists, Rest
+from anemoi.registry.v1.rest import AlreadyExists
+from anemoi.registry.v1.rest import Rest
 
 # ---------------------------------------------------------------------------
 # Rest — HTTP methods (mocked with `responses`)
@@ -27,9 +26,11 @@ API_URL = "https://anemoi-test.ecmwf.int/api/v1"
 @pytest.fixture
 def mock_rest(monkeypatch):
     """Return a ``Rest`` instance with a patched ``api_url`` and ``config``."""
+
     class FakeConfig:
         api_url = API_URL
         api_token = "test-token-123"
+
         def get(self, key, default=None):
             if key == "allow_delete":
                 return True
@@ -43,8 +44,10 @@ class TestRestGet:
     @responses.activate
     def test_get_success(self, mock_rest):
         responses.add(
-            responses.GET, f"{API_URL}/datasets/my-ds",
-            json={"name": "my-ds"}, status=200,
+            responses.GET,
+            f"{API_URL}/datasets/my-ds",
+            json={"name": "my-ds"},
+            status=200,
         )
         result = mock_rest.get("datasets/my-ds")
         assert result == {"name": "my-ds"}
@@ -59,6 +62,7 @@ class TestRestGet:
     def test_get_404_raises(self, mock_rest):
         responses.add(responses.GET, f"{API_URL}/datasets/nope", status=404, body="not found")
         from requests.exceptions import HTTPError
+
         with pytest.raises(HTTPError):
             mock_rest.get("datasets/nope")
 
@@ -67,8 +71,10 @@ class TestRestPost:
     @responses.activate
     def test_post_success(self, mock_rest):
         responses.add(
-            responses.POST, f"{API_URL}/datasets",
-            json={"name": "new-ds"}, status=201,
+            responses.POST,
+            f"{API_URL}/datasets",
+            json={"name": "new-ds"},
+            status=201,
         )
         result = mock_rest.post("datasets", {"name": "new-ds"})
         assert result == {"name": "new-ds"}
@@ -84,8 +90,10 @@ class TestRestPut:
     @responses.activate
     def test_put_success(self, mock_rest):
         responses.add(
-            responses.PUT, f"{API_URL}/datasets/ds1",
-            json={"name": "ds1", "status": "updated"}, status=200,
+            responses.PUT,
+            f"{API_URL}/datasets/ds1",
+            json={"name": "ds1", "status": "updated"},
+            status=200,
         )
         result = mock_rest.put("datasets/ds1", {"name": "ds1", "status": "updated"})
         assert result["status"] == "updated"
@@ -99,8 +107,10 @@ class TestRestPatch:
     @responses.activate
     def test_patch_success(self, mock_rest):
         responses.add(
-            responses.PATCH, f"{API_URL}/datasets/ds1",
-            json={"ok": True}, status=200,
+            responses.PATCH,
+            f"{API_URL}/datasets/ds1",
+            json={"ok": True},
+            status=200,
         )
         result = mock_rest.patch(
             "datasets/ds1",
@@ -117,17 +127,21 @@ class TestRestDelete:
     @responses.activate
     def test_delete_success(self, mock_rest):
         responses.add(
-            responses.DELETE, f"{API_URL}/datasets/ds1",
-            json={"deleted": True}, status=200,
+            responses.DELETE,
+            f"{API_URL}/datasets/ds1",
+            json={"deleted": True},
+            status=200,
         )
         result = mock_rest.delete("datasets/ds1")
         assert result == {"deleted": True}
 
     def test_delete_not_allowed(self, monkeypatch):
         """If allow_delete is False, delete raises before hitting the network."""
+
         class FakeConfig:
             api_url = API_URL
             api_token = "test-token-123"
+
             def get(self, key, default=None):
                 if key == "allow_delete":
                     return False
