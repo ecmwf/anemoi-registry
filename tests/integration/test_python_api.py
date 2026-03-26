@@ -16,9 +16,12 @@ No S3 uploads or downloads are performed.
 """
 
 import importlib
+import os
 import uuid
 
 import pytest
+
+IN_GITHUB = os.environ.get("GITHUB_ACTIONS") == "true"
 
 pytestmark = pytest.mark.integration
 
@@ -73,6 +76,7 @@ class TestConfig:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.skipif(IN_GITHUB, reason="No catalogue token available in GitHub Actions")
 class TestListEntries:
     """List operations via REST — read-only, no data created.
 
@@ -97,7 +101,7 @@ class TestExperimentCRUD:
 
     @pytest.mark.parametrize("version", ["1", "2"])
     def test_experiment_lifecycle(self, monkeypatch, version, experiment_yaml):
-        reg = _reload_registry(version)
+        _reload_registry(version)
         yaml_path, expver = experiment_yaml
 
         from anemoi.registry.v1.entry.experiment import ExperimentCatalogueEntry
