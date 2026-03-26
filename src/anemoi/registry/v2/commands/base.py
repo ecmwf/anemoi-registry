@@ -76,7 +76,7 @@ def _validate_fields(rows, fields):
         )
 
 
-def format_list_output(rows, fields, fmt="text"):
+def format_list_output(rows, fields, fmt="text") -> None:
     """Format a list of dicts for output.
 
     Parameters

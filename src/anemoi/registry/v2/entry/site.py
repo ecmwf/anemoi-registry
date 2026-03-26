@@ -69,7 +69,7 @@ class SiteCatalogueEntry:
     # Bootstrap / setup
     # ------------------------------------------------------------------
 
-    def setup(self, url):
+    def setup(self, url) -> None:
         """Run first-time bootstrap for this site.
 
         Parameters
@@ -86,7 +86,7 @@ class SiteCatalogueEntry:
     # Config
     # ------------------------------------------------------------------
 
-    def load_config(self, section=None):
+    def load_config(self, section=None) -> dict:
         """Load site config (or a specific section).
 
         Parameters

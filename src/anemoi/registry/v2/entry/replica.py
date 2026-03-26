@@ -106,7 +106,7 @@ class ReplicaCatalogueEntry:
 
         return DatasetCatalogueEntry(key=self.dataset_name)
 
-    def register(self, path=None, uri_pattern=None, upload=False, source_path=None):
+    def register(self, path=None, uri_pattern=None, upload=False, source_path=None) -> None:
         """Register this replica location on the dataset.
 
         Parameters
@@ -146,8 +146,13 @@ class ReplicaCatalogueEntry:
         """Delete the replica data and remove the location."""
         self._dataset_entry().delete_location(self.site)
 
-    def request_transfer(self, uri_pattern=None):
+    def request_transfer(self, uri_pattern=None) -> str:
         """Create a task to transfer this dataset to the site.
+
+        Parameters
+        ----------
+        uri_pattern : str, optional
+            URI pattern containing ``{name}``.
 
         Returns
         -------
@@ -165,7 +170,7 @@ class ReplicaCatalogueEntry:
         )
         return uuid
 
-    def request_deletion(self):
+    def request_deletion(self) -> str:
         """Create a task to delete this replica.
 
         Returns

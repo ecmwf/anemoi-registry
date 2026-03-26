@@ -54,7 +54,7 @@ def parse_value(value, type_):
     return VALUES_PARSERS[type_](value)
 
 
-def resolve_path(path, check=True):
+def resolve_path(path, check=True) -> str:
     """Resolve a dotted or slash-separated path to an absolute JSON-Patch path.
 
     Adds ``/metadata/`` prefix unless the path already starts with ``/`` or
