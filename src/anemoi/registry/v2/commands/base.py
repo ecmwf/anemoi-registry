@@ -72,7 +72,7 @@ def _validate_fields(rows, fields):
         raise ValueError(f"Unknown field(s): {bad_str}. " f"Available fields: {suggestion}")
 
 
-def format_list_output(rows, fields, fmt="text"):
+def format_list_output(rows, fields, fmt="text") -> None:
     """Format a list of dicts for output.
 
     Parameters
