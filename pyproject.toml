@@ -66,6 +66,12 @@ optional-dependencies.tests = [
   "responses",
 ]
 
+urls.Documentation = "https://anemoi-registry.readthedocs.io/"
+urls.Homepage = "https://github.com/ecmwf/anemoi-registry/"
+urls.Issues = "https://github.com/ecmwf/anemoi-registry/issues"
+urls.Repository = "https://github.com/ecmwf/anemoi-registry/"
+scripts.anemoi-registry = "anemoi.registry.__main__:main_PYTHON_ARGCOMPLETE_OK"
+
 [tool.pytest.ini_options]
 markers = [
   "integration: requires live test server (ANEMOI_CATALOGUE=TEST)",
@@ -73,12 +79,6 @@ markers = [
   "s3: requires S3 credentials and test buckets",
 ]
 testpaths = ["tests"]
-
-urls.Documentation = "https://anemoi-registry.readthedocs.io/"
-urls.Homepage = "https://github.com/ecmwf/anemoi-registry/"
-urls.Issues = "https://github.com/ecmwf/anemoi-registry/issues"
-urls.Repository = "https://github.com/ecmwf/anemoi-registry/"
-scripts.anemoi-registry = "anemoi.registry.__main__:main_PYTHON_ARGCOMPLETE_OK"
 
 [tool.setuptools.package-data]
 "anemoi.registry" = [ "*.yaml", "v2/site/scripts/*.sh" ]
