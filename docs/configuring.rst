@@ -4,6 +4,40 @@
  Configuring
 #############
 
+.. _cli-versions:
+
+***************************
+ CLI versions (v1 and v2)
+***************************
+
+The ``anemoi-registry`` CLI exists in two versions. The version is
+controlled by the ``ANEMOI_REGISTRY_CLI_VERSION`` environment variable.
+
+- **v1** (default): The original CLI. This is the default and requires no
+  configuration. Set ``ANEMOI_REGISTRY_CLI_VERSION=1`` or leave unset.
+
+- **v2** (recommended for new workflows): A restructured CLI with new
+  commands (``replica``, ``site``) and a simplified ``datasets`` command.
+  Set ``ANEMOI_REGISTRY_CLI_VERSION=2`` to enable it.
+
+.. code-block:: bash
+
+   # Use v2 (recommended)
+   export ANEMOI_REGISTRY_CLI_VERSION=2
+
+   # Use v1 (default, can be omitted)
+   export ANEMOI_REGISTRY_CLI_VERSION=1
+
+.. note::
+
+   The ``ANEMOI_REGISTRY_CLI_VERSION`` environment variable will be
+   removed in a future release, when v2 becomes the only version.
+   Existing v1 workflows will continue to work until then.
+
+***************************
+ Configuration files
+***************************
+
 The following configuration files are used to store the registry
 configuration. These files allow configuring the catalogue urls, s3
 buckets, API token and object storage credentials.

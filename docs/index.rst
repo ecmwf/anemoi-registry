@@ -39,6 +39,8 @@ of the *Anemoi* packages.
 -  :doc:`cli/datasets`
 -  :doc:`cli/weights`
 -  :doc:`cli/list`
+-  :doc:`cli/replicas`
+-  :doc:`cli/site`
 
 .. toctree::
    :maxdepth: 1
@@ -48,6 +50,8 @@ of the *Anemoi* packages.
    cli/datasets
    cli/weights
    cli/list
+   cli/replicas
+   cli/site
 
 *****************
  Anemoi packages
