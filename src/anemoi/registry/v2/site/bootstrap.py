@@ -134,7 +134,7 @@ def check_server_setup():
             method = quota["method"]
             if method in PARSERS:
                 print(f"   OK: quota.method '{method}' is supported")
-                if method in ("df",):
+                if method in ("df", "lfs-project"):
                     if "paths" in quota and quota["paths"]:
                         print(f"   OK: quota.paths has {len(quota['paths'])} entries")
                     else:

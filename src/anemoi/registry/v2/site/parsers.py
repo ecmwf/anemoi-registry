@@ -252,6 +252,7 @@ def parse_bsc_quota(output: str) -> list[dict]:
 PARSERS = {
     "lfs": parse_lfs,
     "lfs-columnar": parse_lfs_columnar,
+    "lfs-project": parse_lfs,
     "lumi-quota": parse_lumi_quota,
     "cindata": parse_cindata,
     "jutil": parse_jutil,
@@ -335,9 +336,31 @@ def build_commands_bsc_quota(quota_config: dict) -> list[list[str]]:
     return [["bsc_quota", "-u", "KB"]]
 
 
+def _lfs_project_quota_script() -> str:
+    """Return the absolute path to the bundled lfs-project-quota.sh script."""
+    return os.path.join(os.path.dirname(__file__), "scripts", "lfs-project-quota.sh")
+
+
+def build_commands_lfs_project(quota_config: dict) -> list[list[str]]:
+    """Build commands that discover project IDs via ``lfs project``.
+
+    Unlike the plain ``lfs`` method (which requires pre-configured project
+    IDs), this method only needs directory paths.  For each path the
+    bundled ``lfs-project-quota.sh`` script runs ``lfs project`` to find
+    the project number and then ``lfs quota``.
+    """
+    script = _lfs_project_quota_script()
+    commands = []
+    for p in quota_config.get("paths", []):
+        path = expand_path(p["path"])
+        commands.append(["bash", script, path])
+    return commands
+
+
 COMMAND_BUILDERS = {
     "lfs": build_commands_lfs,
     "lfs-columnar": build_commands_lfs_columnar,
+    "lfs-project": build_commands_lfs_project,
     "lumi-quota": build_commands_lumi_quota,
     "cindata": build_commands_cindata,
     "jutil": build_commands_jutil,
