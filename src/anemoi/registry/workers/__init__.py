@@ -99,7 +99,18 @@ class Worker:
 
         else:
             # Process one task
-            self.process_one_task()
+            retries = 2
+            for i in range(retries):
+                try:
+                    self.process_one_task()
+                    break
+                except Exception as e:
+                    LOG.error(f"Error : {e}")
+                    if i < retries - 1:
+                        LOG.error("Retrying after this error.")
+                    else:
+                        LOG.error("No more retries left.")
+                        raise
 
     def process_one_task(self):
         task = self.choose_task()
