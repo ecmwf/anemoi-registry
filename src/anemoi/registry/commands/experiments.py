@@ -142,6 +142,10 @@ class Experiments(BaseCommand):
         self.process_task(entry, args, "archive_moved", run_number=args.run_number, _skip_if_not_found=True)
         if args.url:
             print(entry.url)
+        if args.view:
+            import webbrowser
+
+            webbrowser.open(entry.url)
 
 
 command = Experiments

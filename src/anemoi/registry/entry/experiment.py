@@ -130,7 +130,7 @@ class ExperimentCatalogueEntry(CatalogueEntry):
         upload(path, target, overwrite=overwrite)
 
         # NOTE: if format of this dict changes, also update the list of excluded extra keys in archive_moved
-        dic = dict(url=target, path=path, updated=datetime.datetime.utcnow().isoformat(), **extras)
+        dic = dict(url=target, path=path, updated=datetime.datetime.now(datetime.timezone.utc).isoformat(), **extras)
 
         self._ensure_run_exists(run_number)
 
@@ -180,7 +180,6 @@ class ExperimentCatalogueEntry(CatalogueEntry):
         run_numbers = self._parse_run_number(run_number)
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            print(tmpdir)
             for run_number in run_numbers:
                 tmp_path = os.path.join(tmpdir, str(run_number))
                 self.get_archive(tmp_path, platform=old, run_number=run_number)
@@ -195,8 +194,6 @@ class ExperimentCatalogueEntry(CatalogueEntry):
                 self.remove_archive(old, run_number)
 
     def _get_run_record(self, run_number):
-        print(self.record.get("runs", {}), run_number, type(run_number))
-        print(self.record.get("runs", {}).get(run_number, {}))
         return self.record.get("runs", {}).get(run_number, {})
 
     def get_archive(self, path, *, platform, run_number):

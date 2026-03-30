@@ -75,7 +75,7 @@ class CatalogueEntry:
         self.path = path
         self.key = key
 
-        if not record:
+        if record is None:
             entry = self.__class__.load_from_key(key, params=params)
             if entry is None:
                 raise CatalogueEntryNotFound(f"Could not find any {self.collection} with key={key}")

@@ -171,7 +171,6 @@ class DatasetCatalogueEntry(CatalogueEntry):
                 task = TaskCatalogueEntry(key=uuid)
                 return task
 
-            lst = TaskCatalogueEntryList(**kwargs)
             task = lst[0]
             updated = datetime.datetime.fromisoformat(task.record["updated"])
             if resume:
@@ -193,8 +192,8 @@ class DatasetCatalogueEntry(CatalogueEntry):
         task.set_status("running")
         try:
             transfer(source_path, target, resume=resume, threads=threads, progress=progress)
-        except:
-            task.set_status("stopped")
+        except Exception:
+            task.release_ownership()
             raise
         task.unregister()
 
