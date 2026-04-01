@@ -13,7 +13,6 @@ import os
 import signal
 import sys
 import threading
-import time
 
 from anemoi.utils.humanize import when
 
@@ -31,12 +30,13 @@ class Worker:
 
     name = None
 
+    DEFAULT_HEARTBEAT = 120
+    DEFAULT_MAX_NO_HEARTBEAT = 600
+
     def __init__(
         self,
-        heartbeat,
-        max_no_heartbeat,
-        wait,
-        loop=False,
+        heartbeat=DEFAULT_HEARTBEAT,
+        max_no_heartbeat=DEFAULT_MAX_NO_HEARTBEAT,
         check_todo=False,
         timeout=None,
         timeout_exit_code=None,
@@ -45,18 +45,14 @@ class Worker:
     ):
         """Run a worker that will process tasks in the queue.
         timeout: Kill itself after `timeout` seconds.
-        wait: When no task is found, wait `wait` seconds before checking again.
         """
         if kwargs:
             LOG.warning(f"Unknown arguments for Worker: {kwargs}")
 
         self.heartbeat = heartbeat
         self.max_no_heartbeat = max_no_heartbeat
-        self.loop = loop
         self.check_todo = check_todo
         self.dry_run = dry_run
-
-        self.wait = wait
 
         if timeout:
 
@@ -85,32 +81,18 @@ class Worker:
                 LOG.info("No tasks to do.")
                 sys.exit(1)
 
-        if self.loop:
-            # Process tasks in a loop for ever
-            while True:
-                try:
-                    self.process_one_task()
-                    LOG.info(f"Waiting {self.wait} seconds before checking again.")
-                    time.sleep(self.wait)
-                except Exception as e:
-                    LOG.error(f"Error for task {task}: {e}")
-                    LOG.error("Waiting 60 seconds after this error before checking again.")
-                    time.sleep(60)
-
-        else:
-            # Process one task
-            retries = 2
-            for i in range(retries):
-                try:
-                    self.process_one_task()
-                    break
-                except Exception as e:
-                    LOG.error(f"Error : {e}")
-                    if i < retries - 1:
-                        LOG.error("Retrying after this error.")
-                    else:
-                        LOG.error("No more retries left.")
-                        raise
+        retries = 2
+        for i in range(retries):
+            try:
+                self.process_one_task()
+                break
+            except Exception as e:
+                LOG.error(f"Error : {e}")
+                if i < retries - 1:
+                    LOG.error("Retrying after this error.")
+                else:
+                    LOG.error("No more retries left.")
+                    raise
 
     def process_one_task(self):
         task = self.choose_task()
@@ -235,7 +217,21 @@ class Worker:
 def run_worker(action, **kwargs):
     from .delete_dataset import DeleteDatasetWorker
     from .dummy import DummyWorker
+    from .monitor_datasets import MonitorDatasetsWorker
+    from .monitor_storage import MonitorStorageWorker
     from .transfer_dataset import TransferDatasetWorker
+    from .update_auxiliary import UpdateAuxiliaryWorker
+
+    # Apply [worker] defaults from ~/.config/anemoi/steward.json
+    try:
+        from ..site.bootstrap import load_bootstrap
+
+        bootstrap_worker = load_bootstrap().get("worker", {})
+        for k, v in bootstrap_worker.items():
+            if k not in kwargs:
+                kwargs[k] = v
+    except Exception:
+        pass
 
     workers_config = config().get("workers", {})
     worker_config = workers_config.get(action, {})
@@ -259,6 +255,9 @@ def run_worker(action, **kwargs):
     cls = {
         "transfer-dataset": TransferDatasetWorker,
         "delete-dataset": DeleteDatasetWorker,
+        "monitor-storage": MonitorStorageWorker,
+        "monitor-datasets": MonitorDatasetsWorker,
+        "update-auxiliary": UpdateAuxiliaryWorker,
         "dummy": DummyWorker,
     }[action]
     cls(**kwargs).run()

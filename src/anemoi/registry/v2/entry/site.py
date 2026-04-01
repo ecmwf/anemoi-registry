@@ -58,9 +58,10 @@ class SiteCatalogueEntry:
 
     collection = COLLECTION
 
-    def __init__(self, name, record=None):
+    def __init__(self, name, record=None, base_url=None):
         self.name = name
         self.record = record
+        self._base_url_override = base_url
 
     @property
     def key(self):
@@ -108,12 +109,14 @@ class SiteCatalogueEntry:
     @property
     def base_url(self):
         """Return the configured base URL from bootstrap."""
+        if self._base_url_override:
+            return self._base_url_override
         from ..site.bootstrap import load_bootstrap
 
         bootstrap = load_bootstrap()
-        url = bootstrap.get("base_url")
+        url = bootstrap.get("steward_url")
         if not url:
-            raise ValueError("No base_url in bootstrap config. " "Run: anemoi-registry site --setup URL")
+            raise ValueError("No steward_url in steward.json. Run: anemoi-registry steward --setup URL")
         return url
 
     # ------------------------------------------------------------------

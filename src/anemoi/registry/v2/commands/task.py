@@ -30,30 +30,18 @@ class Tasks(BaseCommand):
 
     def add_arguments(self, command_parser):
         command_parser.add_argument("TASK", help="The uuid of the task", nargs="?")
-        command_parser.add_argument("--set-status", help="Set status of the given task", metavar="STATUS")
-        command_parser.add_argument(
-            "--set-progress", help="Set progress of the given task (0 to 100 percents)", type=int, metavar="N"
-        )
-        command_parser.add_argument("--own", help="Take ownership of a task", action="store_true")
-        command_parser.add_argument("--disown", help="Release a task and requeue it", action="store_true")
 
         group = command_parser.add_mutually_exclusive_group()
-        group.add_argument("--new", help="Add a new queue entry", nargs="*", metavar="K=V")
+        group.add_argument("--register", help="Add a new queue entry", nargs="*", metavar="K=V")
         group.add_argument(
-            "--take-one", help="Take ownership of the oldest entry with status=queued", nargs="*", metavar="K=V"
+            "--unregister", help="Remove task by TASK uuid, or matching K=V filters", nargs="*", metavar="K=V"
         )
-        group.add_argument("--list", help="List tasks", nargs="*", metavar="K=V")
-        group.add_argument("--delete-many", help="Batch remove multiple tasks", nargs="*", metavar="K=V")
+        group.add_argument("--list", help="List tasks matching K=V filters", nargs="*", metavar="K=V")
 
-        command_parser.add_argument(
-            "--list-sort",
-            help="Comma-separated fields to sort by.",
-            default="updated",
-        )
-        command_parser.add_argument("-l", "--long", help="Details, use with --list", action="store_true")
+        command_parser.add_argument("--list-sort", help="Sort field for --list.", default="updated")
         command_parser.add_argument(
             "--list-fields",
-            help="Comma-separated field names to display.",
+            help="Comma-separated field names to display with --list.",
             type=lambda s: [f.strip() for f in s.split(",")],
             metavar="FIELDS",
         )
@@ -63,60 +51,62 @@ class Tasks(BaseCommand):
             choices=["text", "csv", "json", "rich"],
             default="rich",
         )
-        command_parser.add_argument("-y", "--yes", help="Assume yes", action="store_true")
+        command_parser.add_argument("-l", "--long", help="Long output for --list.", action="store_true")
+        command_parser.add_argument("-y", "--yes", help="Assume yes for --unregister.", action="store_true")
 
     def run(self, args):
-        if args.TASK is not None and (args.new is not None or args.take_one is not None or args.list is not None):
-            raise ValueError("Cannot use positional argument TASK with --new, --take-one or --list")
+        if args.TASK is not None and (args.register is not None or args.list is not None):
+            raise ValueError("Cannot use positional argument TASK with --register or --list")
+
+        if args.unregister is not None and args.TASK:
+            self.entry_class(key=args.TASK).unregister()
+            return
 
         if args.TASK:
             return self.run_with_uuid(args.TASK, args)
-        if args.new is not None:
+        if args.register is not None:
             self.run_new(args)
-        if args.take_one is not None:
-            self.run_take_one(args)
         if args.list is not None:
             self.run_list(args)
-        if args.delete_many is not None:
-            assert args.TASK is None
+        if args.unregister is not None:
             self.run_delete_many(args)
 
     def run_with_uuid(self, uuid, args):
-
-        uuid = args.TASK
-        entry = self.entry_class(key=uuid)
-
-        self.process_task(entry, args, "disown", "release_ownership")
-        self.process_task(entry, args, "own", "take_ownership")
-        self.process_task(entry, args, "set_status")
-        self.process_task(entry, args, "set_progress")
+        pass
 
     def run_new(self, args):
         cat = TaskCatalogueEntryList()
-        new = list_to_dict(args.new)
+        new = list_to_dict(args.register)
         uuid = cat.add_new_task(**new)
         print(uuid)
 
     def run_list(self, args):
         fmt = args.list_format
         fields = args.list_fields
+        filters = list_to_dict(args.list) if args.list else {}
 
         if fmt == "text" and not fields:
             # Legacy mode: use the built-in to_str formatting
-            cat = TaskCatalogueEntryList(*args.list, sort=args.list_sort)
+            cat = TaskCatalogueEntryList(**filters, sort=args.list_sort)
             print(cat.to_str(args.long))
             return
 
         from .base import format_list_output
 
-        cat = TaskCatalogueEntryList(*args.list, sort=args.list_sort)
+        cat = TaskCatalogueEntryList(**filters, sort=args.list_sort)
         rows = list(cat.get())
         if not fields:
             fields = ["uuid", "action", "status", "created", "updated"]
+        elif "*" in fields:
+            all_keys = dict.fromkeys(k for row in rows for k in row)
+            fields = [f for f in fields if f != "*"] + [k for k in all_keys if k not in fields]
         format_list_output(rows, fields, fmt)
 
     def run_delete_many(self, args):
-        cat = TaskCatalogueEntryList(*args.delete_many, sort=args.list_sort)
+        if not args.unregister:
+            raise ValueError("--unregister without a TASK requires K=V filters to avoid deleting everything.")
+        filters = list_to_dict(args.unregister)
+        cat = TaskCatalogueEntryList(**filters, sort=args.list_sort)
         if not cat:
             LOG.info("No tasks found")
             return
@@ -134,14 +124,6 @@ class Tasks(BaseCommand):
             except CatalogueEntryNotFound:
                 LOG.warning(f"Task {entry.key} not found.")
         LOG.info(f"{count} tasks deleted.")
-
-    def run_take_one(self, args):
-        cat = TaskCatalogueEntryList(*args.take_one, status="queued", sort=args.list_sort)
-        uuid = cat.take_last()
-        if uuid is None:
-            return
-        else:
-            print(uuid)
 
 
 command = Tasks

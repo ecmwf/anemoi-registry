@@ -32,7 +32,7 @@ The workflow has two phases:
 
   Phase 1 — Setup (one-time, what we are doing now):
     • You provide the URL for your site's API endpoint.
-    • We create a bootstrap file (~/.config/anemoi/site.toml).
+    • We create a bootstrap file (~/.config/anemoi/steward.json).
     • We validate the server configuration.
     • We download config files from the server.
 
@@ -135,7 +135,7 @@ def run_setup_assistant():
     if BOOTSTRAP_PATH.exists():
         try:
             bootstrap = load_bootstrap()
-            existing_url = bootstrap.get("base_url")
+            existing_url = bootstrap.get("steward_url")
         except Exception:
             pass
 
@@ -170,7 +170,7 @@ def run_setup_assistant():
 
     print("""\
   Now we will:
-    a) Write the bootstrap file (~/.config/anemoi/site.toml)
+    a) Write the bootstrap file (~/.config/anemoi/steward.json)
     b) Contact the server and validate the configuration
     c) Download config files (monitoring, datasets, auxiliary)
 """)
@@ -204,7 +204,7 @@ def run_setup_assistant():
         print(f"  Could not reload bootstrap: {e}")
         return
 
-    base_url = bootstrap.get("base_url", "?")
+    base_url = bootstrap.get("steward_url", "?")
     config_dir = bootstrap.get("config_dir", "?")
 
     print(f"  Bootstrap file : {BOOTSTRAP_PATH}")

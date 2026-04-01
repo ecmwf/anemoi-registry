@@ -19,7 +19,6 @@ import tqdm
 
 from ..rest import Rest
 from .bootstrap import load_bootstrap
-from .config import load_site_config
 from .parsers import COMMAND_BUILDERS
 from .parsers import PARSERS
 
@@ -48,17 +47,19 @@ def dataset_last_accessed(path) -> str:
 def load_monitoring_manifest() -> dict:
     """Load monitoring config and verify server match."""
     bootstrap = load_bootstrap()
-    base_url = bootstrap.get("base_url")
-    manifest = load_site_config("monitoring")
+    steward_url = bootstrap.get("steward_url")
+    manifest = bootstrap.get("monitor-storage")
+    if not manifest:
+        raise ValueError("No monitor-storage config in steward.json\nRe-run: anemoi-registry steward --setup URL")
 
     # Verify config was fetched from the same server we're configured to use
     config_server_url = manifest.get("server_url")
-    if config_server_url and base_url and not base_url.startswith(config_server_url):
+    if config_server_url and steward_url and not steward_url.startswith(config_server_url):
         raise ValueError(
             f"Config/server mismatch!\n"
-            f"  monitoring.json was fetched from: {config_server_url}\n"
-            f"  site.toml base_url:               {base_url}\n"
-            f"Re-run: anemoi-registry site --setup URL"
+            f"  monitoring config was fetched from: {config_server_url}\n"
+            f"  steward.json steward_url:           {steward_url}\n"
+            f"Re-run: anemoi-registry steward --setup URL"
         )
 
     return manifest
@@ -89,7 +90,7 @@ class SiteStatus:
         cmds = self.get_quota_cmds()
         if not cmds:
             print(f"Warning: No quota commands generated for method '{self.method}'.")
-            print("Check monitoring.json has the right config (e.g., 'paths' for df, 'projects' for lfs).")
+            print("Check steward.json has the right config (e.g., 'paths' for df, 'projects' for lfs).")
             return records
         for cmd in cmds:
             cmd_str = cmd if isinstance(cmd, str) else " ".join(cmd)

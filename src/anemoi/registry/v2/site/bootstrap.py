@@ -9,18 +9,18 @@
 
 """Bootstrap configuration for site setup."""
 
+import json
 import logging
 import os
 import stat
-import tomllib
 from pathlib import Path
 
 from ..rest import Rest
-from .config import fetch_and_save_configs
+from .config import fetch_and_save_steward_config
 
 LOG = logging.getLogger(__name__)
 
-BOOTSTRAP_PATH = Path(os.path.expanduser("~/.config/anemoi/site.toml"))
+BOOTSTRAP_PATH = Path(os.path.expanduser("~/.config/anemoi/steward.json"))
 
 
 def check_group_readable(path: Path):
@@ -37,31 +37,44 @@ def check_group_readable(path: Path):
 
 
 def load_bootstrap() -> dict:
-    """Load bootstrap config from ~/.config/anemoi/site.toml."""
+    """Load config from ~/.config/anemoi/steward.json."""
     if not BOOTSTRAP_PATH.exists():
         raise ValueError(
-            f"Bootstrap not found: {BOOTSTRAP_PATH}\n"
-            "Create it with: anemoi-registry site --setup https://server/api/v1/sites/<site>"
+            f"Steward config not found: {BOOTSTRAP_PATH}\n"
+            "Run: anemoi-registry steward --setup https://server/api/v1/sites/<site>"
         )
-    with open(BOOTSTRAP_PATH, "rb") as f:
-        return tomllib.load(f)
+    with open(BOOTSTRAP_PATH) as f:
+        return json.load(f)
 
 
-def setup_bootstrap(base_url: str):
-    """Set up the bootstrap file with base URL, check server, fetch configs."""
-    # Remove trailing slash if present
-    base_url = base_url.rstrip("/")
+def update_steward_settings(**kwargs):
+    """Partial-update steward.json with the given key=value pairs.
 
-    # Ensure https
-    if base_url.startswith("http://"):
-        base_url = base_url.replace("http://", "https://", 1)
-        print(f"Note: Upgraded to HTTPS: {base_url}")
+    Existing keys not mentioned in kwargs are preserved.
+    """
+    existing = {}
+    if BOOTSTRAP_PATH.exists():
+        with open(BOOTSTRAP_PATH) as f:
+            existing = json.load(f)
+
+    existing.update(kwargs)
 
     BOOTSTRAP_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(BOOTSTRAP_PATH, "w") as f:
-        f.write(f'base_url = "{base_url}"\n')
-    print(f"Bootstrap written to {BOOTSTRAP_PATH}")
-    print(f"  base_url = {base_url}")
+        json.dump(existing, f, indent=2)
+
+
+def setup_bootstrap(steward_url: str):
+    """Write steward_url to steward.json, check server, fetch user configs."""
+    steward_url = steward_url.rstrip("/")
+
+    if steward_url.startswith("http://"):
+        steward_url = steward_url.replace("http://", "https://", 1)
+        print(f"Note: Upgraded to HTTPS: {steward_url}")
+
+    update_steward_settings(steward_url=steward_url)
+    print(f"Written to {BOOTSTRAP_PATH}")
+    print(f"  steward_url = {steward_url}")
 
     print()
     print("Checking server setup...")
@@ -71,8 +84,8 @@ def setup_bootstrap(base_url: str):
         raise SystemExit(1)
 
     print()
-    print("Fetching configs from server...")
-    fetch_and_save_configs()
+    print("Fetching steward config from server...")
+    fetch_and_save_steward_config()
 
 
 def check_server_setup():
@@ -80,9 +93,9 @@ def check_server_setup():
     from .parsers import PARSERS
 
     bootstrap = load_bootstrap()
-    base_url = bootstrap.get("base_url")
-    if not base_url:
-        raise ValueError(f"No base_url in {BOOTSTRAP_PATH}")
+    steward_url = bootstrap.get("steward_url")
+    if not steward_url:
+        raise ValueError(f"No steward_url in {BOOTSTRAP_PATH}")
 
     rest = Rest()
     errors = []
@@ -90,7 +103,7 @@ def check_server_setup():
 
     # Check 1: Fetch top-level config
     print("1. Checking top-level config...")
-    config_url = f"{base_url}/config"
+    config_url = f"{steward_url}/config"
     top_config = None
     try:
         top_config = rest.get_url(config_url)
@@ -110,7 +123,7 @@ def check_server_setup():
 
     # Check 1b: Fetch monitoring config
     print("\n1b. Checking monitoring config...")
-    monitoring_url = f"{base_url}/config?monitoring"
+    monitoring_url = f"{steward_url}/config?monitoring"
     manifest = None
     try:
         manifest = rest.get_url(monitoring_url)
@@ -154,7 +167,7 @@ def check_server_setup():
 
     # Check 2: Fetch datasets config
     print("\n2. Checking datasets config...")
-    datasets_url = f"{base_url}/config?datasets"
+    datasets_url = f"{steward_url}/config?datasets"
     try:
         datasets_config = rest.get_url(datasets_url)
         print(f"   OK: Fetched from {datasets_url}")
@@ -194,8 +207,8 @@ def check_server_setup():
 
     # Check 4: Show derived endpoints
     print("\n4. Derived endpoints (from base_url)...")
-    print(f"   POST resources: {base_url}/resources")
-    print(f"   POST replicas: {base_url}/replicas")
+    print(f"   POST resources: {steward_url}/resources")
+    print(f"   POST replicas: {steward_url}/replicas")
 
     # Summary
     print("\nSummary:")
