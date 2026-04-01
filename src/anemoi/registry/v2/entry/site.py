@@ -114,9 +114,9 @@ class SiteCatalogueEntry:
         from ..site.bootstrap import load_bootstrap
 
         bootstrap = load_bootstrap()
-        url = bootstrap.get("steward_url")
+        url = bootstrap.get("site_url")
         if not url:
-            raise ValueError("No steward_url in steward.json. Run: anemoi-registry steward --setup URL")
+            raise ValueError("No site_url in steward.json. Run: anemoi-registry steward --setup URL")
         return url
 
     # ------------------------------------------------------------------

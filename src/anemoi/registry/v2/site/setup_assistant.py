@@ -135,7 +135,7 @@ def run_setup_assistant():
     if BOOTSTRAP_PATH.exists():
         try:
             bootstrap = load_bootstrap()
-            existing_url = bootstrap.get("steward_url")
+            existing_url = bootstrap.get("site_url")
         except Exception:
             pass
 
@@ -204,7 +204,7 @@ def run_setup_assistant():
         print(f"  Could not reload bootstrap: {e}")
         return
 
-    base_url = bootstrap.get("steward_url", "?")
+    base_url = bootstrap.get("site_url", "?")
     config_dir = bootstrap.get("config_dir", "?")
 
     print(f"  Bootstrap file : {BOOTSTRAP_PATH}")

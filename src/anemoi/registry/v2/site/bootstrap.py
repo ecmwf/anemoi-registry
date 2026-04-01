@@ -36,8 +36,19 @@ def check_group_readable(path: Path):
             print(f"Warning: {path} is not group-readable. Consider: chmod g+r {path}")
 
 
+_bootstrap_override: dict | None = None
+
+
+def set_bootstrap_override(data: dict) -> None:
+    """Override the bootstrap config for the current process (bypasses steward.json)."""
+    global _bootstrap_override
+    _bootstrap_override = data
+
+
 def load_bootstrap() -> dict:
-    """Load config from ~/.config/anemoi/steward.json."""
+    """Load config from ~/.config/anemoi/steward.json (or in-process override)."""
+    if _bootstrap_override is not None:
+        return _bootstrap_override
     if not BOOTSTRAP_PATH.exists():
         raise ValueError(
             f"Steward config not found: {BOOTSTRAP_PATH}\n"
@@ -61,20 +72,20 @@ def update_steward_settings(**kwargs):
 
     BOOTSTRAP_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(BOOTSTRAP_PATH, "w") as f:
-        json.dump(existing, f, indent=2)
+        json.dump(existing, f, indent=2, sort_keys=True)
 
 
-def setup_bootstrap(steward_url: str):
-    """Write steward_url to steward.json, check server, fetch user configs."""
-    steward_url = steward_url.rstrip("/")
+def setup_bootstrap(site_url: str):
+    """Write site_url to steward.json, check server, fetch user configs."""
+    site_url = site_url.rstrip("/")
 
-    if steward_url.startswith("http://"):
-        steward_url = steward_url.replace("http://", "https://", 1)
-        print(f"Note: Upgraded to HTTPS: {steward_url}")
+    if site_url.startswith("http://"):
+        site_url = site_url.replace("http://", "https://", 1)
+        print(f"Note: Upgraded to HTTPS: {site_url}")
 
-    update_steward_settings(steward_url=steward_url)
+    update_steward_settings(site_url=site_url)
     print(f"Written to {BOOTSTRAP_PATH}")
-    print(f"  steward_url = {steward_url}")
+    print(f"  site_url = {site_url}")
 
     print()
     print("Checking server setup...")
@@ -93,16 +104,16 @@ def check_server_setup():
     from .parsers import PARSERS
 
     bootstrap = load_bootstrap()
-    steward_url = bootstrap.get("steward_url")
-    if not steward_url:
-        raise ValueError(f"No steward_url in {BOOTSTRAP_PATH}")
+    site_url = bootstrap.get("site_url")
+    if not site_url:
+        raise ValueError(f"No site_url in {BOOTSTRAP_PATH}")
 
     rest = Rest()
     errors = []
     warnings = []
 
     # Fetch the steward config endpoint
-    config_url = f"{steward_url}/config"
+    config_url = f"{site_url}/config"
     print(f"Checking {config_url} ...")
     config = None
     try:
@@ -149,8 +160,8 @@ def check_server_setup():
                 warnings.append(f"update-shared-config.site_config_path does not exist: {config_path}")
                 print(f"   WARN: Path does not exist (will be created): {config_path}")
 
-    print(f"\n   POST resources : {steward_url}/resources")
-    print(f"   POST replicas  : {steward_url}/replicas")
+    print(f"\n   POST resources : {site_url}/resources")
+    print(f"   POST replicas  : {site_url}/replicas")
 
     print("\nSummary:")
     if errors:

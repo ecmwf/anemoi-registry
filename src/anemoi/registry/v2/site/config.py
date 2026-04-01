@@ -49,17 +49,17 @@ def get_config_dir() -> Path:
 
 
 def fetch_and_save_steward_config():
-    """Fetch {steward_url}/config and merge into steward.json."""
+    """Fetch {site_url}/config and merge into steward.json."""
     from .bootstrap import BOOTSTRAP_PATH
     from .bootstrap import load_bootstrap
     from .bootstrap import update_steward_settings
 
     bootstrap = load_bootstrap()
-    steward_url = bootstrap.get("steward_url")
-    if not steward_url:
-        raise ValueError(f"No steward_url in {BOOTSTRAP_PATH}")
+    site_url = bootstrap.get("site_url")
+    if not site_url:
+        raise ValueError(f"No site_url in {BOOTSTRAP_PATH}")
 
-    url = f"{steward_url}/config"
+    url = f"{site_url}/config"
     print(f"Fetching steward config from {url}")
     config = Rest().get_url(url)
     update_steward_settings(**config)
@@ -75,7 +75,7 @@ def fetch_and_save_shared_config():
     from .bootstrap import load_bootstrap
 
     bootstrap = load_bootstrap()
-    steward_url = bootstrap.get("steward_url")
+    site_url = bootstrap.get("site_url")
     shared_section = bootstrap.get("tasks", {}).get("update-shared-config", {})
     site_config_path = shared_section.get("site_config_path")
     if not site_config_path:
@@ -84,7 +84,7 @@ def fetch_and_save_shared_config():
     config_dir = Path(os.path.expanduser(site_config_path)).resolve()
     config_dir.mkdir(parents=True, exist_ok=True)
 
-    url = f"{steward_url}/shared/config"
+    url = f"{site_url}/shared/config"
     print(f"Fetching shared config from {url}")
     shared_config = Rest().get_url(url)
 

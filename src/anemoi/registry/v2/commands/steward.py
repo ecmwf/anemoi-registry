@@ -93,6 +93,9 @@ class StewardCommand(BaseCommand):
         )
 
     def run(self, args):
+        if args.config and not args.setup:
+            self._apply_config_override(args.config)
+
         if args.setup:
             self._run_setup(args)
         elif args.dump_config:
@@ -113,7 +116,7 @@ class StewardCommand(BaseCommand):
     def _run_site_operation(self, action, args):
         from ..entry.site import SiteCatalogueEntry
 
-        site = SiteCatalogueEntry(name="local", base_url=self._resolve_config(args.config))
+        site = SiteCatalogueEntry(name="local")
         if action == "monitor-storage":
             site.report_storage(dry_run=args.dry_run)
         elif action == "monitor-datasets":
@@ -121,25 +124,28 @@ class StewardCommand(BaseCommand):
         elif action == "update-auxiliary":
             site.update_auxiliary(dry_run=args.dry_run)
 
-    def _resolve_config(self, config):
-        """Resolve --config to a base_url string, or return None to use local bootstrap."""
-        if config is None:
-            return None
+    def _apply_config_override(self, config):
+        """Load config from a URL or file and set it as the in-process bootstrap override."""
+        from ..site.bootstrap import set_bootstrap_override
+
         if config.startswith("http://") or config.startswith("https://"):
-            return config
-        import json
-        from pathlib import Path
+            from ..rest import Rest
 
-        path = Path(config)
-        if path.suffix == ".toml":
-            import tomllib
-
-            with open(path, "rb") as f:
-                data = tomllib.load(f)
+            data = Rest().get_url(config)
         else:
-            with open(path) as f:
-                data = json.load(f)
-        return data["base_url"]
+            import json
+            from pathlib import Path
+
+            path = Path(config)
+            if path.suffix == ".toml":
+                import tomllib
+
+                with open(path, "rb") as f:
+                    data = tomllib.load(f)
+            else:
+                with open(path) as f:
+                    data = json.load(f)
+        set_bootstrap_override(data)
 
     def _run_by_filter(self, args):
         """Resolve action from catalogue and run the appropriate worker."""
@@ -176,22 +182,15 @@ class StewardCommand(BaseCommand):
     def _run_dump_config(self, args):
         import json
 
-        if args.config:
-            from ..rest import Rest
+        from ..site.bootstrap import load_bootstrap
 
-            data = Rest().get_url(self._resolve_config(args.config))
-        else:
-            from ..site.bootstrap import load_bootstrap
-
-            data = load_bootstrap()
-
-        print(json.dumps(data, indent=2))
+        print(json.dumps(load_bootstrap(), indent=2))
 
     def _run_setup(self, args):
         if args.config:
-            from ..entry.site import SiteCatalogueEntry
+            from ..site.bootstrap import setup_bootstrap
 
-            SiteCatalogueEntry(name="local").setup(self._resolve_config(args.config))
+            setup_bootstrap(args.config)
         else:
             from ..site.setup_assistant import run_setup_assistant
 
