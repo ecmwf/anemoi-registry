@@ -38,24 +38,38 @@ class StewardCommand(BaseCommand):
             action="store_true",
             help="Set up local site (use --config URL to bootstrap, or run interactive assistant).",
         )
-        # --- Direct site operations ---
-        group.add_argument("--monitor-storage", action="store_true", help="Report quota/storage usage for local site.")
+        # --- Direct site operations (run immediately, no catalogue check) ---
         group.add_argument(
-            "--monitor-datasets", action="store_true", help="Report dataset replica status for local site."
+            "--monitor-storage",
+            action="store_true",
+            help="Report quota/storage usage for local site. Runs immediately without checking the catalogue.",
         )
-        group.add_argument("--update-auxiliary", action="store_true", help="Download auxiliary files for local site.")
+        group.add_argument(
+            "--monitor-datasets",
+            action="store_true",
+            help="Report dataset replica status for local site. Runs immediately without checking the catalogue.",
+        )
+        group.add_argument(
+            "--update-auxiliary",
+            action="store_true",
+            help="Download auxiliary files for local site. Runs immediately without checking the catalogue.",
+        )
         group.add_argument(
             "--update-shared-config",
             action="store_true",
-            help="Re-fetch site config from server and update the shared config dir.",
+            help="Re-fetch site config from server and update the shared config dir. Runs immediately without checking the catalogue.",
         )
 
         # --- Catalogue task runner ---
         group.add_argument(
-            "--run",
+            "--run-task",
             nargs="*",
             metavar="K=V",
-            help="Claim and execute a queued task matching filters (e.g. uuid=<id>).",
+            help="Claim ownership of a queued catalogue task matching the given filters and execute it. "
+            "Does nothing if no matching task is queued. Designed to be called from an ecflow job. "
+            "Examples: uuid=<id> — run a specific task; "
+            "action=transfer-dataset destination=lumi — run the next queued transfer to lumi; "
+            "action=delete-dataset dataset=my-dataset.zarr — run the next queued delete for a dataset.",
         )
 
         # --- Common options ---
@@ -71,6 +85,12 @@ class StewardCommand(BaseCommand):
         )
 
         command_parser.add_argument("--dry-run", action="store_true", help="Dry run, do not actually do anything.")
+        command_parser.add_argument(
+            "--threads",
+            type=int,
+            metavar="N",
+            help="Override number of transfer threads (for --run-task with action=transfer-dataset).",
+        )
 
     def run(self, args):
         if args.setup:
@@ -85,7 +105,7 @@ class StewardCommand(BaseCommand):
             self._run_site_operation("update-auxiliary", args)
         elif args.update_shared_config:
             self._run_update_shared_config()
-        elif args.run is not None:
+        elif args.run_task is not None:
             self._run_by_filter(args)
         else:
             LOG.error("No action specified. See: anemoi-registry steward --help")
@@ -123,9 +143,10 @@ class StewardCommand(BaseCommand):
 
     def _run_by_filter(self, args):
         """Resolve action from catalogue and run the appropriate worker."""
+        from ..site.bootstrap import load_bootstrap
         from ..tasks import TaskCatalogueEntryList
 
-        filters = list_to_dict(args.run) if args.run else {}
+        filters = list_to_dict(args.run_task) if args.run_task else {}
         tasks = list(TaskCatalogueEntryList(status="queued", **filters))
         if not tasks:
             LOG.info(f"No queued tasks found matching {filters}")
@@ -134,7 +155,18 @@ class StewardCommand(BaseCommand):
         action = task.record["action"]
         LOG.info(f"Resolved action={action!r} for task {task.key}")
 
-        run_worker(action, filter_tasks=filters, dry_run=args.dry_run)
+        # Load worker kwargs from steward.json tasks config, excluding "filter" sub-dict
+        try:
+            task_config = load_bootstrap().get("tasks", {}).get(action, {})
+        except Exception:
+            task_config = {}
+        worker_kwargs = {k: v for k, v in task_config.items() if k != "filter"}
+
+        # CLI --threads overrides config value
+        if args.threads is not None:
+            worker_kwargs["threads"] = args.threads
+
+        run_worker(action, filter_tasks=filters, dry_run=args.dry_run, **worker_kwargs)
 
     def _run_update_shared_config(self):
         from ..site.config import fetch_and_save_shared_config

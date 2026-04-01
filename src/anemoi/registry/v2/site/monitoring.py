@@ -48,17 +48,17 @@ def load_monitoring_manifest() -> dict:
     """Load monitoring config and verify server match."""
     bootstrap = load_bootstrap()
     steward_url = bootstrap.get("steward_url")
-    manifest = bootstrap.get("monitor-storage")
+    manifest = bootstrap.get("tasks", {}).get("monitor-storage")
     if not manifest:
-        raise ValueError("No monitor-storage config in steward.json\nRe-run: anemoi-registry steward --setup URL")
+        raise ValueError("No tasks.monitor-storage in steward.json\nRe-run: anemoi-registry steward --setup URL")
 
     # Verify config was fetched from the same server we're configured to use
-    config_server_url = manifest.get("server_url")
+    config_server_url = bootstrap.get("server_url")
     if config_server_url and steward_url and not steward_url.startswith(config_server_url):
         raise ValueError(
             f"Config/server mismatch!\n"
-            f"  monitoring config was fetched from: {config_server_url}\n"
-            f"  steward.json steward_url:           {steward_url}\n"
+            f"  steward.json server_url: {config_server_url}\n"
+            f"  steward.json steward_url: {steward_url}\n"
             f"Re-run: anemoi-registry steward --setup URL"
         )
 

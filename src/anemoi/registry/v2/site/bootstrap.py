@@ -89,7 +89,7 @@ def setup_bootstrap(steward_url: str):
 
 
 def check_server_setup():
-    """Validate that the server endpoints are correctly configured."""
+    """Fetch /config and report what tasks are available."""
     from .parsers import PARSERS
 
     bootstrap = load_bootstrap()
@@ -101,116 +101,57 @@ def check_server_setup():
     errors = []
     warnings = []
 
-    # Check 1: Fetch top-level config
-    print("1. Checking top-level config...")
+    # Fetch the steward config endpoint
     config_url = f"{steward_url}/config"
-    top_config = None
+    print(f"Checking {config_url} ...")
+    config = None
     try:
-        top_config = rest.get_url(config_url)
+        config = rest.get_url(config_url)
         print(f"   OK: Fetched from {config_url}")
     except Exception as e:
-        errors.append(f"Failed to fetch config: {e}")
+        errors.append(f"Failed to fetch steward config: {e}")
         print(f"   FAIL: {e}")
 
-    if top_config:
-        bootstrap_config = top_config.get("bootstrap", {})
-        for field in ("site_config_path", "site_config_entry_point"):
-            if field in bootstrap_config:
-                print(f"   OK: Has 'bootstrap.{field}': {bootstrap_config[field]!r:.60}")
-            else:
-                errors.append(f"Config missing required field: bootstrap.{field}")
-                print(f"   FAIL: Missing 'bootstrap.{field}'")
+    if config:
+        server_url = config.get("server_url")
+        if server_url:
+            print(f"   OK: server_url = {server_url}")
+        else:
+            errors.append("Missing 'server_url' in steward config")
+            print("   FAIL: Missing 'server_url'")
 
-    # Check 1b: Fetch monitoring config
-    print("\n1b. Checking monitoring config...")
-    monitoring_url = f"{steward_url}/config?monitoring"
-    manifest = None
-    try:
-        manifest = rest.get_url(monitoring_url)
-        print(f"   OK: Fetched from {monitoring_url}")
-    except Exception as e:
-        errors.append(f"Failed to fetch monitoring config: {e}")
-        print(f"   FAIL: {e}")
+        tasks = config.get("tasks", {})
+        if tasks:
+            print(f"   OK: Tasks: {list(tasks.keys())}")
+        else:
+            warnings.append("No tasks in steward config")
+            print("   WARN: No tasks found")
 
-    if manifest:
-        expected_keys = {"quota", "server_url"}
-        actual_keys = set(manifest.keys())
-        extra_keys = actual_keys - expected_keys
-        if extra_keys:
-            warnings.append(f"Unexpected keys in monitoring config: {extra_keys}")
-            print(f"   WARN: Unexpected keys: {extra_keys}")
-
-        # Validate quota config
-        quota = manifest.get("quota", {})
-        if "method" in quota:
-            method = quota["method"]
+        # Validate monitor-storage quota method if present
+        monitor_storage = tasks.get("monitor-storage", {})
+        quota = monitor_storage.get("quota", {})
+        method = quota.get("method")
+        if method:
             if method in PARSERS:
-                print(f"   OK: quota.method '{method}' is supported")
-                if method in ("df", "lfs-project"):
-                    if "paths" in quota and quota["paths"]:
-                        print(f"   OK: quota.paths has {len(quota['paths'])} entries")
-                    else:
-                        errors.append(f"Method '{method}' requires 'paths' array in quota config")
-                        print(f"   FAIL: Method '{method}' requires 'paths' array")
-                elif method in ("lfs", "lfs-columnar", "lumi-quota", "jutil"):
-                    if "projects" in quota and quota["projects"]:
-                        print(f"   OK: quota.projects has {len(quota['projects'])} entries")
-                    else:
-                        errors.append(f"Method '{method}' requires 'projects' array in quota config")
-                        print(f"   FAIL: Method '{method}' requires 'projects' array")
+                print(f"   OK: monitor-storage quota.method '{method}' is supported")
             else:
-                errors.append(f"Unknown quota.method: {method}")
-                print(f"   FAIL: quota.method '{method}' not in {list(PARSERS.keys())}")
-        else:
-            errors.append("Manifest missing quota.method")
-            print("   FAIL: Missing 'quota.method'")
+                errors.append(f"monitor-storage quota.method '{method}' not in {list(PARSERS.keys())}")
+                print(f"   FAIL: Unsupported quota.method '{method}'")
 
-    # Check 2: Fetch datasets config
-    print("\n2. Checking datasets config...")
-    datasets_url = f"{steward_url}/config?datasets"
-    try:
-        datasets_config = rest.get_url(datasets_url)
-        print(f"   OK: Fetched from {datasets_url}")
-        if datasets_config:
-            print(f"   OK: Keys: {list(datasets_config.keys())}")
-        else:
-            warnings.append("Datasets config is empty ({})")
-            print("   WARN: Datasets config is empty!")
-    except Exception as e:
-        errors.append(f"Failed to fetch datasets config: {e}")
-        print(f"   FAIL: {e}")
-
-    # Check 3: Validate site_config_path
-    print("\n3. Checking site_config_path...")
-    bootstrap_config = top_config.get("bootstrap", {}) if top_config else {}
-    if "site_config_path" in bootstrap_config:
-        raw_path = bootstrap_config["site_config_path"]
-        config_path = Path(os.path.expanduser(raw_path))
-        if raw_path != str(config_path):
-            print(f"   Expanded: {raw_path} -> {config_path}")
-        if config_path.exists():
-            print(f"   OK: Path exists: {config_path}")
-            if os.access(config_path, os.W_OK):
-                print("   OK: Path is writable")
+        # Check update-shared-config path if present
+        shared = tasks.get("update-shared-config", {})
+        site_config_path = shared.get("site_config_path")
+        if site_config_path:
+            config_path = Path(os.path.expanduser(site_config_path))
+            if config_path.exists():
+                print(f"   OK: update-shared-config.site_config_path exists: {config_path}")
             else:
-                warnings.append(f"Path not writable: {config_path}")
-                print("   WARN: Path not writable (may need different user)")
-        else:
-            parent = config_path.parent
-            if parent.exists() and os.access(parent, os.W_OK):
-                print("   WARN: Path doesn't exist but parent is writable (will be created)")
-            else:
-                warnings.append(f"Path doesn't exist and parent not writable: {config_path}")
-                print(f"   WARN: Path doesn't exist: {config_path}")
-    else:
-        print("   Skipped (no site_config_path)")
+                warnings.append(f"update-shared-config.site_config_path does not exist: {config_path}")
+                print(f"   WARN: Path does not exist (will be created): {config_path}")
 
-    # Check 4: Show derived endpoints
-    print("\n4. Derived endpoints (from base_url)...")
-    print(f"   POST resources: {steward_url}/resources")
-    print(f"   POST replicas: {steward_url}/replicas")
+    print(f"\n   POST resources : {steward_url}/resources")
+    print(f"   POST replicas  : {steward_url}/replicas")
 
-    # Summary
     print("\nSummary:")
     if errors:
         print(f"   {len(errors)} error(s)")
@@ -218,7 +159,6 @@ def check_server_setup():
             print(f"     - {e}")
     else:
         print("   No errors")
-
     if warnings:
         print(f"   {len(warnings)} warning(s)")
         for w in warnings:

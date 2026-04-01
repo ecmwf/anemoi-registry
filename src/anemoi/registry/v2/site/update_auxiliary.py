@@ -13,7 +13,7 @@ import logging
 import os
 from pathlib import Path
 
-from .config import load_site_config
+from .config import load_task_config
 
 LOG = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ def update_auxiliary(is_test=False):
     """Download auxiliary files specified in auxiliary.json."""
     from anemoi.utils.remote import transfer
 
-    auxiliary = load_site_config("auxiliary")
+    auxiliary = load_task_config("update-auxiliary")
 
     base_path = Path(auxiliary.get("path", "."))
     elements = auxiliary.get("elements", [])

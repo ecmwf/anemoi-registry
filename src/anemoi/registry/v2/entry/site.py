@@ -102,9 +102,9 @@ class SiteCatalogueEntry:
 
             return load_bootstrap()
 
-        from ..site.config import load_site_config
+        from ..site.config import load_task_config
 
-        return load_site_config(section)
+        return load_task_config(section)
 
     @property
     def base_url(self):
@@ -144,7 +144,7 @@ class SiteCatalogueEntry:
 
     def update_auxiliary(self, dry_run=False):
         """Download auxiliary files from remote storage."""
-        from ..site.auxiliary import update_auxiliary
+        from ..site.update_auxiliary import update_auxiliary
 
         update_auxiliary(is_test=dry_run)
 
