@@ -116,15 +116,13 @@ Unregistering a dataset
 Removing a dataset from the catalogue does **not** delete the actual
 data.
 
+**Known issue**: Reregistering a dataset
+If you unregister a dataset and then try to register it again, you will get an error
+hat the dataset already exists, even if it has been unregistered.
+This is because the datasets are tracked by a unique identifier that is not deleted when the dataset is unregistered.
+
 .. code-block:: bash
 
    # v2 only
    # fails if replicas still exist
    anemoi-registry dataset my-dataset --unregister
-
-Reregistering a dataset
-==========================
-
-Known issue: If you unregister a dataset and then try to register it again, you will get an error
-hat the dataset already exists, even if it has been unregistered.
-This is because the datasets are tracked by a unique identifier that is not deleted when the dataset is unregistered.
