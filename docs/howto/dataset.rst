@@ -46,6 +46,8 @@ Dataset names must follow the :ref:`naming conventions <naming-conventions>`.
 After creating a dataset locally (using ``anemoi-datasets``), register
 it in the catalogue so that other users can discover it.
 
+Write credentials are required. See :ref:`configuring`.
+
 v2 (recommended)
 =================
 
@@ -64,13 +66,6 @@ v1 (legacy)
 .. code-block:: bash
 
    anemoi-registry datasets /path/to/my-dataset.zarr --register
-
-   # Set metadata at the same time
-   anemoi-registry datasets --set-status experimental \
-       --set-recipe ./recipe.yaml --set-status experimental
-
-
-Write credentials are required. See :ref:`configuring`.
 
 
 *****************************
