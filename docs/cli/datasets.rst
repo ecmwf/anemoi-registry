@@ -3,10 +3,10 @@ datasets
 
 .. note::
 
-   The ``datasets`` command exists in two versions. See :ref:`cli-versions`
-   for how to switch between them. The v2 version is recommended for new
-   workflows. In v2, location management has moved to the dedicated
-   :doc:`replicas` command.
+   In v1, this command is called ``datasets`` (plural). In v2, it is
+   ``dataset`` (singular). See :ref:`cli-versions` for how to switch.
+   The v2 version is recommended for new workflows. In v2, location
+   management has moved to the dedicated :doc:`replicas` command.
 
 The ``datasets`` command is used to manage datasets in the registry.
 It can be used to register or unregister a dataset, add metadata, and
@@ -22,11 +22,11 @@ Enable v2 by setting ``ANEMOI_REGISTRY_CLI_VERSION=2``. See :ref:`cli-versions`.
 
 **Registering**
 
-After creating locally a new dataset (using `anemoi-datasets`), registering it in the catalogue can be done as follow:
+After creating locally a new dataset (using `anemoi-datasets`), registering it in the catalogue can be done as follows:
 
 .. code-block:: bash
 
-    anemoi-registry datasets /path/to/dataset-name.zarr --register
+    anemoi-registry dataset --register /path/to/dataset-name.zarr
 
 Write credentials are needed to register a dataset to the catalogue. See :ref:`configuring`.
 
@@ -38,15 +38,15 @@ This can be done as follow:
 
 .. code-block:: bash
 
-    anemoi-registry datasets /path/to/dataset-name.zarr --register --set-recipe ./recipe.yaml --set-status experimental
+    anemoi-registry dataset --register /path/to/dataset-name.zarr --set-recipe ./recipe.yaml --set-status experimental
 
 
 Alternatively, the metadata can be added to an existing dataset:
 
 .. code-block:: bash
 
-    anemoi-registry datasets dataset-name --set-recipe ./recipe.yaml
-    anemoi-registry datasets dataset-name --set-status experimental
+    anemoi-registry dataset dataset-name --set-recipe ./recipe.yaml
+    anemoi-registry dataset dataset-name --set-status experimental
 
 
 **Uploading to S3 and managing locations**

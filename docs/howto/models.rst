@@ -93,6 +93,9 @@ S3 read credentials are required. See :ref:`configuring`.
    # v2
    anemoi-registry model my-model
 
+   # v1
+   anemoi-registry weights my-model
+
    # Print the catalogue URL
    anemoi-registry model my-model --url
 

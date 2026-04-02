@@ -12,7 +12,6 @@ The options are:
 
 -  ``dev``: install the development dependencies
 -  ``all``: install all the dependencies
--  ``s3``: install the dependencies for S3 support
 
 When you install the `anemoi-registry` package, this will also install
 command line tool called ``anemoi-registry`` which can be used to manage

@@ -35,7 +35,7 @@ The package provides:
   checkpoints.
 - **Experiment and training tracking** — register experiments and
   training runs, attach weights, plots, and archive metadata.
-- **Data management** — site-level tooling for automated dataset
+- **Site administration** — site-level tooling for automated dataset
   transfers, deletions, storage monitoring, and quota reporting.
 
 .. _getting-started:
@@ -63,20 +63,16 @@ The package provides:
  How-to guides
 *****************************
 
--  :doc:`howto/datasets`
+-  :doc:`howto/dataset`
 -  :doc:`howto/models`
--  :doc:`howto/experiments`
--  :doc:`howto/training`
 
 .. toctree::
    :maxdepth: 1
    :hidden:
    :caption: How-to guides
 
-   howto/datasets
+   howto/dataset
    howto/models
-   howto/experiments
-   howto/training
 
 .. _data-management:
 
@@ -101,6 +97,8 @@ The package provides:
  Workflow & admin tools
 *****************************
 
+-  :doc:`admin/experiments`
+-  :doc:`admin/training`
 -  :doc:`admin/tasks`
 -  :doc:`admin/entry`
 -  :doc:`admin/update`
@@ -110,6 +108,8 @@ The package provides:
    :hidden:
    :caption: Workflow & admin tools
 
+   admin/experiments
+   admin/training
    admin/tasks
    admin/entry
    admin/update

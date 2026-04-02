@@ -9,10 +9,10 @@ the Anemoi catalogue.
 
 .. note::
 
-   The ``dataset`` command exists in two CLI versions. **v2 is
-   recommended** for new workflows. See :ref:`cli-versions` for how to
-   switch. Throughout this guide, v2 commands are shown first, with v1
-   equivalents noted where they differ.
+   The command is called ``dataset`` in v2 and ``datasets`` in v1.
+   **v2 is recommended** for new workflows. See :ref:`cli-versions`
+   for how to switch. Throughout this guide, v2 commands are shown
+   first, with v1 equivalents noted where they differ.
 
    .. code-block:: bash
 
@@ -54,12 +54,9 @@ v2 (recommended)
    # Register — NAME is deduced from the path basename
    anemoi-registry dataset --register /path/to/my-dataset.zarr
 
-   # Or provide the name explicitly
-   anemoi-registry dataset my-dataset --register /path/to/my-dataset.zarr
-
-   # Register and set metadata at the same time
-   anemoi-registry dataset --register /path/to/my-dataset.zarr \
-       --set-status experimental
+   # Set metadata
+   anemoi-registry dataset --set-status experimental \
+       --set-recipe ./recipe.yaml --set-status experimental
 
 v1 (legacy)
 ============
@@ -68,8 +65,8 @@ v1 (legacy)
 
    anemoi-registry datasets /path/to/my-dataset.zarr --register
 
-   # With metadata
-   anemoi-registry datasets /path/to/my-dataset.zarr --register \
+   # Set metadata at the same time
+   anemoi-registry datasets --set-status experimental \
        --set-recipe ./recipe.yaml --set-status experimental
 
 
@@ -77,56 +74,11 @@ Write credentials are required. See :ref:`configuring`.
 
 
 *****************************
- Viewing a dataset
-*****************************
-
-.. code-block:: bash
-
-   # v2
-   anemoi-registry dataset my-dataset
-
-   # v1
-   anemoi-registry datasets my-dataset
-
-
-*****************************
- Working with metadata
-*****************************
-
-v2 (recommended)
-=================
-
-.. code-block:: bash
-
-   # Get a metadata value
-   anemoi-registry dataset my-dataset --metadata get status
-
-   # Set a metadata value
-   anemoi-registry dataset my-dataset --metadata set status=active
-
-   # Delete a metadata key
-   anemoi-registry dataset my-dataset --metadata delete some_key
-
-   # Set status shortcut
-   anemoi-registry dataset my-dataset --set-status active
-
-v1 (legacy)
-============
-
-.. code-block:: bash
-
-   anemoi-registry datasets my-dataset --get-metadata status
-   anemoi-registry datasets my-dataset --set-metadata status active
-   anemoi-registry datasets my-dataset --remove-metadata some_key
-   anemoi-registry datasets my-dataset --set-status active
-
-
-*****************************
  Uploading a dataset to S3
 *****************************
 
-Once the dataset is registered in the catalogue, you can upload the data
-to a remote site and register the replica.
+Once the dataset is registered in the catalogue, the data has not been moved.
+You can upload the data to a remote site and register the replica.
 
 v2 (recommended)
 =================
@@ -139,12 +91,6 @@ command:
    # Upload to a site (e.g. ewc) — registers the replica automatically
    anemoi-registry replica ewc my-dataset --upload /path/to/my-dataset.zarr
 
-   # Register a replica without uploading (data already present at site)
-   anemoi-registry replica ewc my-dataset --register /path/on/site/my-dataset.zarr
-
-   # With a custom target URI
-   anemoi-registry replica ewc my-dataset --upload /path/to/my-dataset.zarr \
-       --target-uri 's3://my-bucket/{name}.zarr'
 
 S3 credentials are required. See :ref:`configuring`.
 
@@ -162,12 +108,7 @@ v1 (legacy)
 
 .. code-block:: bash
 
-   # v2
    anemoi-registry dataset --list
-   anemoi-registry dataset --list status=active
-
-   # v1 (uses the 'list' command)
-   anemoi-registry list datasets
 
 
 *****************************
@@ -199,30 +140,9 @@ data.
    # v2 — fails if replicas still exist
    anemoi-registry dataset my-dataset --unregister
 
-   # Force unregister even with existing replicas
-   anemoi-registry dataset my-dataset --unregister -f
+Reregistering a dataset
+==========================
 
-   # v1
-   anemoi-registry datasets my-dataset --unregister
-
-Removing a replica
-===================
-
-.. code-block:: bash
-
-   # Remove the catalogue entry only (data is kept)
-   anemoi-registry replica ewc my-dataset --unregister
-
-   # Schedule deletion of data + catalogue entry (via the task runner)
-   anemoi-registry replica ewc my-dataset --request-delete
-
-Requesting a transfer
-======================
-
-To schedule a transfer of a dataset from one site to another (handled by
-the task runner):
-
-.. code-block:: bash
-
-   # Transfer my-dataset to lumi, sourcing from ewc
-   anemoi-registry replica lumi my-dataset --request-transfer ewc
+Known issue: If you unregister a dataset and then try to register it again, you will get an error
+hat the dataset already exists, even if it has been unregistered.
+This is because the datasets are tracked by a unique identifier that is not deleted when the dataset is unregistered.

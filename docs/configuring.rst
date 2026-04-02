@@ -17,7 +17,8 @@ controlled by the ``ANEMOI_REGISTRY_CLI_VERSION`` environment variable.
   configuration. Set ``ANEMOI_REGISTRY_CLI_VERSION=1`` or leave unset.
 
 - **v2** (recommended for new workflows): A restructured CLI with new
-  commands (``replica``, ``site``) and a simplified ``datasets`` command.
+  commands (``replica``, ``steward``) and simplified singular command
+  names (``dataset``, ``experiment``, ``training``, ``model``).
   Set ``ANEMOI_REGISTRY_CLI_VERSION=2`` to enable it.
 
 .. code-block:: bash
@@ -85,14 +86,3 @@ This is useful for debugging connection or authentication issues:
 
    # Include secrets (tokens, keys) in the output
    anemoi-registry settings --show-secrets
-
-***************************
- Test catalogue
-***************************
-
-For development and testing, a separate test catalogue can be used by
-setting the ``ANEMOI_CATALOGUE`` environment variable:
-
-.. code-block:: bash
-
-   export ANEMOI_CATALOGUE=TEST

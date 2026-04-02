@@ -30,8 +30,8 @@ containing its own set of weights, plots, and archive files.
  CLI versions
 *****************************
 
-The ``experiment`` command exists in both v1 and v2. v2 is recommended.
-See :ref:`cli-versions` for how to switch.
+The command is called ``experiment`` in v2 and ``experiments`` in v1.
+v2 is recommended. See :ref:`cli-versions` for how to switch.
 
 .. code-block:: bash
 
@@ -40,10 +40,11 @@ See :ref:`cli-versions` for how to switch.
 
 Key differences:
 
-- In **v1**, the positional argument is ``NAME_OR_PATH`` (can be a name
-  or a path to a YAML config file).
-- In **v2**, the positional argument is ``NAME`` only. Paths are
-  provided via action flags.
+- In **v1**, the command is ``experiments`` (plural) and the positional
+  argument is ``NAME_OR_PATH`` (can be a name or a path to a YAML
+  config file).
+- In **v2**, the command is ``experiment`` (singular) and the positional
+  argument is ``NAME`` only. Paths are provided via action flags.
 - In **v2**, metadata flags use ``--metadata get/set/delete`` instead of
   ``--get-metadata/--set-metadata/--remove-metadata``.
 
