@@ -48,9 +48,6 @@ it in the catalogue so that other users can discover it.
 
 Write credentials are required. See :ref:`configuring`.
 
-v2 (recommended)
-=================
-
 .. code-block:: bash
 
    # Register — NAME is deduced from the path basename
@@ -60,13 +57,8 @@ v2 (recommended)
    anemoi-registry dataset --set-status experimental \
        --set-recipe ./recipe.yaml --set-status experimental
 
-v1 (legacy)
-============
 
-.. code-block:: bash
-
-   anemoi-registry datasets /path/to/my-dataset.zarr --register
-
+Previously, in v1, registration was done with the ``datasets`` command, with a different syntax.
 
 *****************************
  Uploading a dataset to S3
@@ -75,11 +67,7 @@ v1 (legacy)
 Once the dataset is registered in the catalogue, the data has not been moved.
 You can upload the data to a remote site and register the replica.
 
-v2 (recommended)
-=================
-
-In v2, uploading and managing replicas is done through the ``replica``
-command:
+Uploading and managing replicas is done through the ``replica`` command:
 
 .. code-block:: bash
 
@@ -92,12 +80,7 @@ command:
 
 S3 credentials are required. See :ref:`configuring`.
 
-v1 (legacy)
-============
-
-.. code-block:: bash
-
-   anemoi-registry datasets /path/to/my-dataset.zarr --add-location ewc --upload
+Previously, in v1, replicas were managed as "locations" within the ``datasets``.
 
 
 *****************************
@@ -106,6 +89,7 @@ v1 (legacy)
 
 .. code-block:: bash
 
+   # v2 only:
    anemoi-registry dataset --list
 
 
@@ -113,10 +97,10 @@ v1 (legacy)
  Listing replicas
 *****************************
 
-v2 only:
 
 .. code-block:: bash
 
+   # v2 only:
    anemoi-registry replica --list
    anemoi-registry replica --list site=ewc
    anemoi-registry replica --list name=my-dataset

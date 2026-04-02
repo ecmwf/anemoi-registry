@@ -24,6 +24,8 @@ checkpoints (also called *weights*) in the Anemoi catalogue.
  Uploading a model
 *****************************
 
+Write and S3 credentials are required. See :ref:`configuring`.
+
 v2 (recommended)
 =================
 
@@ -43,6 +45,8 @@ Register and upload a model checkpoint in a single step:
 v1 (legacy)
 ============
 
+In previous versions (v1), the command was ``weights`` and the syntax was different.
+
 .. code-block:: bash
 
    # Register and upload
@@ -53,8 +57,6 @@ v1 (legacy)
 
    # Add a location on a specific platform
    anemoi-registry weights my-model --add-location ewc
-
-Write and S3 credentials are required. See :ref:`configuring`.
 
 
 *****************************
@@ -88,16 +90,3 @@ S3 read credentials are required. See :ref:`configuring`.
    anemoi-registry model my-model --metadata get description
    anemoi-registry model my-model --metadata set description="My fine-tuned model"
    anemoi-registry model my-model --metadata delete some_key
-
-
-
-*****************************************
- Unregistering a model (not recommended)
-*****************************************
-
-Remove a model from the catalogue without deleting it from storage:
-
-.. code-block:: bash
-
-   # v2
-   anemoi-registry model my-model --unregister
