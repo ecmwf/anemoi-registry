@@ -31,20 +31,14 @@ Register and upload a model checkpoint in a single step:
 
 .. code-block:: bash
 
-   # NAME is deduced from the filename
    anemoi-registry model --register /path/to/my-model.ckpt
-
-   # Or provide the name explicitly
-   anemoi-registry model my-model --register /path/to/my-model.ckpt
-
-   # Register in catalogue only, skip the upload
-   anemoi-registry model --register /path/to/my-model.ckpt --no-upload
 
    # Specify the type of weights (default: training)
    anemoi-registry model --register /path/to/my-model.ckpt --type inference
 
-   # Overwrite if already registered
+   # Overwrite if already registered (use with caution)
    anemoi-registry model --register /path/to/my-model.ckpt --overwrite
+
 
 v1 (legacy)
 ============
@@ -67,63 +61,12 @@ Write and S3 credentials are required. See :ref:`configuring`.
  Downloading a model
 *****************************
 
-v2 (recommended)
-=================
-
-.. code-block:: bash
-
-   anemoi-registry model my-model --download /path/to/save/my-model.ckpt
-
-v1 (legacy)
-============
-
-.. code-block:: bash
-
-   anemoi-registry weights my-model --download /path/to/save/my-model.ckpt
-
-S3 read credentials are required. See :ref:`configuring`.
-
-
-*****************************
- Viewing model information
-*****************************
-
 .. code-block:: bash
 
    # v2
-   anemoi-registry model my-model
+   anemoi-registry model my-model --download /path/to/save/my-model.ckpt
 
-   # v1
-   anemoi-registry weights my-model
-
-   # Print the catalogue URL
-   anemoi-registry model my-model --url
-
-   # Open in browser
-   anemoi-registry model my-model --view
-
-
-*****************************
- Working with metadata
-*****************************
-
-v2 (recommended)
-=================
-
-.. code-block:: bash
-
-   anemoi-registry model my-model --metadata get description
-   anemoi-registry model my-model --metadata set description="My fine-tuned model"
-   anemoi-registry model my-model --metadata delete some_key
-
-v1 (legacy)
-============
-
-.. code-block:: bash
-
-   anemoi-registry weights my-model --get-metadata description
-   anemoi-registry weights my-model --set-metadata description "My fine-tuned model"
-   anemoi-registry weights my-model --remove-metadata some_key
+S3 read credentials are required. See :ref:`configuring`.
 
 
 *****************************
@@ -135,13 +78,22 @@ v1 (legacy)
    # v2
    anemoi-registry model --list
 
-   # v1
-   anemoi-registry list weights
+****************************************
+ Messing with metadata (not recommended)
+****************************************
+
+.. code-block:: bash
+
+   # v2
+   anemoi-registry model my-model --metadata get description
+   anemoi-registry model my-model --metadata set description="My fine-tuned model"
+   anemoi-registry model my-model --metadata delete some_key
 
 
-*****************************
- Unregistering a model
-*****************************
+
+*****************************************
+ Unregistering a model (not recommended)
+*****************************************
 
 Remove a model from the catalogue without deleting it from storage:
 
@@ -149,6 +101,3 @@ Remove a model from the catalogue without deleting it from storage:
 
    # v2
    anemoi-registry model my-model --unregister
-
-   # v1
-   anemoi-registry weights my-model --unregister
