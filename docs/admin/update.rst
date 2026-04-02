@@ -1,8 +1,12 @@
 .. _admin-update:
 
 #########################
- Update dataset metadata (v2 only)
+ Update dataset metadata
 #########################
+
+.. note::
+
+   The ``update`` command is available in **v2 only**.
 
 The ``update`` command synchronises metadata between dataset recipe
 files, catalogue entries, and zarr datasets. It is primarily used by
@@ -13,35 +17,33 @@ administrators to keep the catalogue consistent.
  Update catalogue from recipe files
 *************************************************
 
-Updates catalogue entries with the latest metadata derived from recipe
-files. This creates a temporary minimal dataset to extract current
-metadata values.
+The ``--catalogue-from-recipe`` flag updates catalogue entries with
+the latest metadata derived from recipe files.
 
 .. code-block:: bash
 
-   # Update single recipe
-   anemoi-registry update --catalogue-from-recipe-file recipe.yaml
-
-   # Update multiple recipes
-   anemoi-registry update --catalogue-from-recipe-file *.yaml
-
-   # Preview changes without applying them
-   anemoi-registry update --catalogue-from-recipe-file recipe.yaml --dry-run
-
-   # Force update of existing entries
-   anemoi-registry update --catalogue-from-recipe-file --force --update *.yaml
-
-   # Specify a working directory for temporary datasets
-   anemoi-registry update --catalogue-from-recipe-file --workdir /tmp *.yaml
-
-.. note::
-
-   The ``--set-recipe`` flag on the ``dataset`` command is deprecated.
-   Use ``update --catalogue-from-recipe-file`` instead.
+   anemoi-registry update --catalogue-from-recipe recipe.yaml
 
 
 *************************************************
- Update zarr files from catalogue (v2 only)
+ Update zarr metadata from catalogue
 *************************************************
 
-See the data management section: ``anemoi-registry steward update --datasets``
+Updates the metadata stored inside local zarr files to match the
+current catalogue entry. Each zarr file must contain a ``uuid``
+attribute which is used to look up the corresponding catalogue entry.
+The catalogue metadata is then written into the zarr file's attributes.
+
+.. code-block:: bash
+
+   # Update a single zarr file
+   anemoi-registry update --metadata-from-catalogue /data/anemoi/datasets/my-dataset.zarr
+
+   # Update several zarr files at once
+   anemoi-registry update --metadata-from-catalogue /data/anemoi/datasets/*.zarr
+
+   # Preview changes without writing
+   anemoi-registry update --metadata-from-catalogue /data/anemoi/datasets/my-dataset.zarr --dry-run
+
+   # Continue to the next file on error
+   anemoi-registry update --metadata-from-catalogue /data/anemoi/datasets/*.zarr --continue
