@@ -1,14 +1,12 @@
 .. _admin-update:
 
-########
- Update
-########
+#########################
+ Update dataset metadata (v2 only)
+#########################
 
 The ``update`` command synchronises metadata between dataset recipe
 files, catalogue entries, and zarr datasets. It is primarily used by
 administrators to keep the catalogue consistent.
-
-This command is available in both v1 and v2.
 
 
 *************************************************
@@ -43,20 +41,7 @@ metadata values.
 
 
 *************************************************
- Update zarr files from catalogue (v1 only)
+ Update zarr files from catalogue (v2 only)
 *************************************************
 
-Synchronises zarr metadata with the corresponding catalogue entry.
-
-.. code-block:: bash
-
-   anemoi-registry update --zarr-file-from-catalogue dataset.zarr
-
-   # With progress tracking
-   anemoi-registry update --zarr-file-from-catalogue --progress progress.txt data/*.zarr
-
-.. note::
-
-   In v2, this functionality has moved to
-   ``anemoi-registry steward update --datasets``, which automatically
-   processes all local replicas.
+See the data management section: ``anemoi-registry steward update --datasets``

@@ -60,7 +60,7 @@ class TrainingCatalogueEntry(CatalogueEntry):
     def register(self, overwrite=False, ignore_existing=True, **kwargs):
         assert self.record, "record must be set"
         record = self.record.copy()
-        record.pop("uuid")
+        record.pop("uuid", None)
         return self._rest_item.put(record, **kwargs)
 
     def set_key_json(self, key, file):

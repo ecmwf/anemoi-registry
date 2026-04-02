@@ -196,7 +196,7 @@ class TestDatasetRegisterV2:
     def test_register_and_unregister(self, run_cli, dataset_env):
         zarr_path, name, recipe_path = dataset_env
         try:
-            run_cli("dataset", zarr_path, "--register", version="2")
+            run_cli("dataset", "--register", zarr_path, version="2")
             run_cli("dataset", name, version="2")
         finally:
             run_cli("dataset", name, "--unregister", version="2", check=False)
@@ -204,7 +204,7 @@ class TestDatasetRegisterV2:
     def test_set_recipe(self, run_cli, dataset_env):
         zarr_path, name, recipe_path = dataset_env
         try:
-            run_cli("dataset", zarr_path, "--register", version="2")
+            run_cli("dataset", "--register", zarr_path, version="2")
             run_cli("dataset", name, "--set-recipe", recipe_path, version="2")
         finally:
             run_cli("dataset", name, "--unregister", version="2", check=False)
@@ -212,7 +212,7 @@ class TestDatasetRegisterV2:
     def test_set_status(self, run_cli, dataset_env):
         zarr_path, name, recipe_path = dataset_env
         try:
-            run_cli("dataset", zarr_path, "--register", version="2")
+            run_cli("dataset", "--register", zarr_path, version="2")
             run_cli("dataset", name, "--set-status", "testing", version="2")
         finally:
             run_cli("dataset", name, "--unregister", version="2", check=False)
@@ -220,18 +220,18 @@ class TestDatasetRegisterV2:
     def test_set_and_remove_metadata(self, run_cli, dataset_env):
         zarr_path, name, recipe_path = dataset_env
         try:
-            run_cli("dataset", zarr_path, "--register", version="2")
+            run_cli("dataset", "--register", zarr_path, version="2")
 
-            run_cli("dataset", name, "--set-metadata", "TEST={}", "yaml", version="2")
-            run_cli("dataset", name, "--set-metadata", "TEST.a={}", "yaml", version="2")
-            run_cli("dataset", name, "--set-metadata", "TEST.a.string=ok", version="2")
-            run_cli("dataset", name, "--set-metadata", "TEST.a.int=42", "int", version="2")
-            run_cli("dataset", name, "--set-metadata", "TEST.a.float=42", "float", version="2")
-            run_cli("dataset", name, "--set-metadata", "TEST.a.datetime=2015-04-18", "datetime", version="2")
-            run_cli("dataset", name, "--set-metadata", "TEST.c={a: 43}", "yaml", version="2")
+            run_cli("dataset", name, "--metadata", "set", "TEST={}", "yaml", version="2")
+            run_cli("dataset", name, "--metadata", "set", "TEST.a={}", "yaml", version="2")
+            run_cli("dataset", name, "--metadata", "set", "TEST.a.string=ok", version="2")
+            run_cli("dataset", name, "--metadata", "set", "TEST.a.int=42", "int", version="2")
+            run_cli("dataset", name, "--metadata", "set", "TEST.a.float=42", "float", version="2")
+            run_cli("dataset", name, "--metadata", "set", "TEST.a.datetime=2015-04-18", "datetime", version="2")
+            run_cli("dataset", name, "--metadata", "set", "TEST.c={a: 43}", "yaml", version="2")
 
             test_json = os.path.join(os.path.dirname(__file__), "..", "test.json")
-            run_cli("dataset", name, "--set-metadata", f"TEST.d={test_json}", "path", version="2")
+            run_cli("dataset", name, "--metadata", "set", f"TEST.d={test_json}", "path", version="2")
 
             from anemoi.registry import Dataset
 
@@ -243,7 +243,7 @@ class TestDatasetRegisterV2:
             }
             assert actual == expected, f"metadata mismatch: {actual!r} != {expected!r}"
 
-            run_cli("dataset", name, "--remove-metadata", "TEST", version="2")
+            run_cli("dataset", name, "--metadata", "delete", "TEST", version="2")
             metadata = Dataset(name).record["metadata"]
             assert "TEST" not in metadata, f"TEST still in metadata: {metadata.get('TEST')}"
         finally:

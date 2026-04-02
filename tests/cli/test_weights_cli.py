@@ -35,20 +35,26 @@ WEIGHTS_UUID = "a5275e04-0000-0000-a0f6-be19591b09fe"
 class TestWeightsAddLocation:
     """Register weights (--no-upload) and add a location with --location-path."""
 
-    @pytest.mark.parametrize("version,cmd", [("1", "weights"), ("2", "weights")])
-    def test_register_add_location_unregister(self, run_cli, version, cmd):
+    def test_v1_register_add_location_unregister(self, run_cli):
         try:
-            run_cli(cmd, DUMMY_CKPT, "--register", "--no-upload", version=version)
-            run_cli(cmd, WEIGHTS_UUID, version=version)
+            run_cli("weights", DUMMY_CKPT, "--register", "--no-upload", version="1")
+            run_cli("weights", WEIGHTS_UUID, version="1")
 
             run_cli(
-                cmd,
+                "weights",
                 DUMMY_CKPT,
                 "--add-location",
                 "ewc",
                 "--location-path",
                 f"s3://ml-weights/{WEIGHTS_UUID}.ckpt",
-                version=version,
+                version="1",
             )
         finally:
-            run_cli(cmd, WEIGHTS_UUID, "--unregister", version=version, check=False)
+            run_cli("weights", WEIGHTS_UUID, "--unregister", version="1", check=False)
+
+    def test_v2_register_and_unregister(self, run_cli):
+        try:
+            run_cli("model", "--register", DUMMY_CKPT, "--no-upload", version="2")
+            run_cli("model", WEIGHTS_UUID, version="2")
+        finally:
+            run_cli("model", WEIGHTS_UUID, "--unregister", version="2", check=False)

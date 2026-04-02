@@ -74,23 +74,6 @@ The package provides:
    howto/dataset
    howto/models
 
-.. _data-management:
-
-*****************************
- Data management
-*****************************
-
--  :doc:`data-management/overview`
--  :doc:`data-management/steward`
-
-.. toctree::
-   :maxdepth: 1
-   :hidden:
-   :caption: Data management
-
-   data-management/overview
-   data-management/steward
-
 .. _workflow-tools:
 
 *****************************
@@ -102,6 +85,8 @@ The package provides:
 -  :doc:`admin/tasks`
 -  :doc:`admin/entry`
 -  :doc:`admin/update`
+-  :doc:`data-management/overview`
+-  :doc:`data-management/steward`
 
 .. toctree::
    :maxdepth: 1
@@ -113,31 +98,8 @@ The package provides:
    admin/tasks
    admin/entry
    admin/update
-
-.. _cli-reference:
-
-*****************************
- CLI reference (legacy)
-*****************************
-
-These pages document the auto-generated CLI help for each command.
-
--  :doc:`cli/datasets`
--  :doc:`cli/weights`
--  :doc:`cli/list`
--  :doc:`cli/replicas`
--  :doc:`cli/site`
-
-.. toctree::
-   :maxdepth: 1
-   :hidden:
-   :caption: CLI reference (legacy)
-
-   cli/datasets
-   cli/weights
-   cli/list
-   cli/replicas
-   cli/site
+   data-management/overview
+   data-management/steward
 
 *****************
  Anemoi packages

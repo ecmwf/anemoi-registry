@@ -56,7 +56,7 @@ class TestListCLI:
         result = run_cli("list", collection, version="1")
         assert result.returncode == 0
 
-    @pytest.mark.parametrize("collection", ["dataset", "experiment", "weights"])
+    @pytest.mark.parametrize("collection", ["dataset", "experiment", "model"])
     def test_v2_list(self, run_cli, collection):
         result = run_cli(collection, "--list", version="2")
         assert result.returncode == 0
@@ -91,7 +91,7 @@ class TestHelpCLI:
         [
             "dataset",
             "experiment",
-            "weights",
+            "model",
             "settings",
             "task",
         ],
@@ -141,7 +141,7 @@ class TestExperimentCLICRUD:
         yaml_path, expver = experiment_yaml
 
         try:
-            run_cli("experiment", yaml_path, "--register", version="2")
+            run_cli("experiment", "--register", yaml_path, version="2")
             run_cli("experiment", expver, version="2")
         finally:
-            run_cli("experiment", yaml_path, "--unregister", version="2", check=False)
+            run_cli("experiment", expver, "--unregister", version="2", check=False)

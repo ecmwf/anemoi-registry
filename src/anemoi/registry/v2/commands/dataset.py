@@ -70,11 +70,17 @@ class Datasets(BaseCommand):
         if not args.NAME:
             if args.register:
                 import os
+
                 args.NAME = os.path.splitext(os.path.basename(args.register.rstrip("/")))[0]
             else:
                 raise ValueError("NAME is required (or provide --register PATH to deduce it).")
 
-        entry = self.get_entry(args)
+        if args.register:
+            # Load metadata from the zarr path
+            entry = self.entry_class.load_from_path(args.register)
+        else:
+            entry = self.get_entry(args)
+
         if entry is None:
             raise ValueError(f"Dataset '{args.NAME}' not found in the catalogue.")
 
@@ -95,9 +101,11 @@ class Datasets(BaseCommand):
 
         # order matters
         if args.register:
-            entry.register(args.register)
+            entry.register()
         if args.set_recipe:
-            LOG.warning("--set-recipe is deprecated. Use 'anemoi-registry update --catalogue-from-recipe RECIPE' instead.")
+            LOG.warning(
+                "--set-recipe is deprecated. Use 'anemoi-registry update --catalogue-from-recipe RECIPE' instead."
+            )
             entry.set_recipe(args.set_recipe)
         if args.set_status:
             entry.set_status(args.set_status)

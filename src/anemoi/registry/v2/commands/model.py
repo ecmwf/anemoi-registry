@@ -79,13 +79,17 @@ class Model(BaseCommand):
             else:
                 raise ValueError("NAME is required (or provide --register PATH to deduce it).")
 
-        entry = self.get_entry(args)
+        if args.register:
+            entry = self.entry_class.load_from_path(args.register)
+        else:
+            entry = self.get_entry(args)
+
         if args.unregister:
             entry.unregister()
             return
 
         if args.register:
-            entry.register(args.register, overwrite=args.overwrite, upload=args.upload)
+            entry.register(overwrite=args.overwrite, upload=args.upload)
         self.set_get_remove_metadata(entry, args)
 
         if args.url:
