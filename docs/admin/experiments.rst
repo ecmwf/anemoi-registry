@@ -55,8 +55,11 @@ Key differences:
 
 .. code-block:: bash
 
-   # v2
+   # v2 — create an empty entry by name
    anemoi-registry experiment my-experiment --register
+
+   # v2 — register from a YAML config file (name deduced from file)
+   anemoi-registry experiment --register my-experiment.yaml
 
    # v1
    anemoi-registry experiments my-experiment --register

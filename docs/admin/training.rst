@@ -53,8 +53,11 @@ Key differences:
 
 .. code-block:: bash
 
-   # v2
+   # v2 — create an empty entry by name
    anemoi-registry training my-training --register
+
+   # v2 — register from a JSON config file (name deduced from file)
+   anemoi-registry training --register my-training.json
 
    # v1
    anemoi-registry trainings my-training.json --register
@@ -104,7 +107,7 @@ Key differences:
       -  v2
 
    -  -  ``anemoi-registry trainings NAME_OR_PATH``
-      -  ``anemoi-registry training NAME``
+      -  ``anemoi-registry training NAME`` or ``anemoi-registry training --register PATH``
 
    -  -  ``--set-key KEY VALUE``
       -  ``--metadata set KEY=VALUE``

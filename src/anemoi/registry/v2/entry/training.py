@@ -39,6 +39,12 @@ class TrainingCatalogueEntry(CatalogueEntry):
     main_key = "name"
 
     @classmethod
+    def create_from_new_key(cls, key):
+        assert cls.key_exists(key) is False, f"{cls.collection} with key={key} already exists"
+        metadata = dict(name=key)
+        return cls(key, dict(name=key, metadata=metadata))
+
+    @classmethod
     def load_from_path(cls, path):
         assert os.path.exists(path), f"{path} does not exist"
         assert path.endswith(".json"), f"{path} must be a json file"

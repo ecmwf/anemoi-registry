@@ -27,7 +27,15 @@ class Trainings(BaseCommand):
     def add_arguments(self, command_parser):
         command_parser.add_argument("NAME", help="Name of a training.", nargs="?")
         command_parser.add_argument(
-            "--register", help=f"Register the {self.kind} in the catalogue.", action="store_true"
+            "--register",
+            help=(
+                f"Register the {self.kind} in the catalogue. "
+                "PATH is a JSON config file; NAME is deduced from the file if not given. "
+                "If PATH is omitted, an empty entry is created with the given NAME."
+            ),
+            metavar="PATH",
+            nargs="?",
+            const=True,
         )
         command_parser.add_argument(
             "--unregister",
@@ -51,7 +59,13 @@ class Trainings(BaseCommand):
     def run(self, args):
         if args.list is not None:
             return self.run_list(args)
-        entry = self.get_entry(args)
+
+        if args.register and args.register is not True:
+            # --register PATH: load from the JSON file
+            entry = self.entry_class.load_from_path(args.register)
+        else:
+            entry = self.get_entry(args)
+
         if entry is not None and args.unregister:
             entry.unregister()
         if args.register:
