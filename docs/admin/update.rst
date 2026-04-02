@@ -12,19 +12,6 @@ The ``update`` command synchronises metadata between dataset recipe
 files, catalogue entries, and zarr datasets. It is primarily used by
 administrators to keep the catalogue consistent.
 
-
-*************************************************
- Update catalogue from recipe files
-*************************************************
-
-The ``--catalogue-from-recipe`` flag updates catalogue entries with
-the latest metadata derived from recipe files.
-
-.. code-block:: bash
-
-   anemoi-registry update --catalogue-from-recipe recipe.yaml
-
-
 *************************************************
  Update zarr metadata from catalogue
 *************************************************
