@@ -119,7 +119,8 @@ data.
 
 .. code-block:: bash
 
-   # v2 — fails if replicas still exist
+   # v2 only
+   # fails if replicas still exist
    anemoi-registry dataset my-dataset --unregister
 
 Reregistering a dataset
