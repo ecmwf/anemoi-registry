@@ -54,8 +54,8 @@ Write credentials are required. See :ref:`configuring`.
    anemoi-registry dataset --register /path/to/my-dataset.zarr
 
    # Set metadata
-   anemoi-registry dataset --set-status experimental \
-       --set-recipe ./recipe.yaml --set-status experimental
+   anemoi-registry dataset DATASET --set-status experimental \
+                                   --set-recipe ./recipe.yaml
 
 
 Previously, in v1, registration was done with the ``datasets`` command, with a different syntax.
