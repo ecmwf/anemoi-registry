@@ -100,6 +100,20 @@ class DatasetCatalogueEntry(CatalogueEntry):
     def set_status(self, status):
         self.patch([{"op": "add", "path": "/status", "value": status}], robust=True)
 
+    def unregister(self, force=False):
+        from .replica import ReplicaCatalogueEntryList
+
+        replicas = list(ReplicaCatalogueEntryList(name=self.key))
+        if replicas:
+            sites = [r.site for r in replicas]
+            if not force:
+                raise ValueError(
+                    f"Dataset '{self.key}' still has replicas on: {', '.join(sites)}. "
+                    "Unregister or delete the replicas first, or use force=True."
+                )
+            LOG.warning(f"Forcing unregister of '{self.key}' with existing replicas on: {', '.join(sites)}.")
+        super().unregister()
+
     def build_location_path(self, platform, uri_pattern=None):
         if uri_pattern is None:
             assert platform == config()["datasets_platform"], (platform, config()["datasets_platform"])

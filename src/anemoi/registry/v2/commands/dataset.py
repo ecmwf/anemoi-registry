@@ -85,18 +85,7 @@ class Datasets(BaseCommand):
             raise ValueError(f"Dataset '{args.NAME}' not found in the catalogue.")
 
         if args.unregister:
-            from ..entry.replica import ReplicaCatalogueEntryList
-
-            replicas = list(ReplicaCatalogueEntryList(name=entry.key))
-            if replicas:
-                sites = [r.site for r in replicas]
-                if not args.force:
-                    raise ValueError(
-                        f"Dataset '{entry.key}' still has replicas on: {', '.join(sites)}. "
-                        "Unregister or delete the replicas first, or use -f to force."
-                    )
-                LOG.warning(f"Forcing unregister of '{entry.key}' with existing replicas on: {', '.join(sites)}.")
-            entry.unregister()
+            entry.unregister(force=args.force)
             return
 
         # order matters
