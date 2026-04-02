@@ -92,6 +92,7 @@ class Update(Command):
             if not args.ignore:
                 raise ValueError(message)
             LOG.warning("Continuing with --ignore.")
+
         return _error
 
     def _run_metadata_from_catalogue(self, args):
@@ -115,8 +116,7 @@ class Update(Command):
                     "to identify which catalogue entry to update."
                 )
             raise NotImplementedError(
-                "Fetching the recipe from the catalogue is not yet implemented. "
-                "Please provide a RECIPE file."
+                "Fetching the recipe from the catalogue is not yet implemented. " "Please provide a RECIPE file."
             )
 
         done = set()
@@ -157,6 +157,7 @@ class Update(Command):
             debug=debug,
             _error=_error,
         )
+
 
 def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore, debug, _error=print):
     """Update the catalogue entry a recipe file."""

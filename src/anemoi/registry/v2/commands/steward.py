@@ -19,8 +19,7 @@ from .base import BaseCommand
 LOG = logging.getLogger(__name__)
 
 _CONFIG_HELP = (
-    "Site name (e.g. ewc) or a local JSON/TOML file. "
-    "Optional for most subcommands if setup has already been run."
+    "Site name (e.g. ewc) or a local JSON/TOML file. " "Optional for most subcommands if setup has already been run."
 )
 
 _DRY_RUN_HELP = "Dry run, do not actually do anything."
@@ -70,9 +69,7 @@ class StewardCommand(BaseCommand):
         )
 
         def _sub(name, help, description, **kwargs):
-            return subparsers.add_parser(
-                name, help=help, description=description, parents=[_common_parent], **kwargs
-            )
+            return subparsers.add_parser(name, help=help, description=description, parents=[_common_parent], **kwargs)
 
         # --- monitor ---
         p = _sub(
@@ -91,15 +88,20 @@ class StewardCommand(BaseCommand):
         p = _sub(
             "update",
             help="Run local update operations. Runs all updates by default.",
-            description=(
-                "Run one or more local update operations. "
-                "Runs all updates when no flag is given."
-            ),
+            description=("Run one or more local update operations. " "Runs all updates when no flag is given."),
         )
         g = p.add_argument_group()
         g.add_argument("--auxiliary", action="store_true", help="Download auxiliary files for the local site.")
-        g.add_argument("--shared-config", action="store_true", help="Re-fetch site config from server and update the shared config dir.")
-        g.add_argument("--datasets", action="store_true", help="Update zarr metadata for all local dataset replicas from the catalogue.")
+        g.add_argument(
+            "--shared-config",
+            action="store_true",
+            help="Re-fetch site config from server and update the shared config dir.",
+        )
+        g.add_argument(
+            "--datasets",
+            action="store_true",
+            help="Update zarr metadata for all local dataset replicas from the catalogue.",
+        )
 
         # --- run-task ---
         p = _sub(
@@ -148,6 +150,7 @@ class StewardCommand(BaseCommand):
 
         elif sub == "monitor":
             from ..entry.site import SiteCatalogueEntry
+
             site = SiteCatalogueEntry(name="local")
             do_all = not args.storage and not args.datasets
             if args.storage or do_all:

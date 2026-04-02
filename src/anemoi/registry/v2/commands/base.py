@@ -14,7 +14,6 @@ import csv
 import io
 import json
 import logging
-import os
 import sys
 
 import yaml
@@ -237,7 +236,9 @@ class BaseCommand(Command):
             entry.remove_value(rest[0], increment_update=True)
 
         else:
-            raise ValueError(f"Unknown metadata action '{action}'. Use: get KEY [TYPE], set KEY=VALUE [TYPE], delete KEY.")
+            raise ValueError(
+                f"Unknown metadata action '{action}'. Use: get KEY [TYPE], set KEY=VALUE [TYPE], delete KEY."
+            )
 
     def add_set_get_remove_metadata_arguments(self, command_parser):
         command_parser.add_argument(

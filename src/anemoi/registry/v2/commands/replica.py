@@ -95,10 +95,7 @@ class Replica(BaseCommand):
 
         # All actions require exactly SITE + NAME.
         if not args.SITE or not args.NAME:
-            raise ValueError(
-                "SITE and NAME are required for this action. "
-                "Use --list to list replicas."
-            )
+            raise ValueError("SITE and NAME are required for this action. " "Use --list to list replicas.")
 
         if args.upload:
             return self._run_upload(args)
