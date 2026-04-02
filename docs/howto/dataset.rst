@@ -86,6 +86,9 @@ command:
    # Upload to a site (e.g. ewc) — registers the replica automatically
    anemoi-registry replica ewc my-dataset --upload /path/to/my-dataset.zarr
 
+   # Use more threads MAY allow faster transfers (default: 2)
+   anemoi-registry replica ewc my-dataset --upload /path/to/my-dataset.zarr --threads 8
+
 
 S3 credentials are required. See :ref:`configuring`.
 

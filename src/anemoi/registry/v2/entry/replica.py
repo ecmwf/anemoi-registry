@@ -107,7 +107,7 @@ class ReplicaCatalogueEntry:
 
         return DatasetCatalogueEntry(key=self.dataset_name)
 
-    def register(self, source_path=None, target_uri=None, registered_uri=None, upload=False) -> None:
+    def register(self, source_path=None, target_uri=None, registered_uri=None, upload=False, threads=2) -> None:
         """Register this replica location on the dataset.
 
         Parameters
@@ -125,6 +125,8 @@ class ReplicaCatalogueEntry:
             writing to ``ssh://bridge/…`` but registering ``s3://…``).
         upload : bool
             Whether to upload local data before registering.
+        threads : int
+            Number of transfer threads for upload.
         """
         entry = self._dataset_entry()
 
@@ -142,7 +144,7 @@ class ReplicaCatalogueEntry:
         if upload:
             if not source_path or not os.path.exists(source_path):
                 raise ValueError("source_path must be an existing local path when uploading.")
-            entry.upload(source=source_path, target=target_uri, platform=self.site)
+            entry.upload(source=source_path, target=target_uri, platform=self.site, threads=threads)
 
         LOG.info(f"Adding location to {self.site}: {registered_uri}")
         entry.add_location(platform=self.site, path=registered_uri)

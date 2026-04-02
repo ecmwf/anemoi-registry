@@ -143,7 +143,7 @@ class DatasetCatalogueEntry(CatalogueEntry):
 
         self.remove_location(platform)
 
-    def upload(self, source, target, platform="unknown", resume=True):
+    def upload(self, source, target, platform="unknown", resume=True, threads=2):
         LOG.info(f"Uploading from {source} to {target} ")
         assert target.startswith("s3://"), target
 
@@ -180,7 +180,7 @@ class DatasetCatalogueEntry(CatalogueEntry):
             return task
 
         task = find_or_create_task(**kwargs)
-        self.transfer(task, source_path, target, resume=True, threads=2)
+        self.transfer(task, source_path, target, resume=True, threads=threads)
 
     def transfer(self, task, source_path, target, resume, threads):
         from anemoi.utils.remote import transfer

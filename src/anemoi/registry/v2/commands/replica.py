@@ -67,6 +67,12 @@ class Replica(BaseCommand):
             ),
         )
         command_parser.add_argument(
+            "--threads",
+            type=int,
+            default=2,
+            help="Number of transfer threads for upload (default: 2).",
+        )
+        command_parser.add_argument(
             "--request-delete",
             action="store_true",
             help=(
@@ -139,6 +145,7 @@ class Replica(BaseCommand):
             source_path=args.upload,
             target_uri=args.target_uri,
             upload=True,
+            threads=args.threads,
         )
 
     def _run_request_delete(self, args):
