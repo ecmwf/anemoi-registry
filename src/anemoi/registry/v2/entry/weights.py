@@ -112,6 +112,6 @@ class WeightCatalogueEntry(CatalogueEntry):
     def search_requests(cls, **kwargs):
         """Get the request for the entry."""
         requests = super().search_requests(**kwargs)
-        request = dict(name=kwargs["NAME_OR_PATH"], type=kwargs["type"])
+        request = dict(name=kwargs["NAME"], type=kwargs["type"])
         requests.append(request)
         return requests

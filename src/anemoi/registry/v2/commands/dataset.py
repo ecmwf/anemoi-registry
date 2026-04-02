@@ -25,41 +25,82 @@ class Datasets(BaseCommand):
     kind = "dataset"
 
     def add_arguments(self, command_parser):
-        command_parser.add_argument("NAME_OR_PATH", help="The name or the path of a dataset.", nargs="?")
-        self.add_list_arguments(command_parser)
-        command_parser.add_argument("--register", help="Register a dataset in the catalogue.", action="store_true")
+        command_parser.add_argument("NAME", help="The name of a dataset.", nargs="?")
+        command_parser.add_argument(
+            "--register",
+            help=(
+                "Register a dataset in the catalogue. "
+                "PATH is the local zarr path; NAME is deduced from the path basename if not given. "
+                "Only the metadata is registered — no data is moved. "
+                "To also upload the data to a remote site, use: "
+                "anemoi-registry replica --upload PATH. "
+                "Example: anemoi-registry dataset --register /data/my-dataset.zarr  "
+                "         anemoi-registry dataset my-dataset --register /data/my-dataset.zarr"
+            ),
+            metavar="PATH",
+        )
         command_parser.add_argument(
             "--unregister",
-            help="Remove a dataset from catalogue (without deleting it from its locations). Ignore all other options.",
+            help="Remove a dataset from catalogue (without deleting it from its locations). Fails if replicas still exist; use -f to override. Ignores all other options.",
             action="store_true",
         )
-        command_parser.add_argument("--url", help="Print the URL of the dataset.", action="store_true")
         command_parser.add_argument(
-            "--view", help=f"Open the URL of the {self.kind} in a browser.", action="store_true"
+            "-f",
+            "--force",
+            help="Force --unregister even if replicas still exist.",
+            action="store_true",
         )
-
-        self.add_set_get_remove_metadata_arguments(command_parser)
 
         command_parser.add_argument("--set-status", help="Set the status to the dataset.", metavar="STATUS")
         command_parser.add_argument(
-            "--set-recipe", help="Set the recipe file to [re-]build the dataset.", metavar="FILE"
+            "--set-recipe",
+            help="(Deprecated) Set the recipe file to [re-]build the dataset.",
+            metavar="FILE",
         )
+        tail = command_parser.add_argument_group()
+        tail.add_argument("--url", help="Print the URL of the dataset.", action="store_true")
+        tail.add_argument("--view", help=f"Open the URL of the {self.kind} in a browser.", action="store_true")
+        self.add_set_get_remove_metadata_arguments(tail)
+        self.add_list_arguments(tail)
 
     def run(self, args):
         if args.list is not None:
             return self.run_list(args)
+
+        if not args.NAME:
+            if args.register:
+                import os
+                args.NAME = os.path.splitext(os.path.basename(args.register.rstrip("/")))[0]
+            else:
+                raise ValueError("NAME is required (or provide --register PATH to deduce it).")
+
         entry = self.get_entry(args)
         if entry is None:
-            raise ValueError(f"Dataset {args.NAME_OR_PATH} not found in the catalogue and path does not exist.")
+            raise ValueError(f"Dataset '{args.NAME}' not found in the catalogue.")
 
         if args.unregister:
+            from ..entry.replica import ReplicaCatalogueEntryList
+
+            replicas = list(ReplicaCatalogueEntryList(name=entry.key))
+            if replicas:
+                sites = [r.site for r in replicas]
+                if not args.force:
+                    raise ValueError(
+                        f"Dataset '{entry.key}' still has replicas on: {', '.join(sites)}. "
+                        "Unregister or delete the replicas first, or use -f to force."
+                    )
+                LOG.warning(f"Forcing unregister of '{entry.key}' with existing replicas on: {', '.join(sites)}.")
             entry.unregister()
             return
 
         # order matters
-        self.process_task(entry, args, "register")
-        self.process_task(entry, args, "set_recipe")
-        self.process_task(entry, args, "set_status")
+        if args.register:
+            entry.register(args.register)
+        if args.set_recipe:
+            LOG.warning("--set-recipe is deprecated. Use 'anemoi-registry update --catalogue-from-recipe RECIPE' instead.")
+            entry.set_recipe(args.set_recipe)
+        if args.set_status:
+            entry.set_status(args.set_status)
         self.set_get_remove_metadata(entry, args)
 
         if args.url:

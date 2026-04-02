@@ -107,37 +107,45 @@ class ReplicaCatalogueEntry:
 
         return DatasetCatalogueEntry(key=self.dataset_name)
 
-    def register(self, path=None, uri_pattern=None, upload=False, source_path=None) -> None:
+    def register(self, source_path=None, target_uri=None, registered_uri=None, upload=False) -> None:
         """Register this replica location on the dataset.
 
         Parameters
         ----------
-        path : str, optional
-            Explicit path for the location.  If *None*, built from
-            ``uri_pattern`` or the default config.
-        uri_pattern : str, optional
-            URI pattern containing ``{name}``.
+        source_path : str, optional
+            Local zarr path. Used as the registered path when *upload* is
+            False and no *target_uri* is given (plain local registration).
+            Required as the upload source when *upload* is True.
+        target_uri : str, optional
+            URI to write the data to during upload. If *None*, the default
+            is read from server config (``datasets_uri_pattern``).
+        registered_uri : str, optional
+            URI stored in the catalogue. Defaults to *target_uri*. Use
+            when the write path differs from the accessible path (e.g.
+            writing to ``ssh://bridge/…`` but registering ``s3://…``).
         upload : bool
             Whether to upload local data before registering.
-        source_path : str, optional
-            Local path to upload from (required when *upload* is True).
         """
         entry = self._dataset_entry()
 
-        if path is None:
-            if source_path and os.path.exists(source_path) and not upload and not uri_pattern:
-                # Local path registration (like the old --add-local)
-                entry.add_location(self.site, path=source_path)
-                return
-            path = entry.build_location_path(platform=self.site, uri_pattern=uri_pattern)
+        if source_path and not upload and target_uri is None:
+            # Local-path-only registration — register the source path directly.
+            entry.add_location(self.site, path=source_path)
+            return
+
+        if target_uri is None:
+            target_uri = entry.build_location_path(platform=self.site)
+
+        if registered_uri is None:
+            registered_uri = target_uri
 
         if upload:
-            if source_path is None or not os.path.exists(source_path):
+            if not source_path or not os.path.exists(source_path):
                 raise ValueError("source_path must be an existing local path when uploading.")
-            entry.upload(source=source_path, target=path, platform=self.site)
+            entry.upload(source=source_path, target=target_uri, platform=self.site)
 
-        LOG.info(f"Adding location to {self.site}: {path}")
-        entry.add_location(platform=self.site, path=path)
+        LOG.info(f"Adding location to {self.site}: {registered_uri}")
+        entry.add_location(platform=self.site, path=registered_uri)
 
     def unregister(self):
         """Remove this location from the catalogue (data is kept)."""
@@ -147,11 +155,13 @@ class ReplicaCatalogueEntry:
         """Delete the replica data and remove the location."""
         self._dataset_entry().delete_location(self.site)
 
-    def request_transfer(self, uri_pattern=None) -> str:
-        """Create a task to transfer this dataset to the site.
+    def request_transfer(self, from_site, uri_pattern=None) -> str:
+        """Create a task to transfer this dataset from another site to this site.
 
         Parameters
         ----------
+        from_site : str
+            Site to transfer the dataset from.
         uri_pattern : str, optional
             URI pattern containing ``{name}``.
 
@@ -164,7 +174,7 @@ class ReplicaCatalogueEntry:
         path = entry.build_location_path(platform=self.site, uri_pattern=uri_pattern)
         uuid = TaskCatalogueEntryList().add_new_task(
             action="transfer-dataset",
-            source="cli",
+            source=from_site,
             destination=self.site,
             target_path=path,
             dataset=self.dataset_name,

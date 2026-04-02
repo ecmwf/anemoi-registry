@@ -37,20 +37,29 @@ class Update(Command):
     timestamp = True
 
     def add_arguments(self, command_parser):
-
-        group = command_parser.add_mutually_exclusive_group(required=True)
-        group.add_argument(
-            "-R",
-            "--catalogue-from-recipe-file",
-            help="Update the catalogue entry from the recipe.",
-            action="store_true",
+        command_parser.add_argument(
+            "--metadata-from-catalogue",
+            nargs="+",
+            metavar="PATH",
+            help=(
+                "Update zarr file metadata from the catalogue. "
+                "Each PATH must be a zarr dataset containing a UUID. "
+                "To update all local replicas at once, use: anemoi-registry steward --update-datasets."
+            ),
         )
-
-        group.add_argument(
-            "-Z",
-            "--zarr-file-from-catalogue",
-            help="Update the zarr file metadata from a catalogue entry.",
-            action="store_true",
+        command_parser.add_argument(
+            "--catalogue-from-recipe",
+            nargs="*",
+            metavar="RECIPE",
+            help=(
+                "Update the catalogue entry from a recipe file. "
+                "If RECIPE is not given, the recipe is fetched from the catalogue (requires --name)."
+            ),
+        )
+        command_parser.add_argument(
+            "--name",
+            metavar="NAME",
+            help="Dataset name. Required with --catalogue-from-recipe when no RECIPE file is given.",
         )
 
         command_parser.add_argument("--dry-run", help="Dry run.", action="store_true")
@@ -65,39 +74,69 @@ class Update(Command):
         )
         command_parser.add_argument("--workdir", help="Work directory.", default=".")
 
-        command_parser.add_argument("paths", nargs="*", help="Paths to update.")
-
     def run(self, args):
+        if args.metadata_from_catalogue and args.catalogue_from_recipe is not None:
+            raise ValueError("--metadata-from-catalogue and --catalogue-from-recipe are mutually exclusive.")
 
+        if args.metadata_from_catalogue:
+            return self._run_metadata_from_catalogue(args)
+
+        if args.catalogue_from_recipe is not None:
+            return self._run_catalogue_from_recipe(args)
+
+        raise ValueError("Please specify --metadata-from-catalogue or --catalogue-from-recipe.")
+
+    def _make_error(self, args):
+        def _error(message):
+            LOG.error(message)
+            if not args.ignore:
+                raise ValueError(message)
+            LOG.warning("Continuing with --ignore.")
+        return _error
+
+    def _run_metadata_from_catalogue(self, args):
+        _error = self._make_error(args)
+        for path in args.metadata_from_catalogue:
+            try:
+                zarr_file_from_catalogue(path, dry_run=args.dry_run, ignore=args.ignore, _error=_error)
+            except Exception as e:
+                if args.continue_:
+                    LOG.exception(e)
+                    continue
+                raise
+
+    def _run_catalogue_from_recipe(self, args):
+        recipes = args.catalogue_from_recipe  # list, possibly empty
+
+        if not recipes:
+            if not args.name:
+                raise ValueError(
+                    "--catalogue-from-recipe without a RECIPE file requires --name NAME "
+                    "to identify which catalogue entry to update."
+                )
+            raise NotImplementedError(
+                "Fetching the recipe from the catalogue is not yet implemented. "
+                "Please provide a RECIPE file."
+            )
+
+        done = set()
         if args.resume:
             if args.progress is None:
                 LOG.error("Progress file is required for --resume")
                 return
-
-            done = set()
             if os.path.exists(args.progress):
                 with open(args.progress) as f:
                     for line in f:
                         done.add(line.strip())
 
-        if args.catalogue_from_recipe_file:
-            method = self.catalogue_from_recipe_file
-        elif args.zarr_file_from_catalogue:
-            method = self.zarr_file_from_catalogue
+        _error = self._make_error(args)
 
-        def _error(message):
-            LOG.error(message)
-            if not args.ignore:
-                raise ValueError(message)
-            LOG.error("%s", message)
-            LOG.warning("Continuing with --ignore.")
-
-        for path in args.paths:
+        for path in recipes:
             if args.resume and path in done:
                 LOG.info(f"Skipping {path}")
                 continue
             try:
-                method(path, _error=_error, **vars(args))
+                self._catalogue_from_recipe_file(path, _error=_error, **vars(args))
             except Exception as e:
                 if args.continue_:
                     LOG.exception(e)
@@ -107,7 +146,7 @@ class Update(Command):
                 with open(args.progress, "a") as f:
                     print(path, file=f)
 
-    def catalogue_from_recipe_file(self, path, _error, workdir, dry_run, force, update, ignore, debug, **kwargs):
+    def _catalogue_from_recipe_file(self, path, _error, workdir, dry_run, force, update, ignore, debug, **kwargs):
         return catalogue_from_recipe_file(
             path,
             workdir=workdir,
@@ -118,10 +157,6 @@ class Update(Command):
             debug=debug,
             _error=_error,
         )
-
-    def zarr_file_from_catalogue(self, path, _error, dry_run, ignore, **kwargs):
-        return zarr_file_from_catalogue(path, dry_run=dry_run, ignore=ignore, _error=_error)
-
 
 def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore, debug, _error=print):
     """Update the catalogue entry a recipe file."""

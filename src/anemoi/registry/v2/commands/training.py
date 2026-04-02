@@ -9,7 +9,6 @@
 
 
 import logging
-import os
 
 from ..entry.training import TrainingCatalogueEntry
 from .base import BaseCommand
@@ -26,10 +25,7 @@ class Trainings(BaseCommand):
     kind = "training"
 
     def add_arguments(self, command_parser):
-        command_parser.add_argument(
-            "NAME_OR_PATH", help="Name of a training of a path of a training config file.", nargs="?"
-        )
-        self.add_list_arguments(command_parser)
+        command_parser.add_argument("NAME", help="Name of a training.", nargs="?")
         command_parser.add_argument(
             "--register", help=f"Register the {self.kind} in the catalogue.", action="store_true"
         )
@@ -37,18 +33,6 @@ class Trainings(BaseCommand):
             "--unregister",
             help="Remove from catalogue (without deleting the training from other locations)",
             action="store_true",
-        )
-        command_parser.add_argument(
-            "--set-key",
-            nargs=2,
-            help="Set VALUE in the KEY to the training catalogue. Replace existing value.",
-            metavar=("KEY", "VALUE"),
-        )
-        command_parser.add_argument(
-            "--set-key-json",
-            nargs=2,
-            help="Set the content of a FILE in the KEY to the training catalogue. Replace existing value.",
-            metavar=("KEY", "FILE"),
         )
         command_parser.add_argument("--overwrite", help="Overwrite if already exists.", action="store_true")
         command_parser.add_argument(
@@ -60,22 +44,19 @@ class Trainings(BaseCommand):
             ),
             metavar="FILE",
         )
-
-    def is_path(self, name_or_path):
-        if not os.path.exists(name_or_path):
-            return False
-        if not name_or_path.endswith(".json"):
-            return False
-        return True
+        tail = command_parser.add_argument_group()
+        self.add_set_get_remove_metadata_arguments(tail)
+        self.add_list_arguments(tail)
 
     def run(self, args):
         if args.list is not None:
             return self.run_list(args)
         entry = self.get_entry(args)
-        self.process_task(entry, args, "unregister", _skip_if_not_found=True)
-        self.process_task(entry, args, "register", overwrite=args.overwrite)
-        self.process_task(entry, args, "set_key")
-        self.process_task(entry, args, "set_key_json")
+        if entry is not None and args.unregister:
+            entry.unregister()
+        if args.register:
+            entry.register(overwrite=args.overwrite)
+        self.set_get_remove_metadata(entry, args)
 
 
 command = Trainings

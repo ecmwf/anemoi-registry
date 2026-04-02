@@ -71,6 +71,6 @@ class TrainingCatalogueEntry(CatalogueEntry):
     def search_requests(cls, **kwargs):
         """Get the request for the entry."""
         requests = super().search_requests(**kwargs)
-        request = dict(name=kwargs["NAME_OR_PATH"])
+        request = dict(name=kwargs["NAME"])
         requests.append(request)
         return requests

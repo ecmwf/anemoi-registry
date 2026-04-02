@@ -71,3 +71,28 @@ file:
 
    [registry]
    api_token = "xxxxxxxxxxx"
+
+***************************
+ Viewing current settings
+***************************
+
+Use the ``settings`` command to display the effective configuration.
+This is useful for debugging connection or authentication issues:
+
+.. code-block:: bash
+
+   anemoi-registry settings
+
+   # Include secrets (tokens, keys) in the output
+   anemoi-registry settings --show-secrets
+
+***************************
+ Test catalogue
+***************************
+
+For development and testing, a separate test catalogue can be used by
+setting the ``ANEMOI_CATALOGUE`` environment variable:
+
+.. code-block:: bash
+
+   export ANEMOI_CATALOGUE=TEST

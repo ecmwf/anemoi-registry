@@ -9,161 +9,152 @@
 
 
 import logging
-import os
 
 from ..entry.replica import ReplicaCatalogueEntry
 from ..entry.replica import ReplicaCatalogueEntryList
 from ..utils import list_to_dict
-from . import Command
+from .base import BaseCommand
 
 LOG = logging.getLogger(__name__)
 
 
-class Replica(Command):
+class Replica(BaseCommand):
     """Manage dataset replicas (locations) across sites."""
 
     internal = True
     timestamp = True
+    entry_class = ReplicaCatalogueEntry
+    kind = "replica"
 
     def add_arguments(self, command_parser):
         command_parser.add_argument(
-            "PATH",
-            help="Local path to the dataset (used with --register).",
+            "SITE",
             nargs="?",
+            help="Site (platform) name. Required for all actions except --list.",
         )
         command_parser.add_argument(
-            "--dataset-name",
-            help="Name of the dataset in the catalogue.",
-            metavar="NAME",
-        )
-        command_parser.add_argument(
-            "--site",
-            help="The site (platform) name for the replica.",
-            metavar="SITE",
-        )
-        command_parser.add_argument(
-            "--uri-pattern",
-            help="Path pattern for the location using {name}, e.g. 's3://ml-datasets/{name}.zarr'.",
-            metavar="PATTERN",
+            "NAME",
+            nargs="?",
+            help="Dataset name in the catalogue. Required for all actions except --list.",
         )
 
         command_parser.add_argument(
             "--register",
-            help="Register a replica location for a dataset.",
-            action="store_true",
-        )
-        command_parser.add_argument(
-            "--upload",
-            help="Upload the dataset when registering. Requires --site and PATH.",
-            action="store_true",
+            metavar="PATH",
+            help="Register a replica location in the catalogue (no data is moved). PATH is the path of the dataset on the site.",
         )
         command_parser.add_argument(
             "--unregister",
-            help="Remove a replica location from the catalogue (without deleting the data).",
             action="store_true",
+            help="Remove a replica location from the catalogue (data is kept).",
         )
         command_parser.add_argument(
-            "--delete",
-            help="Delete the replica data and remove the location from the catalogue.",
+            "--upload",
+            metavar="PATH",
+            help=(
+                "Upload a local dataset to remote storage and register the replica. "
+                "PATH is the local zarr path; the dataset must already be registered in the catalogue "
+                "(anemoi-registry dataset --register PATH). "
+                "Example: anemoi-registry replica ewc my-dataset --upload /data/my-dataset.zarr"
+            ),
+        )
+        command_parser.add_argument(
+            "--target-uri",
+            metavar="URI",
+            help=(
+                "Where to write the data during upload (may use {name}). "
+                "Default: from server config (datasets_uri_pattern)."
+            ),
+        )
+        command_parser.add_argument(
+            "--request-delete",
             action="store_true",
+            help=(
+                "Schedule deletion of a replica via the task runner "
+                "(same as the catalogue delete button): creates a delete task; "
+                "the task runner will delete the data and unregister the replica."
+            ),
         )
         command_parser.add_argument(
             "--request-transfer",
-            help="Create a task to transfer a dataset to a site.",
-            action="store_true",
+            nargs="?",
+            const=True,
+            metavar="SOURCE_SITE",
+            help="Create a task to transfer the replica to SITE from SOURCE_SITE.",
         )
-        command_parser.add_argument(
-            "--request-deletion",
-            help="Create a task to delete a dataset replica from a site.",
-            action="store_true",
-        )
-
-        command_parser.add_argument(
-            "--list",
-            help="List replicas. Optional key=value filters.",
-            nargs="*",
-            metavar="K=V",
-        )
-        command_parser.add_argument(
-            "--list-fields",
-            help="Comma-separated field names to display.",
-            type=lambda s: [f.strip() for f in s.split(",")],
-            metavar="FIELDS",
-        )
-        command_parser.add_argument(
-            "--list-sort",
-            help="Comma-separated fields to sort by.",
-            metavar="FIELDS",
-        )
-        command_parser.add_argument(
-            "--list-format",
-            help="Output format for --list.",
-            choices=["text", "csv", "json", "rich"],
-            default="rich",
-        )
-
-    def _get_replica_entry(self, args):
-        name = args.dataset_name
-        site = args.site
-
-        if name is None and args.PATH is not None:
-            name = os.path.splitext(os.path.basename(args.PATH))[0]
-        if name is None:
-            raise ValueError("--dataset-name is required (or provide a PATH).")
-        if site is None:
-            raise ValueError("--site is required.")
-
-        return ReplicaCatalogueEntry(dataset_name=name, site=site)
+        tail = command_parser.add_argument_group()
+        tail.add_argument("--url", help="Print the URL of the replica.", action="store_true")
+        tail.add_argument("--view", help="Open the URL of the replica in a browser.", action="store_true")
+        self.add_list_arguments(tail)
 
     def run(self, args):
         if args.list is not None:
+            if args.NAME or args.SITE:
+                raise ValueError("--list does not take NAME or SITE positional arguments.")
             return self._run_list(args)
+
+        # All actions require exactly SITE + NAME.
+        if not args.SITE or not args.NAME:
+            raise ValueError(
+                "SITE and NAME are required for this action. "
+                "Use --list to list replicas."
+            )
+
+        if args.upload:
+            return self._run_upload(args)
 
         if args.register:
             return self._run_register(args)
-
         if args.unregister:
             return self._run_unregister(args)
-
-        if args.delete:
-            return self._run_delete(args)
-
-        if args.request_transfer:
+        if args.request_delete:
+            return self._run_request_delete(args)
+        if args.request_transfer is not None:
             return self._run_request_transfer(args)
 
-        if args.request_deletion:
-            return self._run_request_deletion(args)
+        entry = ReplicaCatalogueEntry(dataset_name=args.NAME, site=args.SITE)
+        if args.url:
+            print(entry.url)
+        if args.view:
+            import webbrowser
 
-        raise ValueError(
-            "Please specify an action: --register, --unregister, --delete, "
-            "--request-transfer, --request-deletion, or --list."
-        )
+            webbrowser.open(entry.url)
+
+        if not args.url and not args.view:
+            raise ValueError(
+                "Please specify an action: --register, --unregister, --upload, "
+                "--request-delete, --request-transfer, --url, --view, or --list."
+            )
 
     def _run_register(self, args):
-        entry = self._get_replica_entry(args)
-        entry.register(
-            source_path=args.PATH,
-            uri_pattern=args.uri_pattern,
-            upload=args.upload,
-        )
+        ReplicaCatalogueEntry(dataset_name=args.NAME, site=args.SITE).register(source_path=args.register)
 
     def _run_unregister(self, args):
-        entry = self._get_replica_entry(args)
-        entry.unregister()
+        records = list(ReplicaCatalogueEntryList(name=args.NAME, site=args.SITE))
+        if not records:
+            raise ValueError(f"Replica '{args.NAME}@{args.SITE}' not found in the catalogue.")
+        records[0].unregister()
 
-    def _run_delete(self, args):
-        entry = self._get_replica_entry(args)
-        entry.delete()
+    def _run_upload(self, args):
+        # target_uri=None → entry reads datasets_uri_pattern from server config
+        # registered_uri=None → entry defaults to target_uri
+        ReplicaCatalogueEntry(dataset_name=args.NAME, site=args.SITE).register(
+            source_path=args.upload,
+            target_uri=args.target_uri,
+            upload=True,
+        )
+
+    def _run_request_delete(self, args):
+        uuid = ReplicaCatalogueEntry(dataset_name=args.NAME, site=args.SITE).request_deletion()
+        LOG.info(f"Deletion task created: {uuid}")
 
     def _run_request_transfer(self, args):
-        entry = self._get_replica_entry(args)
-        uuid = entry.request_transfer(uri_pattern=args.uri_pattern)
-        print(uuid)
-
-    def _run_request_deletion(self, args):
-        entry = self._get_replica_entry(args)
-        uuid = entry.request_deletion()
-        print(uuid)
+        if args.request_transfer is True:
+            raise NotImplementedError(
+                "--request-transfer requires a SOURCE_SITE. "
+                "Example: anemoi-registry replica ewc my-dataset --request-transfer lumi"
+            )
+        ReplicaCatalogueEntry(dataset_name=args.NAME, site=args.SITE).request_transfer(from_site=args.request_transfer)
 
     def _run_list(self, args):
         from requests.exceptions import HTTPError
@@ -172,15 +163,9 @@ class Replica(Command):
         from .base import format_list_output
 
         filters = list_to_dict(args.list) if args.list else {}
-        if args.dataset_name:
-            filters["name"] = args.dataset_name
-        if args.site:
-            filters["site"] = args.site
 
         fields = args.list_fields or ["name", "site", "path"]
         fmt = args.list_format
-
-        # Pass requested fields to the server for validation + projection
         filters["fields"] = ",".join(fields)
         sort = getattr(args, "list_sort", None)
         if sort:
