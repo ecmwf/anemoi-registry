@@ -83,9 +83,7 @@ The package provides:
 -  :doc:`admin/experiments`
 -  :doc:`admin/training`
 -  :doc:`admin/tasks`
--  :doc:`admin/entry`
 -  :doc:`admin/update`
--  :doc:`data-management/overview`
 -  :doc:`data-management/steward`
 
 .. toctree::
@@ -96,9 +94,7 @@ The package provides:
    admin/experiments
    admin/training
    admin/tasks
-   admin/entry
    admin/update
-   data-management/overview
    data-management/steward
 
 *****************

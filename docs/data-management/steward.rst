@@ -1,11 +1,14 @@
-.. _data-management-steward:
+.. _data-management:
 
 #################
- Steward command
+ Data management
 #################
 
-The ``steward`` command is the main entry point for site administration
-and data management tasks. It is only available in **v2**
+The ``anemoi-registry`` package includes data management tooling for
+HPC site administrators to automate dataset lifecycle operations —
+transfers, deletions, storage monitoring, and metadata synchronisation.
+
+These features are available through the ``steward`` command
 (``ANEMOI_REGISTRY_CLI_VERSION=2``).
 
 .. warning::
@@ -13,6 +16,54 @@ and data management tasks. It is only available in **v2**
    The ``steward`` command is intended for **site administrators** and
    automated infrastructure (e.g. ecflow suites). Normal users should
    not need to run these commands directly.
+
+
+*****************************
+ Key concepts
+*****************************
+
+Sites
+======
+
+A **site** represents a physical location where datasets can be stored
+— for example, an HPC centre (``ewc``, ``lumi``, ``leonardo``), a
+cloud storage bucket, or a local filesystem. Each site is registered in
+the catalogue with its own configuration including storage paths,
+quota monitoring commands, and task runner settings.
+
+Dataset lifecycle
+==================
+
+A dataset goes through several stages:
+
+1. **Created** — a dataset is built locally using ``anemoi-datasets``.
+2. **Registered** — metadata is pushed to the catalogue
+   (``anemoi-registry dataset --register``).
+3. **Replicated** — copies are uploaded or transferred to one or more
+   sites (``anemoi-registry replica SITE NAME --upload``).
+4. **Active** — the dataset is in use for training or inference.
+5. **Retired** — the dataset is no longer needed and replicas can be
+   deleted.
+
+Tasks and the task runner
+==========================
+
+Certain operations (transfers, deletions) are handled asynchronously
+via a **task queue** in the catalogue. Users or automated tools create
+tasks (e.g. ``replica --request-delete`` or ``replica
+--request-transfer``), and a **task runner** (the ``steward run-task``
+command) claims and executes them.
+
+This decouples the request from the execution, allowing transfers and
+deletions to be handled by site-specific infrastructure (e.g. an ecflow
+suite).
+
+.. warning::
+
+   Normal users should not interact with tasks directly. Use the
+   higher-level ``dataset`` and ``replica`` commands to request
+   operations. Tasks are an implementation detail managed by site
+   administrators.
 
 
 *****************************
@@ -55,45 +106,77 @@ configuration.
 *****************************
 
 Report site status to the catalogue. Designed to be run periodically
-(e.g. via cron or ecflow):
+(e.g. via cron or ecflow).
+
+Storage quota
+==============
 
 .. code-block:: bash
 
-   # Run all checks
-   anemoi-registry steward monitor
-
-   # Storage quota only
    anemoi-registry steward monitor --storage
 
-   # Dataset replica status only
+This runs site-specific quota commands (configured in the site's
+bootstrap config) and reports the results to the catalogue.
+
+Dataset replica status
+=======================
+
+Check the status of all local replicas (e.g. whether files still exist,
+last access times):
+
+.. code-block:: bash
+
    anemoi-registry steward monitor --datasets
 
-   # Dry run (do not send data to the server)
-   anemoi-registry steward monitor --dry-run
+Both checks at once:
+
+.. code-block:: bash
+
+   anemoi-registry steward monitor
+
+Use ``--dry-run`` to preview without sending data to the server.
 
 
 *****************************
  Updates
 *****************************
 
-Run local update operations:
+Run local update operations.
+
+Synchronise zarr metadata
+==========================
+
+Update zarr metadata for all local replicas from the catalogue:
 
 .. code-block:: bash
 
-   # Run all updates
-   anemoi-registry steward update
-
-   # Download auxiliary files (grids, matrices, etc.)
-   anemoi-registry steward update --auxiliary
-
-   # Re-fetch the shared site config from the server
-   anemoi-registry steward update --shared-config
-
-   # Synchronise zarr metadata for all local replicas
    anemoi-registry steward update --datasets
 
-   # Dry run
-   anemoi-registry steward update --datasets --dry-run
+Auxiliary files
+================
+
+Download auxiliary files (grids, matrices, etc.):
+
+.. code-block:: bash
+
+   anemoi-registry steward update --auxiliary
+
+Shared configuration
+=====================
+
+Re-fetch the shared site configuration from the server:
+
+.. code-block:: bash
+
+   anemoi-registry steward update --shared-config
+
+Run all updates at once:
+
+.. code-block:: bash
+
+   anemoi-registry steward update
+
+Use ``--dry-run`` to preview without making changes.
 
 
 *****************************
@@ -117,41 +200,31 @@ be called from an ecflow job or similar scheduler:
    # Dry run
    anemoi-registry steward run-task action=transfer-dataset --dry-run
 
-Tasks are created by user-facing commands such as ``replica
---request-delete`` or ``replica --request-transfer``.
+
+*****************************
+ Automated transfers
+*****************************
+
+Transfers between sites are created as tasks, then executed by the task
+runner:
+
+.. code-block:: bash
+
+   # Request a transfer (creates a task in the catalogue)
+   anemoi-registry replica lumi my-dataset --request-transfer ewc
+
+   # The task runner picks it up (on the destination site)
+   anemoi-registry steward run-task action=transfer-dataset destination=lumi
 
 
 *****************************
- Migrating from v1
+ Automated deletions
 *****************************
 
-In v1, the equivalent functionality was split across the ``worker`` and
-``site`` commands:
+.. code-block:: bash
 
-.. list-table::
-   :widths: 50 50
-   :header-rows: 1
+   # Request deletion (creates a task)
+   anemoi-registry replica ewc my-dataset --request-delete
 
-   -  -  v1
-      -  v2
-
-   -  -  ``anemoi-registry worker transfer-dataset ...``
-      -  ``anemoi-registry steward run-task action=transfer-dataset ...``
-
-   -  -  ``anemoi-registry worker delete-dataset ...``
-      -  ``anemoi-registry steward run-task action=delete-dataset ...``
-
-   -  -  ``anemoi-registry site --setup URL``
-      -  ``anemoi-registry steward --site SITE setup``
-
-   -  -  ``anemoi-registry site --storage``
-      -  ``anemoi-registry steward monitor --storage``
-
-   -  -  ``anemoi-registry site --datasets``
-      -  ``anemoi-registry steward monitor --datasets``
-
-   -  -  ``anemoi-registry site --update-auxiliary``
-      -  ``anemoi-registry steward update --auxiliary``
-
-   -  -  ``anemoi-registry update -Z FILE``
-      -  ``anemoi-registry steward update --datasets``
+   # The task runner picks it up
+   anemoi-registry steward run-task action=delete-dataset
