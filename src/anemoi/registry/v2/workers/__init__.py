@@ -13,6 +13,7 @@ import os
 import signal
 import sys
 import threading
+import time
 
 from anemoi.utils.humanize import when
 
@@ -212,6 +213,62 @@ class Worker:
 
     def worker_process_task(self, task):
         raise NotImplementedError("Subclasses must implement this method.")
+
+
+def release_stalled(filters: dict = None, max_age: int = 600, force: bool = False, dry_run: bool = False) -> int:
+    """Release ownership of running catalogue tasks whose heartbeat has stalled.
+
+    Iterates over tasks currently in ``running`` status that match ``filters``,
+    computes the age of each task's last ``updated`` heartbeat, and calls
+    :py:meth:`TaskCatalogueEntry.release_ownership` on any whose heartbeat is
+    older than ``max_age`` seconds. Intended to be called by the steward
+    housekeeping job.
+
+    Parameters
+    ----------
+    filters : dict, optional
+        Catalogue filters (e.g. ``{"uuid": "..."}`` or ``{"action": "..."}``).
+        When omitted, every running task is considered.
+    max_age : int
+        Heartbeat age in seconds above which a task is eligible for release.
+    force : bool
+        Release regardless of age.
+    dry_run : bool
+        Log the tasks that would be released without mutating the catalogue.
+
+    Returns
+    -------
+    int
+        The number of tasks actually released.
+    """
+    entries = TaskCatalogueEntryList(status="running", **(filters or {})).get()
+    if not entries:
+        LOG.info(f"No running tasks found matching {filters or {}}")
+        return 0
+
+    now = datetime.datetime.utcnow()
+    released = 0
+    for record in entries:
+        uuid = record["uuid"]
+        updated = datetime.datetime.fromisoformat(record["updated"])
+        age = (now - updated).total_seconds()
+        if not force and age < max_age:
+            LOG.debug(f"Task {uuid}: heartbeat age {age:.0f}s < {max_age}s, skipping.")
+            continue
+
+        entry = TaskCatalogueEntry(key=uuid)
+        if dry_run:
+            LOG.warning(f"Would release task {uuid} (heartbeat age {age:.0f}s)")
+            continue
+        try:
+            entry.release_ownership()
+            LOG.info(f"Released task {uuid} (heartbeat age {age:.0f}s)")
+            released += 1
+        except Exception as e:
+            LOG.error(f"Failed to release task {uuid}: {e}")
+
+    LOG.info(f"Released {released} stalled task(s).")
+    return released
 
 
 def run_worker(action, **kwargs):

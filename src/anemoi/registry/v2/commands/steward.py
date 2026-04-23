@@ -131,6 +131,35 @@ class StewardCommand(BaseCommand):
             help="Override number of transfer threads (for action=transfer-dataset).",
         )
 
+        # --- release ---
+        p = _sub(
+            "release",
+            help="Release ownership of a stalled running task.",
+            description=(
+                "Release the ownership of a task whose worker has stopped heartbeating. "
+                "Intended for the steward housekeeping job."
+            ),
+        )
+        g = p.add_argument_group()
+        g.add_argument(
+            "filters",
+            nargs="*",
+            metavar="K=V",
+            help="Filter tasks to release by key=value pairs (typically uuid=<id>).",
+        )
+        g.add_argument(
+            "--max-age",
+            type=int,
+            metavar="SECONDS",
+            default=600,
+            help="Only release tasks whose last heartbeat is older than this many seconds (default: 600).",
+        )
+        g.add_argument(
+            "--force",
+            action="store_true",
+            help="Release regardless of status (bypass the status check).",
+        )
+
     def run(self, args):
         sub = args.subcommand
 
@@ -169,6 +198,9 @@ class StewardCommand(BaseCommand):
 
         elif sub == "run-task":
             self._run_by_filter(args)
+
+        elif sub == "release":
+            self._run_release(args)
 
     # --- Helpers ---
 
@@ -272,6 +304,12 @@ class StewardCommand(BaseCommand):
             worker_kwargs["threads"] = args.threads
 
         run_worker(action, filter_tasks=filters, dry_run=args.dry_run, **worker_kwargs)
+
+    def _run_release(self, args):
+        from ..workers import release_stalled
+
+        filters = list_to_dict(args.filters) if args.filters else {}
+        release_stalled(filters=filters, max_age=args.max_age, force=args.force, dry_run=args.dry_run)
 
 
 command = StewardCommand
