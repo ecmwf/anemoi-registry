@@ -157,9 +157,9 @@ class DatasetCatalogueEntry(CatalogueEntry):
 
         self.remove_location(platform)
 
-    def upload(self, source, target, platform="unknown", resume=True, threads=2):
-        LOG.info(f"Uploading from {source} to {target} ")
-        assert target.startswith("s3://"), target
+    def upload(self, source, target, platform="unknown", threads=2):
+        if not target.startswith("s3://"):
+            raise ValueError(f"Target must be an S3 URI, got: {target}")
 
         source_path = os.path.abspath(source)
         kwargs = dict(
@@ -175,38 +175,26 @@ class DatasetCatalogueEntry(CatalogueEntry):
         from ..tasks import TaskCatalogueEntry
         from ..tasks import TaskCatalogueEntryList
 
-        def find_or_create_task(**kwargs):
-            lst = TaskCatalogueEntryList(**kwargs)
-
-            if not lst:
-                LOG.info("No runnning transfer found, starting one.")
-                uuid = TaskCatalogueEntryList().add_new_task(**kwargs)
-                task = TaskCatalogueEntry(key=uuid)
-                return task
-
-            lst = TaskCatalogueEntryList(**kwargs)
-            task = lst[0]
+        tasks = list(TaskCatalogueEntryList(**kwargs))
+        if tasks:
+            task = tasks[0]
             updated = datetime.datetime.fromisoformat(task.record["updated"])
-            if resume:
-                LOG.info(f"Resuming from previous transfer (last update {when(updated)})")
-            else:
-                raise ValueError(f"Transfer already in progress (last update {when(updated)})")
-            return task
+            LOG.info(f"Resuming from previous transfer (last update {when(updated)})")
+        else:
+            LOG.info("No running transfer found, starting one.")
+            uuid = TaskCatalogueEntryList().add_new_task(**kwargs)
+            task = TaskCatalogueEntry(key=uuid)
 
-        task = find_or_create_task(**kwargs)
-        self.transfer(task, source_path, target, resume=True, threads=threads)
-
-    def transfer(self, task, source_path, target, resume, threads):
         from anemoi.utils.remote import transfer
 
         from ..workers.transfer_dataset import Progress
 
         progress = Progress(task, frequency=10)
-        LOG.info(f"Upload('{source_path}','{target}', resume=True, threads=2)")
+        LOG.info(f"Uploading '{source_path}' to '{target}' (threads={threads})")
         task.set_status("running")
         try:
-            transfer(source_path, target, resume=resume, threads=threads, progress=progress)
-        except:
+            transfer(source_path, target, resume=True, threads=threads, progress=progress)
+        except Exception:
             task.set_status("stopped")
             raise
         task.unregister()

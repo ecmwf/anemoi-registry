@@ -116,27 +116,20 @@ class TransferDatasetWorker(Worker):
 
         LOG.info(f"Transferring {dataset} from '{source}' to '{destination}'")
 
-        def get_source_path():
-            e = entry.record
-            if "locations" not in e:
-                raise ValueError(f"Dataset {dataset} has no locations")
-            locations = e["locations"]
+        locations = entry.record.get("locations", {})
+        if not locations:
+            raise ValueError(f"Dataset {dataset} has no locations")
+        if source not in locations:
+            raise ValueError(
+                f"Dataset {dataset} is not available at {source}. " f"Available locations: {list(locations.keys())}"
+            )
+        if "path" not in locations[source]:
+            raise ValueError(f"Dataset {dataset} has no path at {source}")
 
-            if source not in locations:
-                raise ValueError(
-                    f"Dataset {dataset} is not available at {source}. Available locations: {list(locations.keys())}"
-                )
-
-            if "path" not in locations[source]:
-                raise ValueError(f"Dataset {dataset} has no path at {source}")
-
-            path = locations[source]["path"]
-
-            return path
-
-        source_path = get_source_path()
+        source_path = locations[source]["path"]
         basename = os.path.basename(source_path)
         target_path = os.path.join(self.target_dir, basename)
+
         if os.path.exists(target_path):
             LOG.error(f"Target path {target_path} already exists, skipping.")
             return
@@ -144,11 +137,11 @@ class TransferDatasetWorker(Worker):
         LOG.info(f"Source path: {source_path}")
         LOG.info(f"Target path: {target_path}")
 
-        if source_path.startswith("s3://"):
-            source_path = source_path + "/" if not source_path.endswith("/") else source_path
+        if source_path.startswith("s3://") and not source_path.endswith("/"):
+            source_path += "/"
 
         if self.dry_run:
-            LOG.warning(f"Would tranfer {source_path} to {target_path} but this is only a dry run.")
+            LOG.warning(f"Would transfer {source_path} to {target_path} but this is only a dry run.")
             return
 
         progress = Progress(task, frequency=10)
