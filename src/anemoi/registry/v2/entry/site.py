@@ -42,102 +42,25 @@ class SiteCatalogueEntryList:
 
 
 class SiteCatalogueEntry:
-    """A single site entry.
+    """A single site entry in the catalogue.
 
     Sites are identified by name.  Their server-side representation
     is derived from ``db.resources`` (quota data posted by site agents)
     and ``sites/<name>.json`` config files on the server.
 
-    This entry class provides convenience accessors for:
-    - bootstrap setup (``setup``)
-    - config fetching (``load_config``)
-    - quota/storage monitoring (``report_storage``)
-    - replica status (``report_datasets``)
-    - auxiliary file downloads (``update_auxiliary``)
+    For local steward operations (monitoring, transfers, etc.) use
+    :class:`~anemoi.registry.v2.site.Site` instead.
     """
 
     collection = COLLECTION
 
-    def __init__(self, name, record=None, base_url=None):
+    def __init__(self, name, record=None):
         self.name = name
         self.record = record
-        self._base_url_override = base_url
 
     @property
     def key(self):
         return self.name
-
-    # ------------------------------------------------------------------
-    # Bootstrap / setup
-    # ------------------------------------------------------------------
-
-    def setup(self, url) -> None:
-        """Run first-time bootstrap for this site.
-
-        Parameters
-        ----------
-        url : str
-            Full API URL, e.g.
-            ``https://server/api/v1/sites/<site>``.
-        """
-        from ..site import Site
-
-        Site.setup(url)
-
-    # ------------------------------------------------------------------
-    # Config
-    # ------------------------------------------------------------------
-
-    def load_config(self, section=None) -> dict:
-        """Load site config (or a specific section).
-
-        Parameters
-        ----------
-        section : str, optional
-            If given, load only this section (e.g. ``"monitoring"``).
-            Otherwise load the full bootstrap.
-        """
-        from ..site import Site
-
-        site = Site.current()
-        if section is None:
-            return site.data
-        return site.task_config(section)
-
-    @property
-    def base_url(self):
-        """Return the configured base URL from bootstrap."""
-        if self._base_url_override:
-            return self._base_url_override
-        from ..site import Site
-
-        return Site.current().base_url
-
-    # ------------------------------------------------------------------
-    # Monitoring
-    # ------------------------------------------------------------------
-
-    def report_storage(self, dry_run=False):
-        """Run quota commands and POST results to the server."""
-        from ..site import Site
-
-        Site.current().report_storage(dry_run=dry_run)
-
-    def report_datasets(self, dry_run=False):
-        """Check replica status locally and POST updates."""
-        from ..site import Site
-
-        Site.current().report_datasets(dry_run=dry_run)
-
-    # ------------------------------------------------------------------
-    # Auxiliary files
-    # ------------------------------------------------------------------
-
-    def update_auxiliary(self, dry_run=False):
-        """Download auxiliary files from remote storage."""
-        from ..site import Site
-
-        Site.current().update_auxiliary(dry_run=dry_run)
 
     # ------------------------------------------------------------------
     # Replicas for this site
@@ -156,7 +79,8 @@ class SiteCatalogueEntry:
     def resources(self):
         """Fetch resource/quota records for this site from the API."""
         rest = Rest()
-        url = f"{self.base_url}/resources"
+        base_url = f"{rest.api_url}/sites/{self.name}"
+        url = f"{base_url}/resources"
         response = rest.session.get(url)
         rest.raise_for_status(response)
         return response.json()
