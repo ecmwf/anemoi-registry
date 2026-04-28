@@ -87,8 +87,12 @@ class StewardCommand(BaseCommand):
         # --- update ---
         p = _sub(
             "update",
-            help="Run local update operations. Runs all updates by default.",
-            description=("Run one or more local update operations. " "Runs all updates when no flag is given."),
+            help="Update local auxiliary files, shared config, and dataset metadata.",
+            description=(
+                "Run one or more local update operations. "
+                "With no flags, all updates are run: auxiliary files, shared config, and dataset metadata. "
+                "Use --auxiliary, --shared-config, or --datasets to run a specific subset."
+            ),
         )
         g = p.add_argument_group()
         g.add_argument("--auxiliary", action="store_true", help="Download auxiliary files for the local site.")
