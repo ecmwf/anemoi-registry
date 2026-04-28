@@ -274,47 +274,17 @@ def release_stalled(filters: dict = None, max_age: int = 600, force: bool = Fals
 def run_worker(action, **kwargs):
     from .delete_dataset import DeleteDatasetWorker
     from .dummy import DummyWorker
-    from .monitor_datasets import MonitorDatasetsWorker
-    from .monitor_storage import MonitorStorageWorker
     from .transfer_dataset import TransferDatasetWorker
-    from .update_auxiliary import UpdateAuxiliaryWorker
 
-    # Apply [worker] defaults from ~/.config/anemoi/steward.json
-    try:
-        from ..site import Site
-
-        bootstrap_worker = Site.current().data.get("worker", {})
-        for k, v in bootstrap_worker.items():
-            if k not in kwargs:
-                kwargs[k] = v
-    except Exception:
-        pass
-
-    workers_config = config().get("workers", {})
-    worker_config = workers_config.get(action, {})
-
-    LOG.debug(kwargs)
-
-    for k, v in worker_config.items():
-        if k not in kwargs:
-            kwargs[k] = v
-
-    LOG.debug(kwargs)
-
-    for k, v in workers_config.items():
-        if isinstance(v, dict):
-            continue
-        if k not in kwargs:
-            kwargs[k] = v
-
-    LOG.info(f"Running worker {action} with kwargs {kwargs}")
-
-    cls = {
+    WORKERS = {
         "transfer-dataset": TransferDatasetWorker,
         "delete-dataset": DeleteDatasetWorker,
-        "monitor-storage": MonitorStorageWorker,
-        "monitor-datasets": MonitorDatasetsWorker,
-        "update-auxiliary": UpdateAuxiliaryWorker,
         "dummy": DummyWorker,
-    }[action]
+    }
+
+    cls = WORKERS.get(action)
+    if cls is None:
+        raise ValueError(f"Unknown worker action {action!r}. Available: {list(WORKERS)}")
+
+    LOG.info(f"Running worker {action} with kwargs {kwargs}")
     cls(**kwargs).run()

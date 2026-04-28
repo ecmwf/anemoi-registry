@@ -155,9 +155,9 @@ class StewardCommand(BaseCommand):
             self._run_dump_config()
 
         elif sub == "monitor":
-            from ..entry.site import SiteCatalogueEntry
+            from ..site import Site
 
-            site = SiteCatalogueEntry(name="local")
+            site = Site.current()
             do_all = not args.storage and not args.datasets
             if args.storage or do_all:
                 site.report_storage(dry_run=args.dry_run)
@@ -197,9 +197,9 @@ class StewardCommand(BaseCommand):
         print(json.dumps(Site.current().data, indent=2))
 
     def _run_update_auxiliary(self, args):
-        from ..entry.site import SiteCatalogueEntry
+        from ..site import Site
 
-        SiteCatalogueEntry(name="local").update_auxiliary(dry_run=args.dry_run)
+        Site.current().update_auxiliary(dry_run=args.dry_run)
 
     def _run_update_shared_config(self, args):
         from ..site import Site
@@ -208,12 +208,12 @@ class StewardCommand(BaseCommand):
 
     def _run_update_datasets(self, args):
         from ..commands.update import zarr_file_from_catalogue
-        from ..entry.site import SiteCatalogueEntry
+        from ..site import Site
 
         def _error(message):
             LOG.error(message)
 
-        site = SiteCatalogueEntry(name="local")
+        site = Site.current()
         for replica in site.replicas():
             path = replica.path
             if not path:
