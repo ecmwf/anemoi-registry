@@ -73,7 +73,7 @@ class TransferDatasetWorker(Worker):
     def __init__(
         self,
         destination,
-        target_dir=".",
+        target_dir,
         published_target_dir=None,
         auto_register=True,
         threads=1,
@@ -82,6 +82,11 @@ class TransferDatasetWorker(Worker):
         **kwargs,
     ):
         super().__init__(**kwargs)
+
+        if not target_dir:
+            raise ValueError(
+                "No target_dir specified. " "The site config for 'transfer-dataset' must include a 'target_dir' key."
+            )
 
         self.destination = destination
         self.source = source
