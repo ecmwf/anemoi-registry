@@ -281,9 +281,9 @@ def run_worker(action, **kwargs):
 
     # Apply [worker] defaults from ~/.config/anemoi/steward.json
     try:
-        from ..site.bootstrap import load_bootstrap
+        from ..site import Site
 
-        bootstrap_worker = load_bootstrap().get("worker", {})
+        bootstrap_worker = Site.current().data.get("worker", {})
         for k, v in bootstrap_worker.items():
             if k not in kwargs:
                 kwargs[k] = v

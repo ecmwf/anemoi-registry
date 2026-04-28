@@ -80,9 +80,9 @@ class SiteCatalogueEntry:
             Full API URL, e.g.
             ``https://server/api/v1/sites/<site>``.
         """
-        from ..site.bootstrap import setup_bootstrap
+        from ..site import Site
 
-        setup_bootstrap(url)
+        Site.setup(url)
 
     # ------------------------------------------------------------------
     # Config
@@ -97,27 +97,21 @@ class SiteCatalogueEntry:
             If given, load only this section (e.g. ``"monitoring"``).
             Otherwise load the full bootstrap.
         """
+        from ..site import Site
+
+        site = Site.current()
         if section is None:
-            from ..site.bootstrap import load_bootstrap
-
-            return load_bootstrap()
-
-        from ..site.config import load_task_config
-
-        return load_task_config(section)
+            return site.data
+        return site.task_config(section)
 
     @property
     def base_url(self):
         """Return the configured base URL from bootstrap."""
         if self._base_url_override:
             return self._base_url_override
-        from ..site.bootstrap import load_bootstrap
+        from ..site import Site
 
-        bootstrap = load_bootstrap()
-        url = bootstrap.get("site_url")
-        if not url:
-            raise ValueError("No site_url in steward.json. Run: anemoi-registry steward --setup URL")
-        return url
+        return Site.current().base_url
 
     # ------------------------------------------------------------------
     # Monitoring
@@ -125,18 +119,15 @@ class SiteCatalogueEntry:
 
     def report_storage(self, dry_run=False):
         """Run quota commands and POST results to the server."""
-        from ..site.monitoring import SiteStatus
-        from ..site.monitoring import load_monitoring_manifest
+        from ..site import Site
 
-        manifest = load_monitoring_manifest()
-        status = SiteStatus(manifest)
-        status.report_storage(self.base_url, is_test=dry_run)
+        Site.current().report_storage(dry_run=dry_run)
 
     def report_datasets(self, dry_run=False):
         """Check replica status locally and POST updates."""
-        from ..site.monitoring import datasets_status
+        from ..site import Site
 
-        datasets_status(self.base_url, is_test=dry_run)
+        Site.current().report_datasets(dry_run=dry_run)
 
     # ------------------------------------------------------------------
     # Auxiliary files
@@ -144,9 +135,9 @@ class SiteCatalogueEntry:
 
     def update_auxiliary(self, dry_run=False):
         """Download auxiliary files from remote storage."""
-        from ..site.update_auxiliary import update_auxiliary
+        from ..site import Site
 
-        update_auxiliary(is_test=dry_run)
+        Site.current().update_auxiliary(dry_run=dry_run)
 
     # ------------------------------------------------------------------
     # Replicas for this site

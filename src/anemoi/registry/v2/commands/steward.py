@@ -172,9 +172,9 @@ class StewardCommand(BaseCommand):
 
         # Apply config override before all other subcommands.
         if args.site:
-            from ..site.bootstrap import apply_config_override
+            from ..site import Site
 
-            apply_config_override(args.site)
+            Site.from_input(args.site).install_as_current()
 
         if sub == "config":
             self._run_dump_config()
@@ -207,19 +207,19 @@ class StewardCommand(BaseCommand):
     # --- Helpers ---
 
     def _run_setup(self, args):
-        from ..site.bootstrap import setup_bootstrap
+        from ..site import Site
 
         if args.dry_run:
             LOG.info(f"Would set up bootstrap config from: {args.site}")
             return
-        setup_bootstrap(args.site)
+        Site.setup(args.site)
 
     def _run_dump_config(self):
         import json
 
-        from ..site.bootstrap import load_bootstrap
+        from ..site import Site
 
-        print(json.dumps(load_bootstrap(), indent=2))
+        print(json.dumps(Site.current().data, indent=2))
 
     def _run_update_auxiliary(self, args):
         from ..entry.site import SiteCatalogueEntry
@@ -227,9 +227,9 @@ class StewardCommand(BaseCommand):
         SiteCatalogueEntry(name="local").update_auxiliary(dry_run=args.dry_run)
 
     def _run_update_shared_config(self):
-        from ..site.config import fetch_and_save_shared_config
+        from ..site import Site
 
-        fetch_and_save_shared_config()
+        Site.current().fetch_and_save_shared_config()
 
     def _run_update_datasets(self, args):
         from ..commands.update import zarr_file_from_catalogue
@@ -249,7 +249,7 @@ class StewardCommand(BaseCommand):
 
     def _run_by_filter(self, args):
         """Resolve action from catalogue and run the appropriate worker."""
-        from ..site.bootstrap import load_bootstrap
+        from ..site import Site
         from ..tasks import TaskCatalogueEntryList
 
         filters = list_to_dict(args.filters) if args.filters else {}
@@ -261,8 +261,8 @@ class StewardCommand(BaseCommand):
         action = task.record["action"]
         LOG.info(f"Resolved action={action!r} for task {task.key}")
 
-        bootstrap = load_bootstrap()
-        site_name = bootstrap.get("name")
+        site = Site.current()
+        site_name = site.name
 
         # Sanity: when a uuid is given, the picked task must target this site.
         if site_name and "uuid" in filters:
@@ -276,7 +276,7 @@ class StewardCommand(BaseCommand):
                     f"Task {task.key} platform={task.record.get('platform')!r} " f"does not match site {site_name!r}"
                 )
 
-        worker_kwargs = {k: v for k, v in bootstrap.get("tasks", {}).get(action, {}).items() if k != "filter"}
+        worker_kwargs = {k: v for k, v in site.task_config_or_empty(action).items() if k != "filter"}
 
         # Site is implicit — fill in destination/platform from the resolved
         # bootstrap name (already extracted in _apply_config_override).
