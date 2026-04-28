@@ -172,7 +172,9 @@ class StewardCommand(BaseCommand):
 
         # Apply config override before all other subcommands.
         if args.site:
-            self._apply_config_override(args.site)
+            from ..site.bootstrap import apply_config_override
+
+            apply_config_override(args.site)
 
         if sub == "config":
             self._run_dump_config()
@@ -203,41 +205,6 @@ class StewardCommand(BaseCommand):
             self._run_release(args)
 
     # --- Helpers ---
-
-    def _site_name_to_url(self, site):
-        from ..rest import Rest
-
-        return f"{Rest().api_url}/sites/{site}/config"
-
-    def _apply_config_override(self, config):
-        """Load config from a site name, URL, or file and set it as the in-process bootstrap override."""
-        from ..site.bootstrap import set_bootstrap_override
-
-        if config.startswith("http://") or config.startswith("https://"):
-            from ..rest import Rest
-
-            data = Rest().get_url(config)
-        elif not __import__("pathlib").Path(config).exists():
-            # Not a URL and not an existing file — treat as a site name.
-            url = self._site_name_to_url(config)
-            LOG.info(f"Resolving site name '{config}' to config URL: {url}")
-            from ..rest import Rest
-
-            data = Rest().get_url(url)
-        else:
-            import json
-            from pathlib import Path
-
-            path = Path(config)
-            if path.suffix == ".toml":
-                import tomllib
-
-                with open(path, "rb") as f:
-                    data = tomllib.load(f)
-            else:
-                with open(path) as f:
-                    data = json.load(f)
-        set_bootstrap_override(data)
 
     def _run_setup(self, args):
         from ..site.bootstrap import setup_bootstrap
@@ -294,11 +261,30 @@ class StewardCommand(BaseCommand):
         action = task.record["action"]
         LOG.info(f"Resolved action={action!r} for task {task.key}")
 
-        try:
-            task_config = load_bootstrap().get("tasks", {}).get(action, {})
-        except Exception:
-            task_config = {}
-        worker_kwargs = {k: v for k, v in task_config.items() if k != "filter"}
+        bootstrap = load_bootstrap()
+        site_name = bootstrap.get("name")
+
+        # Sanity: when a uuid is given, the picked task must target this site.
+        if site_name and "uuid" in filters:
+            if action == "transfer-dataset":
+                assert task.record.get("destination") == site_name, (
+                    f"Task {task.key} destination={task.record.get('destination')!r} "
+                    f"does not match site {site_name!r}"
+                )
+            elif action == "delete-dataset":
+                assert task.record.get("platform") == site_name, (
+                    f"Task {task.key} platform={task.record.get('platform')!r} " f"does not match site {site_name!r}"
+                )
+
+        worker_kwargs = {k: v for k, v in bootstrap.get("tasks", {}).get(action, {}).items() if k != "filter"}
+
+        # Site is implicit — fill in destination/platform from the resolved
+        # bootstrap name (already extracted in _apply_config_override).
+        if site_name:
+            if action == "transfer-dataset":
+                worker_kwargs.setdefault("destination", site_name)
+            elif action == "delete-dataset":
+                worker_kwargs.setdefault("platform", site_name)
 
         if args.threads is not None:
             worker_kwargs["threads"] = args.threads

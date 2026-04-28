@@ -58,6 +58,48 @@ def load_bootstrap() -> dict:
         return json.load(f)
 
 
+def site_name_to_url(site: str) -> str:
+    """Return the canonical config URL for a given site name."""
+    return f"{Rest().api_url}/sites/{site}/config"
+
+
+def apply_config_override(config: str) -> None:
+    """Resolve a site name, URL, or local file to a site config and install it as the in-process override.
+
+    Also stamps ``data["name"]`` with the resolved site name (when
+    derivable from the input) so downstream code doesn't have to
+    re-resolve it.
+    """
+    import re
+
+    name = None
+    if config.startswith("http://") or config.startswith("https://"):
+        data = Rest().get_url(config)
+        m = re.search(r"/sites/([^/]+)/config", config)
+        if m:
+            name = m.group(1)
+    elif not Path(config).exists():
+        # Not a URL and not an existing file — treat as a site name.
+        name = config
+        url = site_name_to_url(config)
+        LOG.info(f"Resolving site name '{config}' to config URL: {url}")
+        data = Rest().get_url(url)
+    else:
+        path = Path(config)
+        if path.suffix == ".toml":
+            import tomllib
+
+            with open(path, "rb") as f:
+                data = tomllib.load(f)
+        else:
+            with open(path) as f:
+                data = json.load(f)
+
+    if name and "name" not in data:
+        data["name"] = name
+    set_bootstrap_override(data)
+
+
 def update_steward_settings(**kwargs):
     """Partial-update steward.json with the given key=value pairs.
 

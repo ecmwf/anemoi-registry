@@ -7,8 +7,10 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 
+from .bootstrap import apply_config_override
 from .bootstrap import load_bootstrap
 from .bootstrap import setup_bootstrap
+from .bootstrap import site_name_to_url
 from .config import get_config_dir
 from .config import load_task_config
 from .monitoring import SiteStatus
@@ -17,8 +19,10 @@ from .monitoring import load_monitoring_manifest
 from .update_auxiliary import update_auxiliary
 
 __all__ = [
+    "apply_config_override",
     "load_bootstrap",
     "setup_bootstrap",
+    "site_name_to_url",
     "get_config_dir",
     "load_task_config",
     "SiteStatus",
