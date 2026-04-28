@@ -192,9 +192,7 @@ class Site:
     def base_url(self) -> str:
         url = self.site_url
         if not url:
-            raise ValueError(
-                f"No site_url in {BOOTSTRAP_PATH}. Run: anemoi-registry steward --setup URL"
-            )
+            raise ValueError(f"No site_url in {BOOTSTRAP_PATH}. Run: anemoi-registry steward --setup URL")
         return url
 
     # -------------------------------------------------------------------
@@ -205,9 +203,7 @@ class Site:
         """Return ``tasks.<action>`` from the bootstrap (raises if missing)."""
         config = self.data.get("tasks", {}).get(action)
         if config is None:
-            raise ValueError(
-                f"No tasks.{action} in {BOOTSTRAP_PATH}\nRe-run: anemoi-registry steward --setup URL"
-            )
+            raise ValueError(f"No tasks.{action} in {BOOTSTRAP_PATH}\nRe-run: anemoi-registry steward --setup URL")
         return config
 
     def task_config_or_empty(self, action: str) -> dict:
@@ -230,9 +226,7 @@ class Site:
         site_url = self.site_url
         manifest = self.data.get("tasks", {}).get("monitor-storage")
         if not manifest:
-            raise ValueError(
-                "No tasks.monitor-storage in site config\nRe-run: anemoi-registry steward --setup URL"
-            )
+            raise ValueError("No tasks.monitor-storage in site config\nRe-run: anemoi-registry steward --setup URL")
 
         config_server_url = self.data.get("server_url")
         if config_server_url and site_url and not site_url.startswith(config_server_url):
@@ -323,26 +317,25 @@ class Site:
         self._update_steward_settings(**config)
         print(f"Saved to {BOOTSTRAP_PATH}")
 
-    def fetch_and_save_shared_config(self) -> None:
-        """Fetch the shared config from the server and write it to ``site_config_path``."""
-        site_url = self.site_url
+    def fetch_and_save_shared_config(self, dry_run: bool = False) -> None:
+        """Write the shared config sections from ``tasks.update-shared-config`` to disk."""
         shared_section = self.data.get("tasks", {}).get("update-shared-config", {})
         site_config_path = shared_section.get("site_config_path")
         if not site_config_path:
-            raise ValueError(
-                "No update-shared-config.site_config_path in steward.json\nRun --setup first."
-            )
+            raise ValueError("No update-shared-config.site_config_path in site config\nRun --setup first.")
 
         config_dir = Path(os.path.expanduser(site_config_path)).resolve()
-        config_dir.mkdir(parents=True, exist_ok=True)
 
-        url = f"{site_url}/shared/config"
-        print(f"Fetching shared config from {url}")
-        shared_config = Rest().get_url(url)
-
+        # Write each sub-key (except site_config_path itself) as a separate JSON file.
         saved_paths: list[Path] = []
-        for key, section_config in shared_config.items():
+        for key, section_config in shared_section.items():
+            if key == "site_config_path":
+                continue
             section_path = config_dir / f"{key}.json"
+            if dry_run:
+                print(f"  Dry run: would save {section_path}")
+                continue
+            config_dir.mkdir(parents=True, exist_ok=True)
             with open(section_path, "w") as f:
                 json.dump(section_config, f, indent=2)
             print(f"  Saved to {section_path}")
@@ -398,9 +391,7 @@ class Site:
                 if method in PARSERS:
                     print(f"   OK: monitor-storage quota.method '{method}' is supported")
                 else:
-                    errors.append(
-                        f"monitor-storage quota.method '{method}' not in {list(PARSERS.keys())}"
-                    )
+                    errors.append(f"monitor-storage quota.method '{method}' not in {list(PARSERS.keys())}")
                     print(f"   FAIL: Unsupported quota.method '{method}'")
 
             # Check update-shared-config path if present
@@ -411,9 +402,7 @@ class Site:
                 if config_path.exists():
                     print(f"   OK: update-shared-config.site_config_path exists: {config_path}")
                 else:
-                    warnings.append(
-                        f"update-shared-config.site_config_path does not exist: {config_path}"
-                    )
+                    warnings.append(f"update-shared-config.site_config_path does not exist: {config_path}")
                     print(f"   WARN: Path does not exist (will be created): {config_path}")
 
         print(f"\n   POST resources : {site_url}/resources")
@@ -512,9 +501,7 @@ class Site:
                     LOG.info(f"Replica {dataset} at {path} has changed last accessed time.")
                     do_update["last_accessed"] = last_accessed
             except Exception:
-                LOG.warning(
-                    f"Could not determine last accessed time for {dataset} at {path}. Skipping."
-                )
+                LOG.warning(f"Could not determine last accessed time for {dataset} at {path}. Skipping.")
 
             if not do_update:
                 continue
