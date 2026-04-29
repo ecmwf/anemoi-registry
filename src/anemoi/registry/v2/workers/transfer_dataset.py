@@ -142,9 +142,6 @@ class TransferDatasetWorker(Worker):
         LOG.info(f"Source path: {source_path}")
         LOG.info(f"Target path: {target_path}")
 
-        if source_path.startswith("s3://") and not source_path.endswith("/"):
-            source_path += "/"
-
         if self.dry_run:
             LOG.warning(f"Would transfer {source_path} to {target_path} but this is only a dry run.")
             return
