@@ -247,8 +247,8 @@ class StewardCommand(BaseCommand):
                     f"does not match site {site_name!r}"
                 )
             elif action == "delete-dataset":
-                assert task.record.get("platform") == site_name, (
-                    f"Task {task.key} platform={task.record.get('platform')!r} " f"does not match site {site_name!r}"
+                assert task.record.get("location") == site_name, (
+                    f"Task {task.key} location={task.record.get('location')!r} " f"does not match site {site_name!r}"
                 )
 
         worker_kwargs = {k: v for k, v in site.task_config_or_empty(action).items() if k != "filter"}
@@ -259,7 +259,7 @@ class StewardCommand(BaseCommand):
             if action == "transfer-dataset":
                 worker_kwargs.setdefault("destination", site_name)
             elif action == "delete-dataset":
-                worker_kwargs.setdefault("platform", site_name)
+                worker_kwargs.setdefault("location", site_name)
 
         if args.threads is not None:
             worker_kwargs["threads"] = args.threads

@@ -23,47 +23,44 @@ class DeleteDatasetWorker(Worker):
 
     def __init__(
         self,
-        platform,
+        location,
         filter_tasks={},
         **kwargs,
     ):
         super().__init__(**kwargs)
 
-        if not platform:
-            raise ValueError("No destination platform specified")
+        if not location:
+            raise ValueError("No location specified")
 
-        self.platform = platform
+        self.location = location
         self.filter_tasks.update(filter_tasks)
-
-        # TODO: location and platform should be made consistent in the catalogue
-        self.filter_tasks["location"] = self.platform
+        self.filter_tasks["location"] = self.location
 
     def worker_process_task(self, task):
-        platform, dataset = self.parse_task(task)
+        location, dataset = self.parse_task(task)
         entry = DatasetCatalogueEntry(key=dataset)
-        assert platform == self.platform, (platform, self.platform)
+        assert location == self.location, (location, self.location)
 
         if self.dry_run:
             LOG.warning(
-                f"Would delete {entry.record['locations'][platform]['path']} from '{platform}' but this is only a dry run."
+                f"Would delete {entry.record['locations'][location]['path']} from '{location}' but this is only a dry run."
             )
             return
 
-        entry.delete_location(platform)
+        entry.delete_location(location)
 
     @classmethod
     def parse_task(cls, task):
         assert task.record["action"] == "delete-dataset", task.record["action"]
 
-        # TODO: location and platform should be made consistent in the catalogue
-        platform, dataset = super().parse_task(task, "location", "dataset")
+        location, dataset = super().parse_task(task, "location", "dataset")
 
-        if "/" in platform:
-            raise ValueError(f"platform {platform} must not contain '/', this is a platform name")
-        if "." in platform:
-            raise ValueError(f"platform {platform} must not contain '.', this is a platform name")
+        if "/" in location:
+            raise ValueError(f"Location {location} must not contain '/', this is a platform name")
+        if "." in location:
+            raise ValueError(f"Location {location} must not contain '.', this is a platform name")
 
         if "." in dataset:
             raise ValueError(f"The dataset {dataset} must not contain a '.', this is the name of the dataset.")
 
-        return platform, dataset
+        return location, dataset

@@ -193,8 +193,7 @@ class ReplicaCatalogueEntry:
         """
         uuid = TaskCatalogueEntryList().add_new_task(
             action="delete-dataset",
-            source="cli",
-            destination=self.site,
+            location=self.site,
             dataset=self.dataset_name,
         )
         return uuid
