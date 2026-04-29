@@ -111,7 +111,7 @@ class Worker:
             LOG.error(f"Error for task {task}: {e}")
             LOG.exception("Exception occurred during task processing:", exc_info=e)
             self.release_ownership(task)
-            return
+            raise
         LOG.info(f"Task {uuid} completed.")
         self.unregister(task)
         LOG.info(f"Task {uuid} deleted.")

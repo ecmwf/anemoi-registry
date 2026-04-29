@@ -142,6 +142,11 @@ class TransferDatasetWorker(Worker):
         LOG.info(f"Source path: {source_path}")
         LOG.info(f"Target path: {target_path}")
 
+        # S3 zarr stores are folders — the trailing slash tells the
+        # anemoi-utils copy dispatcher to use transfer_folder.
+        if source_path.startswith("s3://") and not source_path.endswith("/"):
+            source_path += "/"
+
         if self.dry_run:
             LOG.warning(f"Would transfer {source_path} to {target_path} but this is only a dry run.")
             return
