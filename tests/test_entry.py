@@ -1,4 +1,4 @@
-# (C) Copyright 2024 Anemoi contributors.
+# (C) Copyright 2026 Anemoi contributors.
 #
 # This software is licensed under the terms of the Apache Licence Version 2.0
 # which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
@@ -8,7 +8,7 @@
 # nor does it submit to any jurisdiction.
 
 
-from anemoi.registry.entry import CatalogueEntry
+from anemoi.registry.v1.entry import resolve_path
 
 
 def test_resolve_path():
@@ -20,7 +20,7 @@ def test_resolve_path():
         (".metadata.updated", "/metadata/updated"),
         ("/metadata/key.with.dot", "/metadata/key.with.dot"),
     ]:
-        actual = CatalogueEntry.resolve_path(x, check=False)
+        actual = resolve_path(x, check=False)
         assert actual == y, "%s -> %s, expected: %s" % (x, actual, y)
-        actual = CatalogueEntry.resolve_path(actual, check=False)
+        actual = resolve_path(actual, check=False)
         assert actual == y, "%s -> %s, expected: %s" % (actual, actual, y)

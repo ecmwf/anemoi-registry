@@ -19,8 +19,30 @@ framework it seeks to handle many of the complexities that
 meteorological organisations will share, allowing them to easily train
 models from existing recipes but with their own data.
 
-This package provides a series of utility functions for used by the rest
-of the *Anemoi* packages.
+The ``anemoi-registry`` package provides a command-line tool and Python
+API to interact with the Anemoi catalogue — a centralised registry for
+datasets, trained models (weights), experiments, and training runs. It
+also includes data-management tooling for HPC site administrators to
+automate transfers, deletions, and storage monitoring.
+
+**Overview**
+
+The package provides:
+
+- **Dataset management** — register, upload, and track datasets across
+  multiple sites.
+- **Model (weights) management** — upload and download trained model
+  checkpoints.
+- **Experiment and training tracking** — register experiments and
+  training runs, attach weights, plots, and archive metadata.
+- **Site administration** — site-level tooling for automated dataset
+  transfers, deletions, storage monitoring, and quota reporting.
+
+.. _getting-started:
+
+*****************************
+ Getting started
+*****************************
 
 -  :doc:`installing`
 -  :doc:`configuring`
@@ -29,25 +51,51 @@ of the *Anemoi* packages.
 .. toctree::
    :maxdepth: 1
    :hidden:
+   :caption: Getting started
 
    installing
    configuring
    naming-conventions
 
-**Command line tool**
+.. _how-to:
 
--  :doc:`cli/datasets`
--  :doc:`cli/weights`
--  :doc:`cli/list`
+*****************************
+ How-to guides
+*****************************
+
+-  :doc:`howto/dataset`
+-  :doc:`howto/models`
 
 .. toctree::
    :maxdepth: 1
    :hidden:
-   :caption: Command line tool
+   :caption: How-to guides
 
-   cli/datasets
-   cli/weights
-   cli/list
+   howto/dataset
+   howto/models
+
+.. _workflow-tools:
+
+*****************************
+ Workflow & admin tools
+*****************************
+
+-  :doc:`admin/experiments`
+-  :doc:`admin/training`
+-  :doc:`admin/tasks`
+-  :doc:`admin/update`
+-  :doc:`data-management/steward`
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Workflow & admin tools
+
+   admin/experiments
+   admin/training
+   admin/tasks
+   admin/update
+   data-management/steward
 
 *****************
  Anemoi packages

@@ -1,4 +1,4 @@
-# (C) Copyright 2024 Anemoi contributors.
+# (C) Copyright 2026 Anemoi contributors.
 #
 # This software is licensed under the terms of the Apache Licence Version 2.0
 # which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
@@ -9,29 +9,44 @@
 
 # ruff: noqa: E402
 
+import importlib
 import logging
+import os
 
 LOG = logging.getLogger(__name__)
 
+_CLI_VERSION = os.environ.get("ANEMOI_REGISTRY_CLI_VERSION", "1")
 
-def config(*args, **kwargs):
-    from anemoi.registry.configuration import CONF
+if _CLI_VERSION not in ("1", "2"):
+    raise ValueError(
+        f"Invalid ANEMOI_REGISTRY_CLI_VERSION={_CLI_VERSION!r}. " "Supported values: '1' (legacy, default), '2' (new)."
+    )
 
-    return CONF(*args, **kwargs)
+_active = importlib.import_module(f".v{_CLI_VERSION}", __name__)
+
+config = _active.config
+
+CatalogueEntryNotFound = _active.CatalogueEntryNotFound
+Dataset = _active.Dataset
+DatasetsList = _active.DatasetsList
+Experiment = _active.Experiment
+ExperimentsList = _active.ExperimentsList
+Weights = _active.Weights
+WeightsList = _active.WeightsList
+Task = _active.Task
+TasksList = _active.TasksList
+
+# v2-only entry types (Site, Replica)
+if _CLI_VERSION == "2":
+    Site = _active.Site
+    SitesList = _active.SitesList
+    Replica = _active.Replica
+    ReplicasList = _active.ReplicasList
 
 
 def publish_dataset(*args, **kwargs):
     return Dataset.publish(*args, **kwargs)
 
-
-from .entry.dataset import DatasetCatalogueEntry as Dataset
-from .entry.dataset import DatasetCatalogueEntryList as DatasetsList
-from .entry.experiment import ExperimentCatalogueEntry as Experiment
-from .entry.experiment import ExperimentCatalogueEntryList as ExperimentsList
-from .entry.weights import WeightCatalogueEntry as Weights
-from .entry.weights import WeightsCatalogueEntryList as WeightsList
-from .tasks import TaskCatalogueEntry as Task
-from .tasks import TaskCatalogueEntryList as TasksList
 
 try:
     # NOTE: the `_version.py` file must not be present in the git repository
@@ -43,13 +58,22 @@ except ImportError:  # pragma: no cover
 
 
 __all__ = [
-    "Weights",
-    "WeightsList",
-    "Experiment",
-    "ExperimentsList",
+    "CatalogueEntryNotFound",
     "Dataset",
     "DatasetsList",
+    "Experiment",
+    "ExperimentsList",
     "Task",
     "TasksList",
+    "Weights",
+    "WeightsList",
     "config",
 ]
+
+if _CLI_VERSION == "2":
+    __all__ += [
+        "Replica",
+        "ReplicasList",
+        "Site",
+        "SitesList",
+    ]
