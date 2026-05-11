@@ -144,9 +144,7 @@ class TaskCatalogueEntry(CatalogueEntry):
             )
         except HTTPError as exc:
             if exc.response is not None and exc.response.status_code == 400:
-                raise TaskNotQueuedError(
-                    f"Task {self.key!r} is not in 'queued' state"
-                ) from exc
+                raise TaskNotQueuedError(f"Task {self.key!r} is not in 'queued' state") from exc
             raise
 
     def release_ownership(self):
