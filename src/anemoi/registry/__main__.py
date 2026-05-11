@@ -1,4 +1,4 @@
-# (C) Copyright 2024 Anemoi contributors.
+# (C) Copyright 2026 Anemoi contributors.
 #
 # This software is licensed under the terms of the Apache Licence Version 2.0
 # which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
@@ -7,11 +7,17 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 
+import importlib
+import os
+
 from anemoi.utils.cli import cli_main
 from anemoi.utils.cli import make_parser
 
 from . import __version__
-from .commands import COMMANDS
+
+_CLI_VERSION = os.environ.get("ANEMOI_REGISTRY_CLI_VERSION", "1")
+_commands_module = importlib.import_module(f".v{_CLI_VERSION}.commands", "anemoi.registry")
+COMMANDS = _commands_module.COMMANDS
 
 
 # For read-the-docs

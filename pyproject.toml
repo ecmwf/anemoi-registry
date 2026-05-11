@@ -42,6 +42,8 @@ dependencies = [ "anemoi-datasets>=0.5.28", "anemoi-utils[s3,text]>=0.4.39", "js
 optional-dependencies.all = [
 ]
 
+optional-dependencies.complete = [ "argcomplete" ]
+
 optional-dependencies.dev = [
   "nbsphinx",
   "pandoc",
@@ -63,6 +65,7 @@ optional-dependencies.s3 = [  ]
 
 optional-dependencies.tests = [
   "pytest",
+  "responses",
 ]
 
 urls.Documentation = "https://anemoi-registry.readthedocs.io/"
@@ -72,7 +75,15 @@ urls.Repository = "https://github.com/ecmwf/anemoi-registry/"
 scripts.anemoi-registry = "anemoi.registry.__main__:main_PYTHON_ARGCOMPLETE_OK"
 
 [tool.setuptools.package-data]
-"anemoi.registry" = [ "*.yaml" ]
+"anemoi.registry" = [ "*.yaml", "v2/site/scripts/*.sh" ]
 
 [tool.setuptools_scm]
 version_file = "src/anemoi/registry/_version.py"
+
+[tool.pytest.ini_options]
+markers = [
+  "integration: requires live test server (ANEMOI_CATALOGUE=TEST)",
+  "cli: tests running the CLI via subprocess",
+  "s3: requires S3 credentials and test buckets",
+]
+testpaths = [ "tests" ]
