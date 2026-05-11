@@ -149,7 +149,7 @@ class StewardCommand(BaseCommand):
         if args.site:
             from ..site import Site
 
-            Site.from_input(args.site).install_as_current()
+            Site.from_input(args.site).activate()
 
         if sub == "config":
             self._run_dump_config()

@@ -16,7 +16,7 @@ all operations that act on the local site:
 - factories (``from_input`` / ``from_name`` / ``from_url`` / ``from_file``
   / ``from_disk``) for resolving a site name, URL, or file path to a
   bootstrap dict;
-- ``install_as_current()`` / ``current()`` for a process-wide active site;
+- ``activate()`` / ``current()`` for a process-wide active site;
 - ``task_config(action)`` / ``monitoring_manifest()`` / ``config_dir()`` for
   reading sections of the bootstrap;
 - ``setup()`` / ``fetch_and_save_steward_config()`` /
@@ -99,13 +99,17 @@ class Site:
 
     Wraps the steward bootstrap dict and exposes all operations that act
     on the local site. Construct via the ``from_*`` factories and (for the
-    run-time current site) install with :py:meth:`install_as_current`.
+    run-time current site) install with :py:meth:`activate`.
     """
 
     _current: "Site | None" = None
 
-    def __init__(self, data: dict):
-        self.data = data
+    def __init__(self, data: dict | str):
+        if isinstance(data, str):
+            other = type(self).from_input(data)
+            self.data = other.data
+        else:
+            self.data = data
 
     # -------------------------------------------------------------------
     # Factories
@@ -172,7 +176,7 @@ class Site:
             cls._current = cls.from_disk()
         return cls._current
 
-    def install_as_current(self) -> None:
+    def activate(self) -> None:
         """Install ``self`` as the process-wide current site."""
         type(self)._current = self
 
@@ -290,7 +294,7 @@ class Site:
         print(f"  site_url = {site_url}")
 
         site = cls.from_disk()
-        site.install_as_current()
+        site.activate()
 
         print()
         print("Checking server setup...")
@@ -303,7 +307,7 @@ class Site:
         site.fetch_and_save_steward_config()
 
         site = cls.from_disk()
-        site.install_as_current()
+        site.activate()
         return site
 
     def fetch_and_save_steward_config(self) -> None:

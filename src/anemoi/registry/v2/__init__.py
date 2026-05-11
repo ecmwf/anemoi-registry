@@ -29,6 +29,7 @@ from .entry.replica import ReplicaCatalogueEntry as Replica
 from .entry.replica import ReplicaCatalogueEntryList as ReplicasList
 from .entry.site import SiteCatalogueEntry as Site
 from .entry.site import SiteCatalogueEntryList as SitesList
+from .site import Site as LocalSite
 from .entry.weights import WeightCatalogueEntry as Weights
 from .entry.weights import WeightsCatalogueEntryList as WeightsList
 from .tasks import TaskCatalogueEntry as Task
@@ -43,6 +44,7 @@ __all__ = [
     "Replica",
     "ReplicasList",
     "Site",
+    "LocalSite",
     "SitesList",
     "Task",
     "TasksList",
