@@ -22,6 +22,10 @@ from .utils import list_to_dict
 LOG = logging.getLogger(__name__)
 
 
+class TaskNotQueuedError(RuntimeError):
+    """Raised when take_ownership() fails because the task is not in 'queued' state."""
+
+
 class TaskCatalogueEntryList:
     """List of task catalogue entries."""
 
@@ -126,15 +130,24 @@ class TaskCatalogueEntry(CatalogueEntry):
         return self.unprotected_unregister()
 
     def take_ownership(self):
+        from requests import HTTPError
+
         trace = trace_info()
         trace["timestamp"] = datetime.datetime.now().isoformat()
-        return self.patch(
-            [
-                {"op": "test", "path": "/status", "value": "queued"},
-                {"op": "replace", "path": "/status", "value": "running"},
-                {"op": "add", "path": "/worker", "value": trace},
-            ]
-        )
+        try:
+            return self.patch(
+                [
+                    {"op": "test", "path": "/status", "value": "queued"},
+                    {"op": "replace", "path": "/status", "value": "running"},
+                    {"op": "add", "path": "/worker", "value": trace},
+                ]
+            )
+        except HTTPError as exc:
+            if exc.response is not None and exc.response.status_code == 400:
+                raise TaskNotQueuedError(
+                    f"Task {self.key!r} is not in 'queued' state"
+                ) from exc
+            raise
 
     def release_ownership(self):
         self.patch(

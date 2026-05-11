@@ -34,6 +34,7 @@ from .entry.weights import WeightsCatalogueEntryList as WeightsList
 from .site import Site as LocalSite
 from .tasks import TaskCatalogueEntry as Task
 from .tasks import TaskCatalogueEntryList as TasksList
+from .tasks import TaskNotQueuedError
 
 __all__ = [
     "CatalogueEntryNotFound",
@@ -47,6 +48,7 @@ __all__ = [
     "LocalSite",
     "SitesList",
     "Task",
+    "TaskNotQueuedError",
     "TasksList",
     "Weights",
     "WeightsList",

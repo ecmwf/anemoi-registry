@@ -35,6 +35,7 @@ Weights = _active.Weights
 WeightsList = _active.WeightsList
 Task = _active.Task
 TasksList = _active.TasksList
+TaskNotQueuedError = _active.TaskNotQueuedError
 
 # v2-only entry types (Site, Replica)
 if _CLI_VERSION == "2":
@@ -65,6 +66,7 @@ __all__ = [
     "Experiment",
     "ExperimentsList",
     "Task",
+    "TaskNotQueuedError",
     "TasksList",
     "Weights",
     "WeightsList",
