@@ -56,7 +56,7 @@ class Update(Command):
 
         command_parser.add_argument("--dry-run", help="Dry run.", action="store_true")
         command_parser.add_argument("--force", help="Force.", action="store_true")
-        command_parser.add_argument("--update", help="Update.", choices=["all", "origins"])
+        command_parser.add_argument("--update", help="Update.", choices=["all", "origins", "variables_metadata"])
         command_parser.add_argument("--ignore", help="Ignore some trivial errors.", action="store_true")
         command_parser.add_argument("--resume", help="Resume from progress", action="store_true")
         command_parser.add_argument("--progress", help="Progress file")
@@ -128,7 +128,6 @@ def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore,
     """Update the catalogue entry a recipe file."""
 
     from anemoi.datasets import open_dataset
-    from anemoi.datasets.create import creator_factory
 
     LOG.info(f"Updating catalogue entry from recipe: {path} {dry_run=} {force=} {update=}")
 
@@ -161,6 +160,7 @@ def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore,
         raise
 
     updated = entry.record["metadata"].get("updated", 0)
+    constants = None
 
     if "recipe" in entry.record["_original"]["metadata"]:
 
@@ -233,6 +233,8 @@ def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore,
     for new_key in ("variables_metadata", "origins"):
         LOG.info("Checking %s for %s", name, new_key)
         if new_key not in entry.record["metadata"] or force or update == "all" or update == new_key:
+            from anemoi.datasets.create.tasks import run_task
+
             LOG.info("%s, setting `%s`  🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥", name, new_key)
 
             dir = os.path.join(workdir, f"anemoi-registry-commands-update-{time.time()}")
@@ -241,7 +243,7 @@ def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore,
             try:
                 tmp = os.path.join(dir, "tmp.zarr")
 
-                creator_factory("init", config=path, path=tmp, overwrite=True).run()
+                run_task("init", recipe=path, path=tmp, overwrite=True)
 
                 with open(f"{tmp}/.zattrs") as f:
                     attrs = yaml.safe_load(f)
@@ -251,10 +253,19 @@ def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore,
                     LOG.warning("%s does not have a %s attribute", tmp, new_key)
                     continue
 
+                LOG.info("Setting %s %s", new_key, name)
+
+                # Make sure we did not lose any information, and if we did, log it and add it back in the new value
+                if new_key == "variables_metadata" and constants is not None:
+                    for k, v in new_value.items():
+                        if k in constants and v.get("constant_in_time") is not True:
+                            v["constant_in_time"] = True
+                            LOG.info(f"Setting {k} constant_in_time to True")
+
                 if debug:
                     with open(f"{name}.{new_key}.json", "w") as f:
                         print(json.dumps(new_value, indent=2), file=f)
-                LOG.info("Setting %s %s", new_key, name)
+
                 entry_set_value(f"/metadata/{new_key}", new_value)
                 entry_set_value("/metadata/updated", updated + 1)
 
