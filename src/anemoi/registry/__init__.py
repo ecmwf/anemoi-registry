@@ -40,7 +40,6 @@ TaskNotQueuedError = _active.TaskNotQueuedError
 # v2-only entry types (Site, Replica)
 if _CLI_VERSION == "2":
     Site = _active.Site
-    LocalSite = _active.LocalSite
     SitesList = _active.SitesList
     Replica = _active.Replica
     ReplicasList = _active.ReplicasList
@@ -75,7 +74,6 @@ __all__ = [
 
 if _CLI_VERSION == "2":
     __all__ += [
-        "LocalSite",
         "Replica",
         "ReplicasList",
         "Site",
