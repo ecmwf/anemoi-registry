@@ -368,3 +368,66 @@ COMMAND_BUILDERS = {
     "df": build_commands_df,
     "bsc_quota": build_commands_bsc_quota,
 }
+
+
+# ---- HTTP-based fetchers (non-subprocess) ----
+
+
+def fetch_s3_quota(quota_config: dict) -> list[dict]:
+    """Fetch S3 account quota via HTTP API (EWC/Swift-compatible).
+
+    Credentials are read from ``~/.config/anemoi/settings.secrets.toml``
+    under the section ``[object-storage.<bucket-name>]``, where
+    ``<bucket-name>`` is the path with the ``s3://`` prefix stripped, e.g.:
+
+        [object-storage.ml-datasets]
+        quota_url = "https://..."
+        quota_token = "..."
+    """
+    import requests
+    from anemoi.utils.config import load_config
+
+    config = load_config(secrets=["quota_token"])
+
+    records = []
+    for bucket in quota_config.get("buckets", [{"path": "s3://"}]):
+        path = bucket["path"]
+        bucket_name = path.removeprefix("s3://") or "default"
+
+        bucket_config = config.get("object-storage", {}).get(bucket_name, {})
+        url = bucket_config.get("quota_url")
+        token = bucket_config.get("quota_token")
+        if not url:
+            raise ValueError(
+                f"No quota_url found for [object-storage.{bucket_name}] in settings.secrets.toml"
+            )
+        if not token:
+            raise ValueError(
+                f"No quota_token found for [object-storage.{bucket_name}] in settings.secrets.toml"
+            )
+
+        response = requests.get(url, headers={"Authorization": f"Bearer {token}"})
+        response.raise_for_status()
+        data = response.json()
+
+        records.append(
+            {
+                "path": path,
+                "resource": {
+                    "account": data.get("Account", "unknown"),
+                    "path": path,
+                },
+                "bytes": int(data["Bytes"]),
+                "bytes_quota": int(data["properties"]["quota-bytes"]),
+                "objects": int(data["Objects"]),
+                "objects_quota": int(data["properties"]["quota-count"]),
+                "extra": {"containers": int(data["Containers"])},
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+    return records
+
+
+FETCHERS = {
+    "s3-api": fetch_s3_quota,
+}

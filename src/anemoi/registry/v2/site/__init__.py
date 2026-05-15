@@ -390,12 +390,14 @@ class Site:
             quota = monitor_storage.get("quota", {})
             method = quota.get("method")
             if method:
+                from .parsers import FETCHERS
                 from .parsers import PARSERS
 
-                if method in PARSERS:
+                if method in PARSERS or method in FETCHERS:
                     print(f"   OK: monitor-storage quota.method '{method}' is supported")
                 else:
-                    errors.append(f"monitor-storage quota.method '{method}' not in {list(PARSERS.keys())}")
+                    all_methods = list(PARSERS.keys()) + list(FETCHERS.keys())
+                    errors.append(f"monitor-storage quota.method '{method}' not in {all_methods}")
                     print(f"   FAIL: Unsupported quota.method '{method}'")
 
             # Check update-shared-config path if present

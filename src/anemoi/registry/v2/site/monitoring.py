@@ -14,6 +14,7 @@ import subprocess
 
 from ..rest import Rest
 from .parsers import COMMAND_BUILDERS
+from .parsers import FETCHERS
 from .parsers import PARSERS
 
 LOG = logging.getLogger(__name__)
@@ -41,19 +42,33 @@ class Monitoring:
         self.method = quota_config.get("method")
         if not self.method:
             raise ValueError("No quota.method in monitoring manifest")
-        if self.method not in PARSERS:
-            raise ValueError(f"Unknown quota method: {self.method}. Available: {list(PARSERS.keys())}")
-        self.parser = PARSERS[self.method]
-        self.command_builder = COMMAND_BUILDERS[self.method]
+        if self.method not in PARSERS and self.method not in FETCHERS:
+            raise ValueError(
+                f"Unknown quota method: {self.method}. "
+                f"Available: {list(PARSERS.keys()) + list(FETCHERS.keys())}"
+            )
+        self.fetcher = FETCHERS.get(self.method)
+        self.parser = PARSERS.get(self.method)
+        self.command_builder = COMMAND_BUILDERS.get(self.method)
         self.quota_config = quota_config
 
     def get_quota_cmds(self) -> list:
-        """Generate quota commands from the manifest."""
+        """Generate quota commands from the manifest (empty for HTTP-based fetchers)."""
+        if self.command_builder is None:
+            return []
         return self.command_builder(self.quota_config)
 
     def get_platform_status(self) -> list[dict]:
-        """Run quota commands and parse their output."""
+        """Run quota commands (or HTTP fetch) and return parsed records."""
         records: list[dict] = []
+
+        if self.fetcher is not None:
+            print(f"Fetching quota via method '{self.method}'")
+            records = self.fetcher(self.quota_config)
+            for r in records:
+                print(f"Fetched record: {r}")
+            return records
+
         cmds = self.get_quota_cmds()
         if not cmds:
             print(f"Warning: No quota commands generated for method '{self.method}'.")
