@@ -35,14 +35,14 @@ Weights = _active.Weights
 WeightsList = _active.WeightsList
 Task = _active.Task
 TasksList = _active.TasksList
-TaskNotQueuedError = _active.TaskNotQueuedError
 
-# v2-only entry types (Site, Replica)
+# v2-only entry types (Site, Replica) and exceptions
 if _CLI_VERSION == "2":
     Site = _active.Site
     SitesList = _active.SitesList
     Replica = _active.Replica
     ReplicasList = _active.ReplicasList
+    TaskNotQueuedError = _active.TaskNotQueuedError
 
 
 def publish_dataset(*args, **kwargs):
@@ -65,7 +65,6 @@ __all__ = [
     "Experiment",
     "ExperimentsList",
     "Task",
-    "TaskNotQueuedError",
     "TasksList",
     "Weights",
     "WeightsList",
@@ -78,4 +77,5 @@ if _CLI_VERSION == "2":
         "ReplicasList",
         "Site",
         "SitesList",
+        "TaskNotQueuedError",
     ]
