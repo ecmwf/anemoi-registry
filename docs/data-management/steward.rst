@@ -138,10 +138,10 @@ Use ``--dry-run`` to preview without sending data to the server.
 
 
 *****************************
- Updates
+ Patches
 *****************************
 
-Run local update operations.
+Run local patch operations.
 
 Synchronise zarr metadata
 ==========================
@@ -150,7 +150,7 @@ Update zarr metadata for all local replicas from the catalogue:
 
 .. code-block:: bash
 
-   anemoi-registry steward update --datasets
+   anemoi-registry steward patch --datasets
 
 Auxiliary files
 ================
@@ -159,7 +159,7 @@ Download auxiliary files (grids, matrices, etc.):
 
 .. code-block:: bash
 
-   anemoi-registry steward update --auxiliary
+   anemoi-registry steward patch --auxiliary
 
 Shared configuration
 =====================
@@ -168,13 +168,13 @@ Re-fetch the shared site configuration from the server:
 
 .. code-block:: bash
 
-   anemoi-registry steward update --shared-config
+   anemoi-registry steward patch --shared-config
 
-Run all updates at once:
+Run all patches at once:
 
 .. code-block:: bash
 
-   anemoi-registry steward update
+   anemoi-registry steward patch
 
 Use ``--dry-run`` to preview without making changes.
 

@@ -44,7 +44,7 @@ class Update(Command):
             help=(
                 "Update zarr file metadata from the catalogue. "
                 "Each PATH must be a zarr dataset containing a UUID. "
-                "To update all local replicas at once, use: anemoi-registry steward --update-datasets."
+                "To update all local replicas at once, use: anemoi-registry steward patch --datasets."
             ),
         )
         command_parser.add_argument(

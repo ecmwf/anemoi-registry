@@ -84,13 +84,13 @@ class StewardCommand(BaseCommand):
         g.add_argument("--storage", action="store_true", help="Report quota/storage usage.")
         g.add_argument("--datasets", action="store_true", help="Report dataset replica status.")
 
-        # --- update ---
+        # --- patch ---
         p = _sub(
-            "update",
-            help="Update local auxiliary files, shared config, and dataset metadata.",
+            "patch",
+            help="Patch local auxiliary files, shared config, and dataset metadata.",
             description=(
-                "Run one or more local update operations. "
-                "With no flags, all updates are run: auxiliary files, shared config, and dataset metadata. "
+                "Run one or more local patch operations. "
+                "With no flags, all patches are run: auxiliary files, shared config, and dataset metadata. "
                 "Use --auxiliary, --shared-config, or --datasets to run a specific subset."
             ),
         )
@@ -164,7 +164,7 @@ class StewardCommand(BaseCommand):
             if args.datasets or do_all:
                 site.report_datasets(dry_run=args.dry_run)
 
-        elif sub == "update":
+        elif sub == "patch":
             do_all = not args.auxiliary and not args.shared_config and not args.datasets
             if args.auxiliary or do_all:
                 self._run_update_auxiliary(args)
