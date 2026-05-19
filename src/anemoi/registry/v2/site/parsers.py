@@ -334,7 +334,7 @@ def build_commands_df(quota_config: dict) -> list[list[str]]:
 
 def build_commands_bsc_quota(quota_config: dict) -> list[list[str]]:
     """Build bsc_quota command."""
-    return [["bsc_quota", "-u", "KB"]]
+    return [["/apps/modules/bsc/bin/bsc_quota", "-u", "KB"]]
 
 
 def _lfs_project_quota_script() -> str:
