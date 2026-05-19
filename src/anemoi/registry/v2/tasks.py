@@ -10,6 +10,7 @@
 
 import datetime
 import logging
+from typing import Any
 
 from anemoi.utils.humanize import when
 from anemoi.utils.text import table
@@ -24,6 +25,10 @@ LOG = logging.getLogger(__name__)
 
 class TaskNotQueuedError(RuntimeError):
     """Raised when take_ownership() fails because the task is not in 'queued' state."""
+
+
+class NoTaskAvailable(RuntimeError):
+    """Raised when no task matching the given filter is available to be picked up."""
 
 
 class TaskCatalogueEntryList:
@@ -81,6 +86,67 @@ class TaskCatalogueEntryList:
         LOG.debug(f"Task {latest} taken: {res}")
         return res["uuid"]
 
+    @classmethod
+    def get_latest(
+        cls,
+        select: dict[str, Any],
+        steal_if_stale_after_seconds: int | None = None,
+        status: str = "queued",
+        stealable_status: str = "running",
+    ) -> "TaskCatalogueEntry":
+        """Pick the oldest-updated task matching ``select``.
+
+        Prefers tasks in ``status``. If none are found and
+        ``steal_if_stale_after_seconds`` is set, falls back to tasks in
+        ``stealable_status`` whose last update is older than that threshold
+        (assumed to belong to a dead worker that ``take_ownership`` can reclaim).
+
+        Parameters
+        ----------
+        select : dict
+            Filter criteria forwarded as query parameters, e.g.
+            ``{"action": "transfer-dataset", "destination": "ewc"}``.
+            Must not contain a ``status`` key.
+        steal_if_stale_after_seconds : int, optional
+            If set, fall back to ``stealable_status`` tasks whose last update
+            is older than this many seconds when no ``status`` task is found.
+        status : str, optional
+            Primary status to look for. Default ``"queued"``.
+        stealable_status : str, optional
+            Fallback status to consider stealable when stale. Default ``"running"``.
+
+        Returns
+        -------
+        TaskCatalogueEntry
+            The oldest-updated task matching the criteria.
+
+        Raises
+        ------
+        NoTaskAvailable
+            If no matching task is available.
+        """
+        primary = list(cls(**select, status=status))
+        if primary:
+            return primary[0]
+
+        if steal_if_stale_after_seconds is None:
+            raise NoTaskAvailable(f"No {status!r} task matching {select}")
+
+        now = datetime.datetime.now()
+        for task in cls(**select, status=stealable_status):
+            updated = datetime.datetime.fromisoformat(task.record["updated"])
+            age = (now - updated).total_seconds()
+            if age > steal_if_stale_after_seconds:
+                LOG.warning(
+                    "Task %s appears stale (last update %.0fs ago > %ds threshold)",
+                    task.key, age, steal_if_stale_after_seconds,
+                )
+                return task
+
+        raise NoTaskAvailable(
+            f"No {status!r} (or stale {stealable_status!r}) task matching {select}"
+        )
+
     def to_str(self, long):
         rows = []
         for v in self.get():
@@ -122,6 +188,24 @@ class TaskCatalogueEntry(CatalogueEntry):
     collection = "tasks"
     main_key = "uuid"
 
+    def __repr__(self):
+        r = self.record or {}
+        parts = []
+        for field in ("action", "status"):
+            v = r.get(field)
+            if v is not None:
+                parts.append(f"{field}={v}")
+        src, dst = r.get("source"), r.get("destination")
+        if src is not None or dst is not None:
+            parts.append(f"{src} -> {dst}")
+        for field in ("dataset", "updated"):
+            v = r.get(field)
+            if v is not None:
+                parts.append(f"{field}={v}")
+        if not parts:
+            return f"Task({self.key})"
+        return f"Task({self.key}, {', '.join(parts)})"
+
     def set_status(self, status):
         self.patch([{"op": "add", "path": "/status", "value": status}], robust=True)
 
@@ -129,12 +213,32 @@ class TaskCatalogueEntry(CatalogueEntry):
         # deleting a task is unprotected because non-admin should be able to delete their tasks
         return self.unprotected_unregister()
 
-    def take_ownership(self):
+    def take_ownership(self, steal_if_stale_after_seconds=None):
+        """Take ownership of a queued task.
+
+        Parameters
+        ----------
+        steal_if_stale_after_seconds : int, optional
+            If provided and the task is already in the ``running`` state,
+            inspect its worker timestamp. When the last update is older than
+            this many seconds, release the previous ownership and retake the
+            task. Otherwise, ``TaskNotQueuedError`` is raised.
+            If ``None`` (default), no stale-takeover is attempted and
+            ``TaskNotQueuedError`` is raised whenever the task is not in the
+            ``queued`` state.
+
+        Raises
+        ------
+        TaskNotQueuedError
+            If the task is not in the ``queued`` state and cannot (or should
+            not) be stolen from a stale worker.
+        """
         from requests import HTTPError
 
         trace = trace_info()
         trace["timestamp"] = datetime.datetime.now().isoformat()
-        try:
+
+        def _claim():
             return self.patch(
                 [
                     {"op": "test", "path": "/status", "value": "queued"},
@@ -142,10 +246,36 @@ class TaskCatalogueEntry(CatalogueEntry):
                     {"op": "add", "path": "/worker", "value": trace},
                 ]
             )
+
+        try:
+            return _claim()
         except HTTPError as exc:
-            if exc.response is not None and exc.response.status_code == 400:
+            if exc.response is None or exc.response.status_code != 400:
+                raise
+
+            if steal_if_stale_after_seconds is None:
                 raise TaskNotQueuedError(f"Task {self.key!r} is not in 'queued' state") from exc
-            raise
+
+            worker = self.record.get("worker", {})
+            ts_str = worker.get("timestamp")
+            if not ts_str:
+                raise TaskNotQueuedError(
+                    f"Task {self.key!r} is not in 'queued' state and has no worker timestamp"
+                ) from exc
+
+            age = (datetime.datetime.now() - datetime.datetime.fromisoformat(ts_str)).total_seconds()
+            if age < steal_if_stale_after_seconds:
+                raise TaskNotQueuedError(
+                    f"Task {self.key!r} is already running "
+                    f"(last update {age:.0f}s ago, stale threshold {steal_if_stale_after_seconds}s)"
+                ) from exc
+
+            LOG.warning(
+                "Task %s: stale ownership detected (last update %ds ago) — releasing and retaking",
+                self.key, age,
+            )
+            self.release_ownership()
+            return _claim()
 
     def release_ownership(self):
         self.patch(

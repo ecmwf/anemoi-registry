@@ -31,6 +31,7 @@ from .entry.site import SiteCatalogueEntryList as SitesList
 from .entry.weights import WeightCatalogueEntry as Weights
 from .entry.weights import WeightsCatalogueEntryList as WeightsList
 from .site import Site
+from .tasks import NoTaskAvailable
 from .tasks import TaskCatalogueEntry as Task
 from .tasks import TaskCatalogueEntryList as TasksList
 from .tasks import TaskNotQueuedError
@@ -41,6 +42,7 @@ __all__ = [
     "DatasetsList",
     "Experiment",
     "ExperimentsList",
+    "NoTaskAvailable",
     "Replica",
     "ReplicasList",
     "Site",

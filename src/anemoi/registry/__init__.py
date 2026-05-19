@@ -43,6 +43,7 @@ if _CLI_VERSION == "2":
     Replica = _active.Replica
     ReplicasList = _active.ReplicasList
     TaskNotQueuedError = _active.TaskNotQueuedError
+    NoTaskAvailable = _active.NoTaskAvailable
 
 
 def publish_dataset(*args, **kwargs):
@@ -78,4 +79,5 @@ if _CLI_VERSION == "2":
         "Site",
         "SitesList",
         "TaskNotQueuedError",
+        "NoTaskAvailable",
     ]
