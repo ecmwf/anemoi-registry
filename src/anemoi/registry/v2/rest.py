@@ -32,6 +32,21 @@ except ImportError:
 
 LOG = logging.getLogger(__name__)
 
+
+def _no_verify() -> bool:
+    """Return whether TLS certificate verification is disabled by the environment.
+
+    Controlled by the ``ANEMOI_CATALOGUE_NO_VERIFY`` environment variable; any
+    of ``1``, ``true``, ``yes`` or ``on`` (case-insensitive) enables it.
+    """
+    return os.environ.get("ANEMOI_CATALOGUE_NO_VERIFY", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+
+
 """~/.aws/credentials
 
 [default]
@@ -84,6 +99,16 @@ class Rest:
         self.token = token or self.config.api_token
 
         self.session = requests.Session()
+        if _no_verify():
+            # Opt-in global bypass for self-signed catalogue certificates.
+            import urllib3
+
+            self.session.verify = False
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+            LOG.warning(
+                "TLS certificate verification disabled "
+                "(ANEMOI_CATALOGUE_NO_VERIFY is set)."
+            )
         self.session.headers.update({"Authorization": f"Bearer {self.token}"})
         for k, v in trace_info().items():
             self.session.headers.update({f"x-anemoi-registry-{k}": str(v)})
