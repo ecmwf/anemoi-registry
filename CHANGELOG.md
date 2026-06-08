@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Please add your functional changes to the appropriate section in the PR.
 Keep it human-readable, your future self will thank you!
 
+## [0.3.1](https://github.com/ecmwf/anemoi-registry/compare/0.3.0...0.3.1) (2026-06-08)
+
+
+### Features
+
+* Sync with anemoi-datasets 646 ([#148](https://github.com/ecmwf/anemoi-registry/issues/148)) ([688bbe1](https://github.com/ecmwf/anemoi-registry/commit/688bbe147135ec0b71e93ec3ad0253b77f7ea2bf))
+
+
+### Bug Fixes
+
+* Bug in update ([#146](https://github.com/ecmwf/anemoi-registry/issues/146)) ([eea6d95](https://github.com/ecmwf/anemoi-registry/commit/eea6d95e40c194cdefbea6efc0c8c1cecbed096f))
+
 ## [0.3.0](https://github.com/ecmwf/anemoi-registry/compare/0.2.4...0.3.0) (2026-03-13)
 
 
