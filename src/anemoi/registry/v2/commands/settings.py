@@ -14,11 +14,12 @@ import logging
 import yaml
 
 from .. import config
+from . import Command
 
 LOG = logging.getLogger(__name__)
 
 
-class Settings:
+class Settings(Command):
     """Show current settings and quit. For debug purposes only."""
 
     internal = True
