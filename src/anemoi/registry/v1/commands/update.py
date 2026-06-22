@@ -372,7 +372,24 @@ def zarr_file_from_catalogue(path, *, dry_run, ignore, _error=print):
 
     z = zarr.open(path, mode="a")
     LOG.info(f"Updating metadata: {name}")
+
+    # zarr rewrites .zattrs via a temp file + os.replace, which drops the
+    # original file's permissions and group in favour of the patching
+    # process's umask. Capture them first so we can restore them afterwards,
+    # otherwise a shared-readable .zattrs can become owner-only.
+    zattrs_path = os.path.join(path, ".zattrs")
+    original_stat = None
+    if not path.startswith("s3://") and os.path.exists(zattrs_path):
+        original_stat = os.stat(zattrs_path)
+
     z.attrs.update(entry_metadata)
+
+    if original_stat is not None and os.path.exists(zattrs_path):
+        os.chmod(zattrs_path, original_stat.st_mode)
+        try:
+            os.chown(zattrs_path, -1, original_stat.st_gid)
+        except (PermissionError, OSError) as e:
+            LOG.warning(f"Could not restore group of {zattrs_path}: {e}")
 
 
 command = Update
