@@ -12,7 +12,10 @@ import glob
 import json
 import logging
 import os
+import shlex
 import shutil
+import subprocess
+import tempfile
 import textwrap
 import time
 
@@ -29,6 +32,61 @@ LOG = logging.getLogger(__name__)
 
 def _shorten(d):
     return textwrap.shorten(json.dumps(d, ensure_ascii=False, default=str), width=80, placeholder="...")
+
+
+_MISSING = object()
+
+
+def _leaf(value):
+    if value is _MISSING:
+        return None
+    return textwrap.shorten(json.dumps(value, ensure_ascii=False, default=str, sort_keys=True), width=80, placeholder="...")
+
+
+def _walk_diff(old, new, path, out):
+    """Recurse into ``old``/``new``, collecting ``(path, old, new)`` for the differing leaves only."""
+    if old == new:
+        return
+
+    if isinstance(old, dict) and isinstance(new, dict):
+        for key in sorted(set(old) | set(new)):
+            sub = f"{path}.{key}" if path else key
+            _walk_diff(old.get(key, _MISSING), new.get(key, _MISSING), sub, out)
+        return
+
+    if isinstance(old, list) and isinstance(new, list) and len(old) == len(new):
+        for i, (a, b) in enumerate(zip(old, new)):
+            _walk_diff(a, b, f"{path}[{i}]", out)
+        return
+
+    out.append((path, old, new))
+
+
+def print_diff(old, new, title):
+    """Render the smallest possible old/new diff: only the differing leaves and their paths."""
+
+    from rich.console import Console
+    from rich.table import Table
+    from rich.text import Text
+
+    diffs = []
+    _walk_diff(old, new, "", diffs)
+    if not diffs:
+        return
+
+    table = Table(title=title, show_lines=False, expand=True, highlight=False)
+    table.add_column("path", style="cyan", overflow="fold")
+    table.add_column("old", ratio=1, overflow="fold")
+    table.add_column("new", ratio=1, overflow="fold")
+
+    for path, old_value, new_value in diffs:
+        table.add_row(
+            Text(path or "."),
+            Text(_leaf(old_value) or "", style="red"),
+            Text(_leaf(new_value) or "", style="green"),
+        )
+
+    Console().print(table)
 
 
 class Update(Command):
@@ -54,6 +112,16 @@ class Update(Command):
             action="store_true",
         )
 
+        group.add_argument(
+            "-E",
+            "--edit-catalogue",
+            help="Fetch the catalogue entry metadata, open it in $EDITOR, and update from the edited result.",
+            action="store_true",
+        )
+
+        command_parser.add_argument(
+            "--format", help="Format of the file opened in the editor.", choices=["yaml", "json"], default="yaml"
+        )
         command_parser.add_argument("--dry-run", help="Dry run.", action="store_true")
         command_parser.add_argument("--force", help="Force.", action="store_true")
         command_parser.add_argument("--update", help="Update.", choices=["all", "origins", "variables_metadata"])
@@ -85,6 +153,8 @@ class Update(Command):
             method = self.catalogue_from_recipe_file
         elif args.zarr_file_from_catalogue:
             method = self.zarr_file_from_catalogue
+        elif args.edit_catalogue:
+            method = self.edit_catalogue
 
         def _error(message):
             LOG.error(message)
@@ -123,6 +193,98 @@ class Update(Command):
     def zarr_file_from_catalogue(self, path, _error, dry_run, ignore, **kwargs):
         return zarr_file_from_catalogue(path, dry_run=dry_run, ignore=ignore, _error=_error)
 
+    def edit_catalogue(self, path, _error, dry_run, format, ignore, **kwargs):
+        return edit_catalogue(path, dry_run=dry_run, format=format, ignore=ignore, _error=_error)
+
+
+def set_entry_value(entry, path, value, dry_run, **kwargs):
+    """Set a value in the catalogue entry, showing a diff and honouring dry-run."""
+    try:
+        old = entry.get_value(path)
+    except KeyError:
+        old = None
+
+    if old != value:
+        print_diff(old, value, f"{'Would set' if dry_run else 'Setting'} {path}")
+
+    if dry_run:
+        LOG.info(f"Would set value {path} to {_shorten(value)}")
+    else:
+        LOG.info(f"Setting value {path} to {_shorten(value)}")
+        entry.set_value(path, value, **kwargs)
+
+
+def remove_entry_value(entry, path, dry_run, **kwargs):
+    """Remove a value from the catalogue entry, showing a diff and honouring dry-run."""
+    print_diff(entry.get_value(path), None, f"{'Would remove' if dry_run else 'Removing'} {path}")
+
+    if dry_run:
+        LOG.info(f"Would remove value {path}")
+    else:
+        LOG.info(f"Removing value {path}")
+        entry.remove_value(path, **kwargs)
+
+
+def _dump_metadata(metadata, format):
+    if format == "json":
+        return json.dumps(metadata, indent=2, ensure_ascii=False, default=str, sort_keys=True)
+    return yaml.safe_dump(metadata, allow_unicode=True, sort_keys=True, default_flow_style=False)
+
+
+def _load_metadata(text, format):
+    if format == "json":
+        return json.loads(text)
+    return yaml.safe_load(text)
+
+
+def edit_catalogue(name, *, dry_run, format, ignore, _error=print):
+    """Fetch a catalogue entry's metadata, open it in ``$EDITOR``, and update from the edited result."""
+
+    try:
+        entry = Dataset(name, params={"_": True})
+    except CatalogueEntryNotFound:
+        if ignore:
+            LOG.error(f"Entry not found: {name}")
+            return
+        raise
+
+    metadata = entry.record["metadata"]
+    original = _dump_metadata(metadata, format)
+
+    suffix = ".json" if format == "json" else ".yaml"
+    fd, tmp = tempfile.mkstemp(prefix=f"{name}.", suffix=suffix)
+    try:
+        with os.fdopen(fd, "w") as f:
+            f.write(original)
+
+        editor = os.environ.get("EDITOR", "vi")
+        result = subprocess.run(shlex.split(editor) + [tmp])
+        if result.returncode != 0:
+            _error(f"Editor exited with status {result.returncode}, aborting.")
+            return
+
+        with open(tmp) as f:
+            edited = f.read()
+
+        if edited == original:
+            LOG.info("No changes made to %s", name)
+            return
+
+        try:
+            new_metadata = _load_metadata(edited, format)
+        except Exception as e:
+            _error(f"Failed to parse edited metadata: {e}")
+            return
+    finally:
+        os.unlink(tmp)
+
+    for key in sorted(new_metadata):
+        if metadata.get(key) != new_metadata[key]:
+            set_entry_value(entry, f"/metadata/{key}", new_metadata[key], dry_run)
+
+    for key in sorted(set(metadata) - set(new_metadata)):
+        remove_entry_value(entry, f"/metadata/{key}", dry_run)
+
 
 def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore, debug, _error=print):
     """Update the catalogue entry a recipe file."""
@@ -132,11 +294,7 @@ def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore,
     LOG.info(f"Updating catalogue entry from recipe: {path} {dry_run=} {force=} {update=}")
 
     def entry_set_value(path, value, **kwargs):
-        if dry_run:
-            LOG.info(f"Would set value {path} to {_shorten(value)}")
-        else:
-            LOG.info(f"Setting value {path} to {_shorten(value)}")
-            entry.set_value(path, value, **kwargs)
+        set_entry_value(entry, path, value, dry_run, **kwargs)
 
     with open(path) as f:
         recipe = yaml.safe_load(f)
