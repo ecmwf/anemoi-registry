@@ -129,7 +129,6 @@ class Site:
     def from_name(cls, name: str) -> "Site":
         """Resolve a bare site name against the registry server."""
         url = site_name_to_url(name)
-        warnings.warn(f"Resolving site name {name!r} to config URL: {url}")
         data = Rest().get_url(url)
         data.setdefault("name", name)
         return cls(data)
