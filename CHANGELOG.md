@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Please add your functional changes to the appropriate section in the PR.
 Keep it human-readable, your future self will thank you!
 
+## [0.3.2](https://github.com/ecmwf/anemoi-registry/compare/0.3.1...0.3.2) (2026-07-23)
+
+
+### Features
+
+* Create and ship py.typed ([#151](https://github.com/ecmwf/anemoi-registry/issues/151)) ([9ff323c](https://github.com/ecmwf/anemoi-registry/commit/9ff323cab4842b3cb88c253fddd81bfe336e4f8f))
+
 ## [0.3.1](https://github.com/ecmwf/anemoi-registry/compare/0.3.0...0.3.1) (2026-06-08)
 
 
