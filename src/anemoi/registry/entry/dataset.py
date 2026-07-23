@@ -10,6 +10,7 @@
 
 import datetime
 import glob
+import json
 import logging
 import os
 import shutil
@@ -215,9 +216,53 @@ class DatasetCatalogueEntry(CatalogueEntry):
         self.patch([{"op": "add", "path": "/metadata/variables_metadata", "value": variables_metadata}], robust=True)
 
     @classmethod
+    def load_from_json_file(cls, path) -> "DatasetCatalogueEntry":
+        """Build an entry from a JSON file produced by ``anemoi-datasets analyse-dataset``.
+
+        Parameters
+        ----------
+        path : str
+            Path to the JSON file, with top-level keys 'type', 'name' and 'record'.
+
+        Returns
+        -------
+        DatasetCatalogueEntry
+            The catalogue entry built from the JSON file.
+        """
+        with open(path) as f:
+            data = json.load(f)
+
+        if not isinstance(data, dict):
+            raise ValueError(f"Expecting a JSON object in {path}, got {type(data).__name__}")
+
+        for key in ("type", "name", "record"):
+            if key not in data:
+                raise ValueError(f"Missing top-level key '{key}' in {path}. Required keys are: type, name, record")
+
+        if data["type"] != "dataset":
+            raise ValueError(f"Expecting type 'dataset' in {path}, got '{data['type']}'")
+
+        name = data["name"]
+        record = data["record"]
+
+        if not isinstance(record, dict):
+            raise ValueError(f"'record' must be a JSON object in {path}, got {type(record).__name__}")
+
+        if record.get("name") != name:
+            raise ValueError(f"Top-level name '{name}' does not match record name '{record.get('name')}' in {path}")
+
+        if "metadata" not in record:
+            raise ValueError(f"Missing 'metadata' in record in {path}")
+
+        return cls(name, record, path=data.get("path"))
+
+    @classmethod
     def load_from_path(cls, path):
         import zarr
         from anemoi.datasets import open_dataset
+
+        if path.endswith(".json"):
+            return cls.load_from_json_file(path)
 
         if not path.startswith("/") and not path.startswith("s3://"):
             LOG.warning(f"Dataset path is not absolute: {path}")
