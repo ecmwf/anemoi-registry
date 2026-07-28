@@ -30,7 +30,7 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dynamic = [ "version" ]
-dependencies = [ "anemoi-datasets>=0.5.28", "anemoi-utils[s3,text]>=0.5.10", "jsonpatch", "requests" ]
+dependencies = [ "anemoi-datasets>=0.5.28", "anemoi-utils[s3,text]>=0.5.12", "jsonpatch", "requests" ]
 optional-dependencies.all = []
 optional-dependencies.dev = [
   "nbsphinx",
