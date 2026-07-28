@@ -258,11 +258,14 @@ class DatasetCatalogueEntry(CatalogueEntry):
 
     @classmethod
     def load_from_path(cls, path):
-        import zarr
-        from anemoi.datasets import open_dataset
-
         if path.endswith(".json"):
             return cls.load_from_json_file(path)
+
+        # Loading from a zarr path requires anemoi-datasets, which is not a
+        # dependency of anemoi-registry: use a JSON file produced by
+        # 'anemoi-datasets analyse-dataset' to register without it.
+        import zarr
+        from anemoi.datasets import open_dataset
 
         if not path.startswith("/") and not path.startswith("s3://"):
             LOG.warning(f"Dataset path is not absolute: {path}")
