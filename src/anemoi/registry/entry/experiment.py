@@ -15,9 +15,7 @@ import tempfile
 from getpass import getuser
 
 import yaml
-from anemoi.utils.remote.s3 import delete
-from anemoi.utils.remote.s3 import download
-from anemoi.utils.remote.s3 import upload
+from anemoi.utils.remote.s3 import delete, download, upload
 
 from anemoi.registry.rest import RestItemList
 
@@ -217,9 +215,8 @@ class ExperimentCatalogueEntry(CatalogueEntry):
                 url = run_record["archives"][platform]["url"]
                 LOG.info(f"Downloading {url} to {tmp_path}.")
                 download(url, tmp_path)
-                with open(path, "ba+") as f:
-                    with open(tmp_path, "br") as tmp:
-                        f.write(tmp.read())
+                with open(path, "ba+") as f, open(tmp_path, "br") as tmp:
+                    f.write(tmp.read())
 
     def delete_artefacts(self):
         self.delete_all_plots()

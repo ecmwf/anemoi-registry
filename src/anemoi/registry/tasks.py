@@ -15,8 +15,7 @@ from anemoi.utils.humanize import when
 from anemoi.utils.text import table
 
 from anemoi.registry.entry import CatalogueEntry
-from anemoi.registry.rest import RestItemList
-from anemoi.registry.rest import trace_info
+from anemoi.registry.rest import RestItemList, trace_info
 from anemoi.registry.utils import list_to_dict
 
 LOG = logging.getLogger(__name__)
