@@ -11,6 +11,8 @@
 import logging
 import os
 
+from . import Command
+
 LOG = logging.getLogger(__name__)
 
 UPLOAD_ALLOWED = False
@@ -18,7 +20,7 @@ if os.environ.get("ANEMOI_FORCE_UPLOAD"):
     UPLOAD_ALLOWED = True
 
 
-class Upload:
+class Upload(Command):
     """Just upload."""
 
     internal = True

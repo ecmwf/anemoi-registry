@@ -56,6 +56,7 @@ urls.Homepage = "https://github.com/ecmwf/anemoi-registry/"
 urls.Issues = "https://github.com/ecmwf/anemoi-registry/issues"
 urls.Repository = "https://github.com/ecmwf/anemoi-registry/"
 scripts.anemoi-registry = "anemoi.registry.__main__:main_PYTHON_ARGCOMPLETE_OK"
+entry-points."anemoi.settings.schema".registry = "anemoi.registry.settings:RegistryConfig"
 
 [tool.setuptools]
 package-data."anemoi.registry" = [ "*.yaml" ]

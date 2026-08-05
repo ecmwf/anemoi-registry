@@ -11,10 +11,12 @@
 import logging
 import os
 
+from . import Command
+
 LOG = logging.getLogger(__name__)
 
 
-class Download:
+class Download(Command):
     """Just download."""
 
     internal = True
