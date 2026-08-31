@@ -26,8 +26,8 @@ need to provide the following:
 
    [object-storage]
    endpoint_url = "https://xxxxxxxxxxxx.xxx"
-   aws_access_key_id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-   aws_secret_access_key = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+   access_key_id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+   secret_access_key = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 For users needing to interact with the catalogue, e.g. register a
 dataset, they will also require the following in this second config
