@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Please add your functional changes to the appropriate section in the PR.
 Keep it human-readable, your future self will thank you!
 
+## [0.3.3](https://github.com/ecmwf/anemoi-registry/compare/0.3.2...0.3.3) (2026-09-07)
+
+
+### Features
+
+* Minimal fix to allow isocahedral resolution ([#159](https://github.com/ecmwf/anemoi-registry/issues/159)) ([145f98f](https://github.com/ecmwf/anemoi-registry/commit/145f98fe042811c2957466af146d75249e426649))
+
+
+### Bug Fixes
+
+* Rename AWS access keys in configuring.rst ([#155](https://github.com/ecmwf/anemoi-registry/issues/155)) ([e599886](https://github.com/ecmwf/anemoi-registry/commit/e5998863ab33394d43fe34819ba85644edad2d68))
+
 ## [0.3.2](https://github.com/ecmwf/anemoi-registry/compare/0.3.1...0.3.2) (2026-07-28)
 
 
