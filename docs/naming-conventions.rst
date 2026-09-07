@@ -33,6 +33,21 @@ whether they are gridded or tabular.
    # Tabular layout (no frequency; resolution is optional)
    purpose-content-source[-resolution]-start-year-end-year-version[-extra-str]
 
+
+Or, if you like regexp better:
+
+.. code::
+
+   # Gridded layout (single date frequency)
+   r"^(\w+)-([\w-]+)-(\w+)-([0-9on]\w*)-(\d\d\d\d)-(\d\d\d\d)-" r"(\d+h|\d+m)-v(\d+)-?([a-zA-Z0-9-]+)?$"
+
+   # Trajectory layout (two frequencies: between base dates and between forecast steps)
+   r"^(\w+)-([\w-]+)-(\w+)-([0-9on]\w*)-(\d\d\d\d)-(\d\d\d\d)-" r"(\d+h|\d+m)-(\d+h|\d+m)-v(\d+)-?([a-zA-Z0-9-]+)?$"
+
+   # Tabular layout (no frequency; resolution is optional)
+   r"^(\w+)-([\w-]+)-(\w+)(?:-([0-9on]\w*))?-(\d\d\d\d)-(\d\d\d\d)-" r"v(\d+)-?([a-zA-Z0-9-]+)?$"
+
+
 .. note::
 
    This is the current naming convention for datasets in the Anemoi
