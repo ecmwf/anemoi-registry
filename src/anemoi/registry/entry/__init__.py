@@ -13,14 +13,11 @@ import os
 
 import yaml
 from anemoi.utils.config import load_any_dict_format
-from anemoi.utils.dates import as_datetime
-from anemoi.utils.dates import as_timedelta
+from anemoi.utils.dates import as_datetime, as_timedelta
 from anemoi.utils.humanize import json_pretty_dump
 
 from anemoi.registry import config
-from anemoi.registry.rest import AlreadyExists
-from anemoi.registry.rest import RestItem
-from anemoi.registry.rest import RestItemList
+from anemoi.registry.rest import AlreadyExists, RestItem, RestItemList
 
 # from anemoi.registry.rest import DryRunRest as Rest
 
