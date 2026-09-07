@@ -7,16 +7,13 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 
-# ruff: noqa: E402
 
 import importlib
 import logging
 import os
 from functools import cached_property
 
-from anemoi.utils.config import DotDict
-from anemoi.utils.config import load_any_dict_format
-from anemoi.utils.config import load_config
+from anemoi.utils.config import DotDict, load_any_dict_format, load_config
 
 from anemoi.registry.rest import Rest
 
@@ -120,10 +117,10 @@ class SingletonConfig:
                 continue
             if v != conf.get(k):  # ignore other keys
                 LOG.warning(
-                    (
+                    
                         f"Ignoring user config for {k}: {v} != {conf.get(k)}."
                         " Please delete this entry from your config file."
-                    )
+                    
                 )
         conf.pop("catalogue")
         conf.pop("test-catalogue")
@@ -164,12 +161,12 @@ except ImportError:  # pragma: no cover
 
 
 __all__ = [
-    "Weights",
-    "WeightsList",
-    "Experiment",
-    "ExperimentsList",
     "Dataset",
     "DatasetsList",
+    "Experiment",
+    "ExperimentsList",
     "Task",
     "TasksList",
+    "Weights",
+    "WeightsList",
 ]
