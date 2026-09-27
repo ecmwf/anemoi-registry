@@ -37,6 +37,14 @@ def package_config(module_name, missing_ok=False):
     return DotDict(load_any_dict_format(path))
 
 
+def token():
+    """Retrieve the catalogue token from the environment or user config."""
+    if os.environ.get("ANEMOI_CATALOGUE_TOKEN") is not None:
+        LOG.warning("Using catalogue token from environment variable ANEMOI_CATALOGUE_TOKEN.")
+        return os.environ["ANEMOI_CATALOGUE_TOKEN"]
+    return load_config(secrets=["api_token"]).get("registry", {}).get("api_token")
+
+
 class SingletonConfig:
     def __init__(self):
         self._cache = None
@@ -62,20 +70,6 @@ class SingletonConfig:
 
         return self.package_config["registry"]["catalogue"]
 
-    @cached_property
-    def _token(self):
-        if os.environ.get("ANEMOI_CATALOGUE_TOKEN") is not None:
-            LOG.warning("Using catalogue token from environment variable ANEMOI_CATALOGUE_TOKEN.")
-            token = os.environ["ANEMOI_CATALOGUE_TOKEN"]
-        else:
-            token = load_config(secrets=["api_token"]).get("registry", {}).get("api_token")
-
-        if token is None:
-            raise ValueError(
-                "No token found. Please add it to your config file or set the ANEMOI_CATALOGUE_TOKEN environment variable."
-            )
-        return token
-
     def _url_from_user_config(self):
         return load_config(secrets=["api_token"]).get("registry", {}).get("catalogue")
 
@@ -83,7 +77,7 @@ class SingletonConfig:
         if not self.url:
             return {}
 
-        return Rest(token=self._token).get_url(self.url + "/settings")
+        return Rest().get_url(self.url + "/settings")
 
     def __call__(self, with_secrets=True):
         if self._cache:
