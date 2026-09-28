@@ -70,11 +70,13 @@ def trace_info():
 class Rest:
     """REST API client."""
 
-    def __init__(self, token=None):
-        self.token = token or self.config.api_token
+    def __init__(self):
+        from anemoi.registry.configuration import token as get_token
+
+        token = get_token()
 
         self.session = requests.Session()
-        self.session.headers.update({"Authorization": f"Bearer {self.token}"})
+        self.session.headers.update({"Authorization": f"Bearer {token}"})
         for k, v in trace_info().items():
             self.session.headers.update({f"x-anemoi-registry-{k}": str(v)})
 
