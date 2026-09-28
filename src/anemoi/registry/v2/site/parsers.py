@@ -36,7 +36,10 @@ def parse_lfs(output: str) -> list[dict]:
     """Parse standard lfs quota verbose output."""
 
     def to_int(s):
-        return int(s.rstrip("*")) if s not in ("-", "") else 0
+        # lfs appends "*" when over quota and wraps values in "[]" when some
+        # OSTs/MDTs are unavailable (the value is then inaccurate)
+        s = s.strip("[]").rstrip("*")
+        return int(s) if s not in ("-", "") else 0
 
     project_id = None
     records = []
@@ -57,6 +60,9 @@ def parse_lfs(output: str) -> list[dict]:
             if len(data_parts) >= 8:
                 used_kb, soft_kb, hard_kb = data_parts[0], data_parts[1], data_parts[2]
                 used_inodes, soft_inodes, hard_inodes = data_parts[4], data_parts[5], data_parts[6]
+                inaccurate = any(x.startswith("[") for x in data_parts)
+                if inaccurate:
+                    LOG.warning(f"lfs quota values for {mount_point} are marked as inaccurate: {data_parts}")
                 records.append(
                     {
                         "path": mount_point,
@@ -65,6 +71,7 @@ def parse_lfs(output: str) -> list[dict]:
                         "bytes_quota": (to_int(soft_kb) or to_int(hard_kb)) * 1024,
                         "objects": to_int(used_inodes),
                         "objects_quota": to_int(soft_inodes) or to_int(hard_inodes),
+                        "extra": {"inaccurate": inaccurate},
                         "timestamp": datetime.now(timezone.utc).isoformat(),
                     }
                 )
