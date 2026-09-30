@@ -81,7 +81,9 @@ class CatalogueEntry:
                 raise CatalogueEntryNotFound(f"Could not find any {self.collection} with key={key}")
             record = entry.record
 
-        self.record = record
+        self.record = record.copy()
+        if "owner" not in self.record and os.environ.get("ANEMOI_USER") is not None:
+            self.record["owner"] = os.environ.get("ANEMOI_USER")
 
         self._rest_item = RestItem(self.collection, self.key)
 
