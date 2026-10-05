@@ -18,8 +18,7 @@ import time
 from anemoi.utils.humanize import when
 
 from anemoi.registry import config
-from anemoi.registry.tasks import TaskCatalogueEntry
-from anemoi.registry.tasks import TaskCatalogueEntryList
+from anemoi.registry.tasks import TaskCatalogueEntry, TaskCatalogueEntryList
 
 # from anemoi.utils.provenance import trace_info
 
