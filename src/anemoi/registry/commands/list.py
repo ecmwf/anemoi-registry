@@ -11,8 +11,7 @@
 import datetime
 import logging
 
-from anemoi.utils.humanize import json_pretty_dump
-from anemoi.utils.humanize import when
+from anemoi.utils.humanize import json_pretty_dump, when
 from anemoi.utils.text import table
 
 from anemoi.registry.rest import RestItemList
@@ -142,7 +141,6 @@ class List(Command):
                 ]
             )
         print(table(rows, ["Created", "Updated", "Status", "%", "Details", "UUID"], ["<", "<", "<", "<", "<", "<"]))
-        return
 
 
 command = List
