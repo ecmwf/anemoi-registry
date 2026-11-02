@@ -159,8 +159,7 @@ class DatasetCatalogueEntry(CatalogueEntry):
         )
         LOG.info(f"Task: {kwargs}")
 
-        from anemoi.registry.tasks import TaskCatalogueEntry
-        from anemoi.registry.tasks import TaskCatalogueEntryList
+        from anemoi.registry.tasks import TaskCatalogueEntry, TaskCatalogueEntryList
 
         def find_or_create_task(**kwargs):
             lst = TaskCatalogueEntryList(**kwargs)
