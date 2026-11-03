@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Please add your functional changes to the appropriate section in the PR.
 Keep it human-readable, your future self will thank you!
 
+## [0.3.5](https://github.com/ecmwf/anemoi-registry/compare/0.3.4...0.3.5) (2026-11-03)
+
+
+### Features
+
+* Allow changing url ([#168](https://github.com/ecmwf/anemoi-registry/issues/168)) ([6890e2a](https://github.com/ecmwf/anemoi-registry/commit/6890e2a333bb5ceb0db834aa5e90aafb4805a953))
+
 ## [0.3.4](https://github.com/ecmwf/anemoi-registry/compare/0.3.3...0.3.4) (2026-09-30)
 
 
