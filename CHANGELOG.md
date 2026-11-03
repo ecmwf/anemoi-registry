@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Please add your functional changes to the appropriate section in the PR.
 Keep it human-readable, your future self will thank you!
 
+## [0.3.4](https://github.com/ecmwf/anemoi-registry/compare/0.3.3...0.3.4) (2026-09-30)
+
+
+### Features
+
+* Add owner ([#165](https://github.com/ecmwf/anemoi-registry/issues/165)) ([213a75e](https://github.com/ecmwf/anemoi-registry/commit/213a75e99963243d87708daf2856288b167131ee))
+
+
+### Bug Fixes
+
+* Rest api does not use token from env ([#163](https://github.com/ecmwf/anemoi-registry/issues/163)) ([4d355e0](https://github.com/ecmwf/anemoi-registry/commit/4d355e0e2eb97253f86efd54a951cb2665ec5816))
+
 ## [0.3.3](https://github.com/ecmwf/anemoi-registry/compare/0.3.2...0.3.3) (2026-09-07)
 
 
