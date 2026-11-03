@@ -103,7 +103,7 @@ class SingletonConfig:
         # partly overwritten by config from user
         user_config = load_config(secrets=["api_token"])["registry"]
         for k, v in user_config.items():
-            if k in ["api_token"]:  # use token
+            if k in ["api_token", "api_url"]:  # use token
                 conf[k] = v
                 continue
             if k in ["allow_delete", "allow_edit_entries"]:  # use these flags, to be removed
@@ -129,6 +129,7 @@ class SingletonConfig:
 
         if not with_secrets:
             conf = DotDict({k: v if k != "api_token" else "***" for k, v in conf.items()})
+
         return conf
 
 
