@@ -12,6 +12,3 @@ exempt:
   # Edits the pull request description with the docs preview link; no checkout.
   - workflow: readthedocs-pr-update.yml
     jobs: [documentation-links]
-  # Labels fork pull requests through ecmwf/reusable-workflows label-pr.yml; no checkout.
-  - workflow: pr-label-public.yml
-    jobs: [label]
