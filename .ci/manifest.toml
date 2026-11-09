@@ -1,0 +1,45 @@
+[package]
+name = "anemoi-registry"
+repo = "ecmwf/anemoi-registry"
+visibility = "public"
+# Approved fork pull requests run ci.yml through the generated ci-fork.yml.
+fork-pull-requests = true
+compiler-inputs = []
+
+[[deps]]
+repo = "ecmwf/anemoi-utils"
+package = "anemoi-utils"
+ref = "main"
+compiler-inputs = []
+python-version-input = "python-version"
+
+# anemoi-transform comes transitively through anemoi-datasets.
+[[deps]]
+repo = "ecmwf/anemoi-datasets"
+package = "anemoi-datasets"
+ref = "main"
+compiler-inputs = []
+python-version-input = "python-version"
+
+# Each leg publishes its wheel, so a consumer's leg takes the one tested on
+# its own Python (python-version-input).
+[matrix.test]
+triggers = ["upstream-change", "rebuild-request"]
+
+[matrix.test.defaults]
+job-script = "./.ci/test.sh.j2"
+runs-on = "ubuntu-24.04"
+platform = "gh-ubuntu-24.04"
+extras = "all,tests"
+
+[[matrix.test.include]]
+python-version = "3.11"
+
+[[matrix.test.include]]
+python-version = "3.12"
+
+[[matrix.test.include]]
+python-version = "3.13"
+
+[downstream]
+run-default = "all"
