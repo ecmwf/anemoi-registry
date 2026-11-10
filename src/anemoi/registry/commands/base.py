@@ -16,8 +16,7 @@ import os
 
 import yaml
 
-from ..entry import VALUES_PARSERS
-from ..entry import CatalogueEntryNotFound
+from ..entry import VALUES_PARSERS, CatalogueEntryNotFound
 from . import Command
 
 LOG = logging.getLogger(__name__)
