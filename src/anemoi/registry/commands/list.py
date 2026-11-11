@@ -11,8 +11,7 @@
 import datetime
 import logging
 
-from anemoi.utils.humanize import json_pretty_dump
-from anemoi.utils.humanize import when
+from anemoi.utils.humanize import json_pretty_dump, when
 from anemoi.utils.text import table
 
 from anemoi.registry.rest import RestItemList
@@ -37,13 +36,21 @@ class List(Command):
             help="List experiments in the catalogue, for admin and debug purposes Current output is JSON and may change.",
         )
         experiment.add_argument(
-            "filter", nargs="*", help="Filter experiments with a list of key=value.", metavar="key=value"
+            "filter",
+            nargs="*",
+            help="Filter experiments with a list of key=value.",
+            metavar="key=value",
         )
         experiment.add_argument("--json", help="Output as JSON", action="store_true")
 
-        checkpoint = sub_parser.add_parser("weights", help="List weights in the catalogue.")
+        checkpoint = sub_parser.add_parser(
+            "weights", help="List weights in the catalogue."
+        )
         checkpoint.add_argument(
-            "filter", nargs="*", help="Filter weights with a list of key=value.", metavar="key=value"
+            "filter",
+            nargs="*",
+            help="Filter weights with a list of key=value.",
+            metavar="key=value",
         )
         checkpoint.add_argument("--json", help="Output as JSON", action="store_true")
 
@@ -52,12 +59,22 @@ class List(Command):
             help="List trainings in the catalogue, for admin and debug purposes Current output is JSON and may change.",
         )
         training.add_argument(
-            "filter", nargs="*", help="Filter trainings with a list of key=value.", metavar="key=value"
+            "filter",
+            nargs="*",
+            help="Filter trainings with a list of key=value.",
+            metavar="key=value",
         )
         training.add_argument("--json", help="Output as JSON", action="store_true")
 
-        dataset = sub_parser.add_parser("datasets", help="List datasets in the catalogue.")
-        dataset.add_argument("filter", nargs="*", help="Filter datasets with a list of key=value.", metavar="key=value")
+        dataset = sub_parser.add_parser(
+            "datasets", help="List datasets in the catalogue."
+        )
+        dataset.add_argument(
+            "filter",
+            nargs="*",
+            help="Filter datasets with a list of key=value.",
+            metavar="key=value",
+        )
         dataset.add_argument("--json", help="Output as JSON", action="store_true")
 
     #        tasks = sub_parser.add_parser("tasks")
@@ -141,8 +158,13 @@ class List(Command):
                     uuid,
                 ]
             )
-        print(table(rows, ["Created", "Updated", "Status", "%", "Details", "UUID"], ["<", "<", "<", "<", "<", "<"]))
-        return
+        print(
+            table(
+                rows,
+                ["Created", "Updated", "Status", "%", "Details", "UUID"],
+                ["<", "<", "<", "<", "<", "<"],
+            )
+        )
 
 
 command = List

@@ -29,29 +29,62 @@ class WorkerCommand(BaseCommand):
 
     def add_arguments(self, command_parser):
 
-        subparsers = command_parser.add_subparsers(dest="action", help="Action to perform")
+        subparsers = command_parser.add_subparsers(
+            dest="action", help="Action to perform"
+        )
 
         transfer = subparsers.add_parser("transfer-dataset", help="Transfer dataset")
         transfer.add_argument(
-            "--target-dir", help="The actual target directory where the worker will write.", default="."
+            "--target-dir",
+            help="The actual target directory where the worker will write.",
+            default=".",
         )
-        transfer.add_argument("--published-target-dir", help="The target directory published in the catalogue.")
-        transfer.add_argument("--destination", help="Platform destination (e.g. leonardo, lumi, marenostrum)")
-        transfer.add_argument("--source", help="Platform source (e.g. leonardo, lumi, marenostrum)")
+        transfer.add_argument(
+            "--published-target-dir",
+            help="The target directory published in the catalogue.",
+        )
+        transfer.add_argument(
+            "--destination",
+            help="Platform destination (e.g. leonardo, lumi, marenostrum)",
+        )
+        transfer.add_argument(
+            "--source", help="Platform source (e.g. leonardo, lumi, marenostrum)"
+        )
         transfer.add_argument("--threads", help="Number of threads to use", type=int)
-        transfer.add_argument("--filter-tasks", help="Filter tasks to process (key=value list)", nargs="*", default=[])
+        transfer.add_argument(
+            "--filter-tasks",
+            help="Filter tasks to process (key=value list)",
+            nargs="*",
+            default=[],
+        )
 
         delete = subparsers.add_parser("delete-dataset", help="Delete dataset")
-        delete.add_argument("--platform", help="Platform to delete (e.g. ewc, leonardo, lumi, marenostrum)")
-        delete.add_argument("--filter-tasks", help="Filter tasks to process (key=value list)", nargs="*", default=[])
+        delete.add_argument(
+            "--platform",
+            help="Platform to delete (e.g. ewc, leonardo, lumi, marenostrum)",
+        )
+        delete.add_argument(
+            "--filter-tasks",
+            help="Filter tasks to process (key=value list)",
+            nargs="*",
+            default=[],
+        )
 
         dummy = subparsers.add_parser("dummy", help="Dummy worker for test purposes")
         dummy.add_argument("--arg")
 
         for subparser in [transfer, delete, dummy]:
-            subparser.add_argument("--timeout", help="Die with timeout (SIGALARM) after TIMEOUT seconds.", type=int)
-            subparser.add_argument("--timeout-exit-code", help="Exit code when timeout is reached")
-            subparser.add_argument("--wait", help="Check for new task every WAIT seconds.", type=int)
+            subparser.add_argument(
+                "--timeout",
+                help="Die with timeout (SIGALARM) after TIMEOUT seconds.",
+                type=int,
+            )
+            subparser.add_argument(
+                "--timeout-exit-code", help="Exit code when timeout is reached"
+            )
+            subparser.add_argument(
+                "--wait", help="Check for new task every WAIT seconds.", type=int
+            )
             subparser.add_argument("--heartbeat", help="Heartbeat interval", type=int)
             subparser.add_argument(
                 "--max-no-heartbeat",
@@ -64,7 +97,11 @@ class WorkerCommand(BaseCommand):
                 help="See if there are tasks for this worker and exit with 0 if there are task to do.",
                 action="store_true",
             )
-            subparser.add_argument("--dry-run", help="Dry run, do not actually do anything", action="store_true")
+            subparser.add_argument(
+                "--dry-run",
+                help="Dry run, do not actually do anything",
+                action="store_true",
+            )
 
     def run(self, args):
         kwargs = vars(args)

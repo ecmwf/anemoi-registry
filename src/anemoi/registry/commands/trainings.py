@@ -26,9 +26,14 @@ class Trainings(BaseCommand):
     kind = "training"
 
     def add_arguments(self, command_parser):
-        command_parser.add_argument("NAME_OR_PATH", help="Name of a training of a path of a training config file.")
         command_parser.add_argument(
-            "--register", help=f"Register the {self.kind} in the catalogue.", action="store_true"
+            "NAME_OR_PATH",
+            help="Name of a training of a path of a training config file.",
+        )
+        command_parser.add_argument(
+            "--register",
+            help=f"Register the {self.kind} in the catalogue.",
+            action="store_true",
         )
         command_parser.add_argument(
             "--unregister",
@@ -47,7 +52,9 @@ class Trainings(BaseCommand):
             help="Set the content of a FILE in the KEY to the training catalogue. Replace existing value.",
             metavar=("KEY", "FILE"),
         )
-        command_parser.add_argument("--overwrite", help="Overwrite if already exists.", action="store_true")
+        command_parser.add_argument(
+            "--overwrite", help="Overwrite if already exists.", action="store_true"
+        )
         command_parser.add_argument(
             "--add-weights",
             nargs="+",
