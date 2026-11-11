@@ -18,8 +18,7 @@ import time
 from anemoi.utils.humanize import when
 
 from anemoi.registry import config
-from anemoi.registry.tasks import TaskCatalogueEntry
-from anemoi.registry.tasks import TaskCatalogueEntryList
+from anemoi.registry.tasks import TaskCatalogueEntry, TaskCatalogueEntryList
 
 # from anemoi.utils.provenance import trace_info
 
@@ -94,7 +93,9 @@ class Worker:
                     time.sleep(self.wait)
                 except Exception as e:
                     LOG.error(f"Error for task {task}: {e}")
-                    LOG.error("Waiting 60 seconds after this error before checking again.")
+                    LOG.error(
+                        "Waiting 60 seconds after this error before checking again."
+                    )
                     time.sleep(60)
 
         else:
@@ -194,10 +195,13 @@ class Worker:
         # if a task is running, check if it has been running for too long, and free it
         for task in cat:
             updated = datetime.datetime.fromisoformat(task.record["updated"])
-            LOG.info(f"Task {task.key} is already running, last update {when(updated, use_utc=True)}.")
+            LOG.info(
+                f"Task {task.key} is already running, last update {when(updated, use_utc=True)}."
+            )
             if (
                 self.max_no_heartbeat >= 0
-                and (datetime.datetime.utcnow() - updated).total_seconds() > self.max_no_heartbeat
+                and (datetime.datetime.utcnow() - updated).total_seconds()
+                > self.max_no_heartbeat
             ):
                 LOG.warning(
                     f"Task {task.key} has been running for more than {self.max_no_heartbeat} seconds, freeing it."
@@ -206,13 +210,17 @@ class Worker:
 
     def take_ownership(self, task):
         if self.dry_run:
-            LOG.warning(f"Would take ownership of task {task.key} but this is only a dry run.")
+            LOG.warning(
+                f"Would take ownership of task {task.key} but this is only a dry run."
+            )
             return
         task.take_ownership()
 
     def release_ownership(self, task):
         if self.dry_run:
-            LOG.warning(f"Would release ownership of task {task.key} but this is only a dry run.")
+            LOG.warning(
+                f"Would release ownership of task {task.key} but this is only a dry run."
+            )
             return
         task.release_ownership()
 
@@ -224,7 +232,9 @@ class Worker:
 
     def set_status(self, task, status):
         if self.dry_run:
-            LOG.warning(f"Would set status of task {task.key} to {status} but this is only a dry run.")
+            LOG.warning(
+                f"Would set status of task {task.key} to {status} but this is only a dry run."
+            )
             return
         task.set_status(status)
 

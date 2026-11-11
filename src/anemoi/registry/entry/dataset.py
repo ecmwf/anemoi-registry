@@ -103,7 +103,10 @@ class DatasetCatalogueEntry(CatalogueEntry):
 
     def build_location_path(self, platform, uri_pattern=None):
         if uri_pattern is None:
-            assert platform == config()["datasets_platform"], (platform, config()["datasets_platform"])
+            assert platform == config()["datasets_platform"], (
+                platform,
+                config()["datasets_platform"],
+            )
             uri_pattern = config()["datasets_uri_pattern"]
             LOG.debug(f"Using uri pattern from config: {uri_pattern}")
         else:
@@ -116,7 +119,10 @@ class DatasetCatalogueEntry(CatalogueEntry):
             path = os.path.normpath(path)
 
         LOG.debug(f"Adding location to {platform}: {path}")
-        self.patch([{"op": "add", "path": f"/locations/{platform}", "value": {"path": path}}], robust=True)
+        self.patch(
+            [{"op": "add", "path": f"/locations/{platform}", "value": {"path": path}}],
+            robust=True,
+        )
         return path
 
     def remove_location(self, platform):
@@ -132,7 +138,9 @@ class DatasetCatalogueEntry(CatalogueEntry):
 
         path = self.record.get("locations", {}).get(platform, {}).get("path")
         if path is None:
-            LOG.warning(f"ERROR: Nothing to delete for {self.key} on platform {platform}")
+            LOG.warning(
+                f"ERROR: Nothing to delete for {self.key} on platform {platform}"
+            )
             return
         if path.startswith("s3://"):
             delete_on_s3(path)
@@ -159,8 +167,7 @@ class DatasetCatalogueEntry(CatalogueEntry):
         )
         LOG.info(f"Task: {kwargs}")
 
-        from anemoi.registry.tasks import TaskCatalogueEntry
-        from anemoi.registry.tasks import TaskCatalogueEntryList
+        from anemoi.registry.tasks import TaskCatalogueEntry, TaskCatalogueEntryList
 
         def find_or_create_task(**kwargs):
             lst = TaskCatalogueEntryList(**kwargs)
@@ -175,9 +182,13 @@ class DatasetCatalogueEntry(CatalogueEntry):
             task = lst[0]
             updated = datetime.datetime.fromisoformat(task.record["updated"])
             if resume:
-                LOG.info(f"Resuming from previous transfer (last update {when(updated)})")
+                LOG.info(
+                    f"Resuming from previous transfer (last update {when(updated)})"
+                )
             else:
-                raise ValueError(f"Transfer already in progress (last update {when(updated)})")
+                raise ValueError(
+                    f"Transfer already in progress (last update {when(updated)})"
+                )
             return task
 
         task = find_or_create_task(**kwargs)
@@ -192,7 +203,9 @@ class DatasetCatalogueEntry(CatalogueEntry):
         LOG.info(f"Upload('{source_path}','{target}', resume=True, threads=2)")
         task.set_status("running")
         try:
-            transfer(source_path, target, resume=resume, threads=threads, progress=progress)
+            transfer(
+                source_path, target, resume=resume, threads=threads, progress=progress
+            )
         except:
             task.set_status("stopped")
             raise
@@ -208,11 +221,23 @@ class DatasetCatalogueEntry(CatalogueEntry):
 
     def set_recipe(self, file):
         recipe = self._file_or_dict(file)
-        self.patch([{"op": "add", "path": "/metadata/recipe", "value": sanitise(recipe)}], robust=True)
+        self.patch(
+            [{"op": "add", "path": "/metadata/recipe", "value": sanitise(recipe)}],
+            robust=True,
+        )
 
     def set_variables_metadata(self, file):
         variables_metadata = self._file_or_dict(file)
-        self.patch([{"op": "add", "path": "/metadata/variables_metadata", "value": variables_metadata}], robust=True)
+        self.patch(
+            [
+                {
+                    "op": "add",
+                    "path": "/metadata/variables_metadata",
+                    "value": variables_metadata,
+                }
+            ],
+            robust=True,
+        )
 
     @classmethod
     def load_from_path(cls, path):
@@ -244,7 +269,10 @@ class DatasetCatalogueEntry(CatalogueEntry):
                 metadata["statistics"] = dict(mean=[], stdev=[], minimum=[], maximum=[])
 
         if "shape" in metadata:
-            assert tuple(metadata["shape"]) == z.data.shape, (metadata["shape"], z.data.shape)
+            assert tuple(metadata["shape"]) == z.data.shape, (
+                metadata["shape"],
+                z.data.shape,
+            )
         metadata["shape"] = z.data.shape
 
         if "dtype" in metadata:
@@ -252,7 +280,10 @@ class DatasetCatalogueEntry(CatalogueEntry):
         metadata["dtype"] = str(ds.dtype)
 
         if "chunks" in metadata:
-            assert tuple(metadata["chunks"]) == ds.chunks, (metadata["chunks"], ds.chunks)
+            assert tuple(metadata["chunks"]) == ds.chunks, (
+                metadata["chunks"],
+                ds.chunks,
+            )
         metadata["chunks"] = ds.chunks
 
         return cls(

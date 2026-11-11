@@ -20,7 +20,9 @@ from anemoi.utils.remote import transfer
 
 from anemoi.registry import Dataset
 
-IN_CI = (os.environ.get("GITHUB_WORKFLOW") is not None) or (os.environ.get("IN_CI_HPC") is not None)
+IN_CI = (os.environ.get("GITHUB_WORKFLOW") is not None) or (
+    os.environ.get("IN_CI_HPC") is not None
+)
 ANEMOI_CATALOGUE_TOKEN = os.environ.get("ANEMOI_CATALOGUE_TOKEN")
 
 FORCE_TEST_ENV_VARIABLE = "TEST"
@@ -44,7 +46,9 @@ def run(*args, raise_if_error=True):
     try:
         env = os.environ.copy()
         env["ANEMOI_CATALOGUE"] = FORCE_TEST_ENV_VARIABLE
-        result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
+        result = subprocess.run(
+            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env
+        )
         result.check_returncode()
         return result.stdout
     except Exception as e:
@@ -61,7 +65,9 @@ def run(*args, raise_if_error=True):
 
 
 def setup_experiments():
-    run("anemoi-registry", "experiments", "./dummy-recipe-experiment.yaml", "--register")
+    run(
+        "anemoi-registry", "experiments", "./dummy-recipe-experiment.yaml", "--register"
+    )
     run("anemoi-registry", "experiments", "./dummy-recipe-experiment.yaml")
 
 
@@ -71,7 +77,13 @@ def setup_trainings():
 
 
 def setup_checkpoints():
-    run("anemoi-registry", "weights", "./dummy-checkpoint.ckpt", "--register", "--no-upload")
+    run(
+        "anemoi-registry",
+        "weights",
+        "./dummy-checkpoint.ckpt",
+        "--register",
+        "--no-upload",
+    )
     run("anemoi-registry", "weights", "./dummy-checkpoint.ckpt")
 
 
@@ -167,7 +179,13 @@ def teardown_datasets(errors, raise_if_error):
         errors.append(e)
 
     try:
-        run("anemoi-registry", "datasets", TMP_DATASET, "--unregister", raise_if_error=raise_if_error)
+        run(
+            "anemoi-registry",
+            "datasets",
+            TMP_DATASET,
+            "--unregister",
+            raise_if_error=raise_if_error,
+        )
     except Exception as e:
         errors.append(e)
 
@@ -194,7 +212,10 @@ def _teardown_module(raise_if_error):
         raise e
 
 
-@pytest.mark.skipif(IN_CI and not ANEMOI_CATALOGUE_TOKEN, reason="Test requires access to the ANEMOI_CATALOGUE_TOKEN")
+@pytest.mark.skipif(
+    IN_CI and not ANEMOI_CATALOGUE_TOKEN,
+    reason="Test requires access to the ANEMOI_CATALOGUE_TOKEN",
+)
 def test_settings():
     out = run("anemoi-registry", "settings")
     print(out)
@@ -217,17 +238,66 @@ def test_datasets():
     )
 
     run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST={}", "yaml")
-    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.a={}", "yaml")
-    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.a.string=ok")
-    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.a.int=42", "int")
-    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.a.float=42", "float")
-    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.a.datetime=2015-04-18", "datetime")
+    run(
+        "anemoi-registry",
+        "datasets",
+        TMP_DATASET,
+        "--set-metadata",
+        "TEST.a={}",
+        "yaml",
+    )
+    run(
+        "anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.a.string=ok"
+    )
+    run(
+        "anemoi-registry",
+        "datasets",
+        TMP_DATASET,
+        "--set-metadata",
+        "TEST.a.int=42",
+        "int",
+    )
+    run(
+        "anemoi-registry",
+        "datasets",
+        TMP_DATASET,
+        "--set-metadata",
+        "TEST.a.float=42",
+        "float",
+    )
+    run(
+        "anemoi-registry",
+        "datasets",
+        TMP_DATASET,
+        "--set-metadata",
+        "TEST.a.datetime=2015-04-18",
+        "datetime",
+    )
     # run("echo", "45", "|", "anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.b=-", "stdin")
-    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.c={a: 43}", "yaml")
-    run("anemoi-registry", "datasets", TMP_DATASET, "--set-metadata", "TEST.d=test.json", "path")
+    run(
+        "anemoi-registry",
+        "datasets",
+        TMP_DATASET,
+        "--set-metadata",
+        "TEST.c={a: 43}",
+        "yaml",
+    )
+    run(
+        "anemoi-registry",
+        "datasets",
+        TMP_DATASET,
+        "--set-metadata",
+        "TEST.d=test.json",
+        "path",
+    )
     actual = Dataset(TMP_DATASET).record["metadata"]["TEST"]
     expected = {
-        "a": {"string": "ok", "int": 42, "float": 42.0, "datetime": "2015-04-18T00:00:00"},
+        "a": {
+            "string": "ok",
+            "int": 42,
+            "float": 42.0,
+            "datetime": "2015-04-18T00:00:00",
+        },
         "c": {"a": 43},
         "d": {"a": 45},
     }
@@ -281,7 +351,10 @@ def test_experiments():
     # run("anemoi-registry", "experiments", "i4df", "--add-weights", "./dummy-checkpoint.ckpt")
 
 
-@pytest.mark.skipif(IN_CI and not ANEMOI_CATALOGUE_TOKEN, reason="Test requires access to the ANEMOI_CATALOGUE_TOKEN")
+@pytest.mark.skipif(
+    IN_CI and not ANEMOI_CATALOGUE_TOKEN,
+    reason="Test requires access to the ANEMOI_CATALOGUE_TOKEN",
+)
 def test_list_commands():
     run("anemoi-registry", "list", "experiments")
     run("anemoi-registry", "list", "weights")

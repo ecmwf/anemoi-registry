@@ -16,8 +16,7 @@ import os
 
 import yaml
 
-from ..entry import VALUES_PARSERS
-from ..entry import CatalogueEntryNotFound
+from ..entry import VALUES_PARSERS, CatalogueEntryNotFound
 from . import Command
 
 LOG = logging.getLogger(__name__)
@@ -37,7 +36,9 @@ class BaseCommand(Command):
         except CatalogueEntryNotFound:
             return False
 
-    def process_task(self, entry, args, k, func_name=None, /, _skip_if_not_found=False, **kwargs):
+    def process_task(
+        self, entry, args, k, func_name=None, /, _skip_if_not_found=False, **kwargs
+    ):
         """Call the method `k` on the entry object.
         The args/kwargs given to the method are extracted from from the argument `k` in the `args` object.
 
@@ -102,7 +103,9 @@ class BaseCommand(Command):
             value = entry.get_value(args.get_metadata[0])
             if len(args.get_metadata) > 1:
                 type_ = args.get_metadata[1]
-                value = dict(str=str, yaml=yaml.safe_dump, json=json.dumps)[type_](value)
+                value = dict(str=str, yaml=yaml.safe_dump, json=json.dumps)[type_](
+                    value
+                )
             print(value)
 
         if args.set_metadata:
