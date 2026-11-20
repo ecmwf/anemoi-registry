@@ -12,8 +12,7 @@ import logging
 
 from anemoi.registry.commands.base import BaseCommand
 from anemoi.registry.entry import CatalogueEntryNotFound
-from anemoi.registry.tasks import TaskCatalogueEntry
-from anemoi.registry.tasks import TaskCatalogueEntryList
+from anemoi.registry.tasks import TaskCatalogueEntry, TaskCatalogueEntryList
 from anemoi.registry.utils import list_to_dict
 
 LOG = logging.getLogger(__name__)
