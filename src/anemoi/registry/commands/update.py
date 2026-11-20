@@ -28,7 +28,9 @@ LOG = logging.getLogger(__name__)
 
 
 def _shorten(d):
-    return textwrap.shorten(json.dumps(d, ensure_ascii=False, default=str), width=80, placeholder="...")
+    return textwrap.shorten(
+        json.dumps(d, ensure_ascii=False, default=str), width=80, placeholder="..."
+    )
 
 
 class Update(Command):
@@ -56,13 +58,22 @@ class Update(Command):
 
         command_parser.add_argument("--dry-run", help="Dry run.", action="store_true")
         command_parser.add_argument("--force", help="Force.", action="store_true")
-        command_parser.add_argument("--update", help="Update.", choices=["all", "origins", "variables_metadata"])
-        command_parser.add_argument("--ignore", help="Ignore some trivial errors.", action="store_true")
-        command_parser.add_argument("--resume", help="Resume from progress", action="store_true")
+        command_parser.add_argument(
+            "--update", help="Update.", choices=["all", "origins", "variables_metadata"]
+        )
+        command_parser.add_argument(
+            "--ignore", help="Ignore some trivial errors.", action="store_true"
+        )
+        command_parser.add_argument(
+            "--resume", help="Resume from progress", action="store_true"
+        )
         command_parser.add_argument("--progress", help="Progress file")
 
         command_parser.add_argument(
-            "--continue", help="Continue to the next file on error.", action="store_true", dest="continue_"
+            "--continue",
+            help="Continue to the next file on error.",
+            action="store_true",
+            dest="continue_",
         )
         command_parser.add_argument("--workdir", help="Work directory.", default=".")
 
@@ -108,7 +119,9 @@ class Update(Command):
                 with open(args.progress, "a") as f:
                     print(path, file=f)
 
-    def catalogue_from_recipe_file(self, path, _error, workdir, dry_run, force, update, ignore, debug, **kwargs):
+    def catalogue_from_recipe_file(
+        self, path, _error, workdir, dry_run, force, update, ignore, debug, **kwargs
+    ):
         return catalogue_from_recipe_file(
             path,
             workdir=workdir,
@@ -121,15 +134,21 @@ class Update(Command):
         )
 
     def zarr_file_from_catalogue(self, path, _error, dry_run, ignore, **kwargs):
-        return zarr_file_from_catalogue(path, dry_run=dry_run, ignore=ignore, _error=_error)
+        return zarr_file_from_catalogue(
+            path, dry_run=dry_run, ignore=ignore, _error=_error
+        )
 
 
-def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore, debug, _error=print):
+def catalogue_from_recipe_file(
+    path, *, workdir, dry_run, force, update, ignore, debug, _error=print
+):
     """Update the catalogue entry a recipe file."""
 
     from anemoi.datasets import open_dataset
 
-    LOG.info(f"Updating catalogue entry from recipe: {path} {dry_run=} {force=} {update=}")
+    LOG.info(
+        f"Updating catalogue entry from recipe: {path} {dry_run=} {force=} {update=}"
+    )
 
     def entry_set_value(path, value, **kwargs):
         if dry_run:
@@ -163,9 +182,11 @@ def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore,
     constants = None
 
     if "recipe" in entry.record["_original"]["metadata"]:
-
         if not update and not force:
-            LOG.info("%s: `recipe` already in original. Use --force and --update to update", name)
+            LOG.info(
+                "%s: `recipe` already in original. Use --force and --update to update",
+                name,
+            )
             return
 
         # Remove stuff added by prepml
@@ -204,14 +225,16 @@ def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore,
                 entry_set_value("/metadata/updated", updated + 1)
                 entry.record["metadata"]["constant_fields"] = computed_constant_fields
 
-        if "constant_fields" in entry.record["metadata"] and "variables_metadata" in entry.record["metadata"]:
+        if (
+            "constant_fields" in entry.record["metadata"]
+            and "variables_metadata" in entry.record["metadata"]
+        ):
             LOG.info("%s, checking `variables_metadata` and `constant_fields`", name)
             constants = entry.record["metadata"]["constant_fields"]
             new_value = entry.record["metadata"]["variables_metadata"]
 
         changed = False
         for k, v in new_value.items():
-
             if k in constants and v.get("constant_in_time") is not True:
                 v["constant_in_time"] = True
                 changed = True
@@ -232,12 +255,19 @@ def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore,
 
     for new_key in ("variables_metadata", "origins"):
         LOG.info("Checking %s for %s", name, new_key)
-        if new_key not in entry.record["metadata"] or force or update == "all" or update == new_key:
+        if (
+            new_key not in entry.record["metadata"]
+            or force
+            or update == "all"
+            or update == new_key
+        ):
             from anemoi.datasets.create.tasks import run_task
 
             LOG.info("%s, setting `%s`  🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥", name, new_key)
 
-            dir = os.path.join(workdir, f"anemoi-registry-commands-update-{time.time()}")
+            dir = os.path.join(
+                workdir, f"anemoi-registry-commands-update-{time.time()}"
+            )
             os.makedirs(dir)
 
             try:
@@ -327,7 +357,9 @@ def zarr_file_from_catalogue(path, *, dry_run, ignore, _error=print):
     def dict_are_different(d1, d2, path=""):
 
         def _(d):
-            return textwrap.shorten(json.dumps(d, ensure_ascii=False), width=80, placeholder="...")
+            return textwrap.shorten(
+                json.dumps(d, ensure_ascii=False), width=80, placeholder="..."
+            )
 
         diff = False
 
@@ -341,15 +373,23 @@ def zarr_file_from_catalogue(path, *, dry_run, ignore, _error=print):
         if isinstance(d1, dict) and isinstance(d2, dict):
             for k in d1.keys():
                 if k not in d2:
-                    print(f"Key {path + '.' + k} is missing in the local dictionary {_(d1[k])}")
+                    print(
+                        f"Key {path + '.' + k} is missing in the local dictionary {_(d1[k])}"
+                    )
                     diff = True
 
-                if k in d1 and k in d2 and dict_are_different(d1[k], d2[k], path + "." + k):
+                if (
+                    k in d1
+                    and k in d2
+                    and dict_are_different(d1[k], d2[k], path + "." + k)
+                ):
                     diff = True
 
             for k in d2.keys():
                 if k not in d1:
-                    print(f"Key {path + '.' + k} is missing in the remote dictionary {_(d2[k])}")
+                    print(
+                        f"Key {path + '.' + k} is missing in the remote dictionary {_(d2[k])}"
+                    )
                     diff = True
 
             return diff

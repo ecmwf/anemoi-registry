@@ -13,14 +13,11 @@ import os
 
 import yaml
 from anemoi.utils.config import load_any_dict_format
-from anemoi.utils.dates import as_datetime
-from anemoi.utils.dates import as_timedelta
+from anemoi.utils.dates import as_datetime, as_timedelta
 from anemoi.utils.humanize import json_pretty_dump
 
 from anemoi.registry import config
-from anemoi.registry.rest import AlreadyExists
-from anemoi.registry.rest import RestItem
-from anemoi.registry.rest import RestItemList
+from anemoi.registry.rest import AlreadyExists, RestItem, RestItemList
 
 # from anemoi.registry.rest import DryRunRest as Rest
 
@@ -46,10 +43,14 @@ def parse_value(value, type_):
         return value
 
     if type_ == "stdin" and value != "-":
-        raise ValueError(f"Invalid value for type {type_}: Expecting '-', got '{value}'")
+        raise ValueError(
+            f"Invalid value for type {type_}: Expecting '-', got '{value}'"
+        )
 
     if type_ not in VALUES_PARSERS:
-        raise ValueError(f"Invalid type {type_}. Supported types are: {list(VALUES_PARSERS.keys())}")
+        raise ValueError(
+            f"Invalid type {type_}. Supported types are: {list(VALUES_PARSERS.keys())}"
+        )
 
     return VALUES_PARSERS[type_](value)
 
@@ -78,7 +79,9 @@ class CatalogueEntry:
         if not record:
             entry = self.__class__.load_from_key(key, params=params)
             if entry is None:
-                raise CatalogueEntryNotFound(f"Could not find any {self.collection} with key={key}")
+                raise CatalogueEntryNotFound(
+                    f"Could not find any {self.collection} with key={key}"
+                )
             record = entry.record
 
         self.record = record.copy()
@@ -113,7 +116,9 @@ class CatalogueEntry:
 
         if len(results) == 1:
             key = results[0][cls.main_key]
-            LOG.debug(f"Found {len(results)} element on {cls.collection} with request {request_str} : {key}")
+            LOG.debug(
+                f"Found {len(results)} element on {cls.collection} with request {request_str} : {key}"
+            )
             return cls.load_from_key(key, params=params)
 
         if len(results) == 0:
@@ -129,7 +134,9 @@ class CatalogueEntry:
             return cls(key=key, record=record, must_exist=True, params=params)
 
     @classmethod
-    def load_from_anything(cls, key=None, path=None, kwargs={}, must_exist=True, params=None):
+    def load_from_anything(
+        cls, key=None, path=None, kwargs={}, must_exist=True, params=None
+    ):
 
         if path is not None and os.path.exists(path):
             return cls.load_from_path(path)
@@ -147,7 +154,9 @@ class CatalogueEntry:
 
             # not found in catalogue
             if must_exist:
-                raise CatalogueEntryNotFound(f"Could not find any {cls.collection} with key={key}")
+                raise CatalogueEntryNotFound(
+                    f"Could not find any {cls.collection} with key={key}"
+                )
 
             # then create a new one
             return cls.create_from_new_key(key)
@@ -157,11 +166,15 @@ class CatalogueEntry:
                 f"Could not find any {cls.collection} with {key=}, {path=}, {requests=}, {params=}"
             )
 
-        assert False, f"Cannot build an entry from {key}, {path}, {requests}, {params}. "
+        assert False, (
+            f"Cannot build an entry from {key}, {path}, {requests}, {params}. "
+        )
 
     @classmethod
     def create_from_new_key(cls, key):
-        raise CatalogueEntryNotFound(f"Could not find any {cls.collection} with key={key}")
+        raise CatalogueEntryNotFound(
+            f"Could not find any {cls.collection} with key={key}"
+        )
 
     def as_json(self):
         return json_pretty_dump(self.record)
@@ -259,12 +272,16 @@ class CatalogueEntry:
             elif isinstance(rec, dict):
                 rec = rec[p]
             else:
-                raise KeyError(f"Cannot get value for {path} in {self.record}. {p} is not a key in {rec}")
+                raise KeyError(
+                    f"Cannot get value for {path} in {self.record}. {p} is not a key in {rec}"
+                )
         return rec
 
     def set_value(self, path, value, type_=None, increment_update=False):
         path = self.resolve_path(path)
-        return self.patch_value("add", path, value=value, type_=type_, increment_update=increment_update)
+        return self.patch_value(
+            "add", path, value=value, type_=type_, increment_update=increment_update
+        )
 
     def set_value_from_file(self, path, file):
         value = load_any_dict_format(file)
@@ -274,7 +291,9 @@ class CatalogueEntry:
         path = self.resolve_path(path)
         return self.patch_value("remove", path, increment_update=increment_update)
 
-    def patch_value(self, op, path, value=None, type_=None, from_=None, increment_update=False):
+    def patch_value(
+        self, op, path, value=None, type_=None, from_=None, increment_update=False
+    ):
         path = self.resolve_path(path)
         patch = {"op": op, "path": path}
 
@@ -295,13 +314,19 @@ class CatalogueEntry:
                 self.get_value(parent_path)
             except KeyError:
                 if parent_name.isdigit():
-                    patches = [{"op": "add", "path": parent_path, "value": []}] + patches
+                    patches = [
+                        {"op": "add", "path": parent_path, "value": []}
+                    ] + patches
                 else:
-                    patches = [{"op": "add", "path": parent_path, "value": {}}] + patches
+                    patches = [
+                        {"op": "add", "path": parent_path, "value": {}}
+                    ] + patches
 
         if increment_update:
             updated = self.record["metadata"].get("updated", 0)
-            patches = [{"op": "add", "path": "/metadata/updated", "value": updated + 1}] + patches
+            patches = [
+                {"op": "add", "path": "/metadata/updated", "value": updated + 1}
+            ] + patches
 
         LOG.debug(f"jsonpatch: {patches}")
         self.patch(patches)

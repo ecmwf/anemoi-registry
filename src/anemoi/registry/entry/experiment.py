@@ -15,9 +15,7 @@ import tempfile
 from getpass import getuser
 
 import yaml
-from anemoi.utils.remote.s3 import delete
-from anemoi.utils.remote.s3 import download
-from anemoi.utils.remote.s3 import upload
+from anemoi.utils.remote.s3 import delete, download, upload
 
 from anemoi.registry.rest import RestItemList
 
@@ -49,7 +47,9 @@ class ExperimentCatalogueEntry(CatalogueEntry):
 
     @classmethod
     def create_from_new_key(cls, key):
-        assert cls.key_exists(key) is False, f"{cls.collection} with key={key} already exists"
+        assert cls.key_exists(key) is False, (
+            f"{cls.collection} with key={key} already exists"
+        )
         metadata = dict(expver=key, user=getuser())
         return cls(key, dict(expver=key, metadata=metadata, runs={}))
 
@@ -80,7 +80,10 @@ class ExperimentCatalogueEntry(CatalogueEntry):
             self._add_one_weights(path, **kwargs)
 
     def set_run_status(self, run_number, status):
-        self.patch([{"op": "add", "path": f"/runs/{run_number}/status", "value": status}], robust=True)
+        self.patch(
+            [{"op": "add", "path": f"/runs/{run_number}/status", "value": status}],
+            robust=True,
+        )
 
     def create_new_run(self, **kwargs):
         runs = self.record.get("runs", {})
@@ -102,7 +105,11 @@ class ExperimentCatalogueEntry(CatalogueEntry):
             e.patch(
                 [
                     {"op": "test", "path": "/runs", "value": e.record["runs"]},
-                    {"op": "add", "path": f"/runs/{run_number}", "value": dict(archives={}, **kwargs)},
+                    {
+                        "op": "add",
+                        "path": f"/runs/{run_number}",
+                        "value": dict(archives={}, **kwargs),
+                    },
                 ],
                 robust=True,
             )
@@ -124,17 +131,36 @@ class ExperimentCatalogueEntry(CatalogueEntry):
             extras = {v.split("=")[0]: v.split("=")[1] for v in extras}
 
         base = os.path.basename(path)
-        ext = base.split(os.extsep, 1)[-1]  # everything after the first dot, to support multiple ext like tar.gz
-        target = config()["artefacts_uri_base"] + f"/{self.key}/runs/{run_number}/{platform}.{ext}"
+        ext = base.split(os.extsep, 1)[
+            -1
+        ]  # everything after the first dot, to support multiple ext like tar.gz
+        target = (
+            config()["artefacts_uri_base"]
+            + f"/{self.key}/runs/{run_number}/{platform}.{ext}"
+        )
         LOG.info(f"Uploading {path} to {target}.")
         upload(path, target, overwrite=overwrite)
 
         # NOTE: if format of this dict changes, also update the list of excluded extra keys in archive_moved
-        dic = dict(url=target, path=path, updated=datetime.datetime.utcnow().isoformat(), **extras)
+        dic = dict(
+            url=target,
+            path=path,
+            updated=datetime.datetime.utcnow().isoformat(),
+            **extras,
+        )
 
         self._ensure_run_exists(run_number)
 
-        self.patch([{"op": "add", "path": f"/runs/{run_number}/archives/{platform}", "value": dic}], robust=True)
+        self.patch(
+            [
+                {
+                    "op": "add",
+                    "path": f"/runs/{run_number}/archives/{platform}",
+                    "value": dic,
+                }
+            ],
+            robust=True,
+        )
 
     def remove_archive(self, platform, run_number):
         if platform is None:
@@ -145,23 +171,32 @@ class ExperimentCatalogueEntry(CatalogueEntry):
         for run_number in run_numbers:
             LOG.info(f"Removing archive for run {run_number} and platform {platform}")
             if run_number not in self.record["runs"]:
-                LOG.info(f"Archive: skipping run {run_number} because it does not exist")
+                LOG.info(
+                    f"Archive: skipping run {run_number} because it does not exist"
+                )
                 continue
             run_record = self.record["runs"][run_number]
 
             if platform not in run_record.get("archives", {}):
-                LOG.info(f"Archive: skipping {platform} for run {run_number} because it does not exist")
+                LOG.info(
+                    f"Archive: skipping {platform} for run {run_number} because it does not exist"
+                )
                 continue
 
             url = run_record["archives"][platform]["url"]
             delete(url)
-            self.patch([{"op": "remove", "path": f"/runs/{run_number}/archives/{platform}"}], robust=True)
+            self.patch(
+                [{"op": "remove", "path": f"/runs/{run_number}/archives/{platform}"}],
+                robust=True,
+            )
 
     def _list_run_numbers(self):
         return [int(k) for k in self.record.get("runs", {}).keys()]
 
     def _parse_run_number(self, run_number):
-        assert isinstance(run_number, (str, int)), "run_number must be a string or an integer"
+        assert isinstance(run_number, (str, int)), (
+            "run_number must be a string or an integer"
+        )
         run_number = str(run_number)
 
         if run_number.lower() == "all":
@@ -185,13 +220,25 @@ class ExperimentCatalogueEntry(CatalogueEntry):
                 tmp_path = os.path.join(tmpdir, str(run_number))
                 self.get_archive(tmp_path, platform=old, run_number=run_number)
                 if not os.path.exists(tmp_path):
-                    LOG.info(f"Skipping {old} -> {new} for run {run_number} because it does not exist")
+                    LOG.info(
+                        f"Skipping {old} -> {new} for run {run_number} because it does not exist"
+                    )
                     continue
                 run_record = self._get_run_record(run_number)
-                extras = {k: v for k, v in run_record["archives"][old].items() if k not in ["url", "path", "updated"]}
+                extras = {
+                    k: v
+                    for k, v in run_record["archives"][old].items()
+                    if k not in ["url", "path", "updated"]
+                }
                 if extras:
                     LOG.info(f"Copying extras: {extras}")
-                self.set_archive(tmp_path, platform=new, run_number=run_number, overwrite=overwrite, extras=extras)
+                self.set_archive(
+                    tmp_path,
+                    platform=new,
+                    run_number=run_number,
+                    overwrite=overwrite,
+                    extras=extras,
+                )
                 self.remove_archive(old, run_number)
 
     def _get_run_record(self, run_number):
@@ -209,7 +256,9 @@ class ExperimentCatalogueEntry(CatalogueEntry):
                 run_record = self._get_run_record(run_number)
 
                 if platform not in run_record.get("archives", {}):
-                    LOG.info(f"Archive: skipping {platform} for run {run_number} because it does not exist")
+                    LOG.info(
+                        f"Archive: skipping {platform} for run {run_number} because it does not exist"
+                    )
                     continue
 
                 tmp_path = os.path.join(tmpdir, str(run_number))
@@ -237,7 +286,9 @@ class ExperimentCatalogueEntry(CatalogueEntry):
                 LOG.warning(f"Skipping deletion of {url} because it is not an s3 url")
                 continue
             if f"/{self.key}/" not in url:
-                LOG.warning(f"Skipping deletion of {url} because it does not belong to this experiment")
+                LOG.warning(
+                    f"Skipping deletion of {url} because it does not belong to this experiment"
+                )
                 continue
             delete(url)
         self.patch(
@@ -272,7 +323,9 @@ class ExperimentCatalogueEntry(CatalogueEntry):
             self.patch([{"op": "add", "path": f"/{key}", "value": value}])
         else:
             self._ensure_run_exists(run_number)
-            self.patch([{"op": "add", "path": f"/runs/{run_number}/{key}", "value": value}])
+            self.patch(
+                [{"op": "add", "path": f"/runs/{run_number}/{key}", "value": value}]
+            )
 
     def _add_one_weights(self, path, **kwargs):
         weights = WeightCatalogueEntry.load_from_path(path=path)
@@ -287,7 +340,10 @@ class ExperimentCatalogueEntry(CatalogueEntry):
             # Skip if the weights are the same
             # Raise an error if the weights are different
             other = WeightCatalogueEntry.load_from_key(key=weights.key)
-            if other.record["metadata"]["timestamp"] == weights.record["metadata"]["timestamp"]:
+            if (
+                other.record["metadata"]["timestamp"]
+                == weights.record["metadata"]["timestamp"]
+            ):
                 LOG.info(
                     f"Not updating weights with key={weights.key}, because it already exists and has the same timestamp"
                 )

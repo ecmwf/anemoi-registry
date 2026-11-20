@@ -32,7 +32,9 @@ class Upload(Command):
             "target",
             help="Target s3 path. Please consider using `anemoi-registry experiment <expver> --add-artefacts path`",
         )
-        command_parser.add_argument("--overwrite", help="Overwrite if already exists.", action="store_true")
+        command_parser.add_argument(
+            "--overwrite", help="Overwrite if already exists.", action="store_true"
+        )
 
     def run(self, args):
         if not UPLOAD_ALLOWED:

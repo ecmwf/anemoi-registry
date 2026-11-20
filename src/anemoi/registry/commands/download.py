@@ -24,8 +24,12 @@ class Download(Command):
 
     def add_arguments(self, command_parser):
         command_parser.add_argument("path", help="Path to download.")
-        command_parser.add_argument("target", help="Target path.", nargs="?", default=None)
-        command_parser.add_argument("--overwrite", help="Overwrite if already exists.", action="store_true")
+        command_parser.add_argument(
+            "target", help="Target path.", nargs="?", default=None
+        )
+        command_parser.add_argument(
+            "--overwrite", help="Overwrite if already exists.", action="store_true"
+        )
 
     def run(self, args):
         from anemoi.utils.remote.s3 import download

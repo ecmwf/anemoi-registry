@@ -57,8 +57,12 @@ class Entry(Command):
 
         group.add_argument("--remove", action="store_true", help="Remove the entry.")
 
-        command_parser.add_argument("--input", help="The output file name to be used by the ``--load`` option.")
-        command_parser.add_argument("--output", help="The output file name to be used by the ``--dump`` option.")
+        command_parser.add_argument(
+            "--input", help="The output file name to be used by the ``--load`` option."
+        )
+        command_parser.add_argument(
+            "--output", help="The output file name to be used by the ``--dump`` option."
+        )
         command_parser.add_argument(
             "--create",
             action="store_true",
@@ -72,11 +76,15 @@ class Entry(Command):
         )
 
         command_parser.add_argument(
-            "--json", action="store_true", help="Use the JSON format with ``--dump`` and ``--edit``."
+            "--json",
+            action="store_true",
+            help="Use the JSON format with ``--dump`` and ``--edit``.",
         )
 
         command_parser.add_argument(
-            "--yaml", action="store_true", help="Use the YAML format with ``--dump`` and ``--edit``."
+            "--yaml",
+            action="store_true",
+            help="Use the YAML format with ``--dump`` and ``--edit``.",
         )
 
     def run(self, args):
@@ -115,7 +123,6 @@ class Entry(Command):
             kwargs = {"default_flow_style": False}
 
         with TemporaryDirectory() as temp_dir:
-
             path = os.path.join(temp_dir, f"anemoi-registry-edit.{ext}")
 
             metadata = rest.get(args.path)
@@ -171,7 +178,9 @@ class Entry(Command):
                 edited = yaml.safe_load(f)
 
         else:
-            raise ValueError(f"Unknown file extension {ext}. Please specify --json or --yaml")
+            raise ValueError(
+                f"Unknown file extension {ext}. Please specify --json or --yaml"
+            )
 
         if rest.exists(args.path):
             # if the entry exists, we patch it.
@@ -185,8 +194,12 @@ class Entry(Command):
         else:
             # if the entry does not exist, we post it if requested.
             if not args.create:
-                LOG.error(f"Entry in {args.path} does not exists. Using --create to create it.")
-                raise ValueError(f"Entry in {args.path} does not exists. Using --create to create it.")
+                LOG.error(
+                    f"Entry in {args.path} does not exists. Using --create to create it."
+                )
+                raise ValueError(
+                    f"Entry in {args.path} does not exists. Using --create to create it."
+                )
 
             _, collection, *_ = args.path.split("/")
             res = rest.post(collection, edited)

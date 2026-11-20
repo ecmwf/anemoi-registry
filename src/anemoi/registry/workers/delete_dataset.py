@@ -60,11 +60,17 @@ class DeleteDatasetWorker(Worker):
         platform, dataset = super().parse_task(task, "location", "dataset")
 
         if "/" in platform:
-            raise ValueError(f"platform {platform} must not contain '/', this is a platform name")
+            raise ValueError(
+                f"platform {platform} must not contain '/', this is a platform name"
+            )
         if "." in platform:
-            raise ValueError(f"platform {platform} must not contain '.', this is a platform name")
+            raise ValueError(
+                f"platform {platform} must not contain '.', this is a platform name"
+            )
 
         if "." in dataset:
-            raise ValueError(f"The dataset {dataset} must not contain a '.', this is the name of the dataset.")
+            raise ValueError(
+                f"The dataset {dataset} must not contain a '.', this is the name of the dataset."
+            )
 
         return platform, dataset

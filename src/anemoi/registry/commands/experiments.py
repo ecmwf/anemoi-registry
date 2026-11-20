@@ -27,19 +27,26 @@ class Experiments(BaseCommand):
 
     def add_arguments(self, command_parser):
         command_parser.add_argument(
-            "NAME_OR_PATH", help="Name of an experiment of a path of an experiment config file."
+            "NAME_OR_PATH",
+            help="Name of an experiment of a path of an experiment config file.",
         )
         command_parser.add_argument(
-            "--register", help=f"Register the {self.kind} in the catalogue.", action="store_true"
+            "--register",
+            help=f"Register the {self.kind} in the catalogue.",
+            action="store_true",
         )
         command_parser.add_argument(
             "--unregister",
             help="Remove from catalogue (without deleting the experiment from other locations)",
             action="store_true",
         )
-        command_parser.add_argument("--url", help="Print the URL of the experiment.", action="store_true")
         command_parser.add_argument(
-            "--view", help=f"Open the URL of the {self.kind} in a browser.", action="store_true"
+            "--url", help="Print the URL of the experiment.", action="store_true"
+        )
+        command_parser.add_argument(
+            "--view",
+            help=f"Open the URL of the {self.kind} in a browser.",
+            action="store_true",
         )
         self.add_set_get_remove_metadata_arguments(command_parser)
         command_parser.add_argument(
@@ -58,7 +65,12 @@ class Experiments(BaseCommand):
             ),
             metavar="FILE",
         )
-        command_parser.add_argument("--add-plots", nargs="+", help="Add plots to the experiment.", metavar="FILE")
+        command_parser.add_argument(
+            "--add-plots",
+            nargs="+",
+            help="Add plots to the experiment.",
+            metavar="FILE",
+        )
         command_parser.add_argument(
             "--set-key",
             nargs=2,
@@ -73,14 +85,18 @@ class Experiments(BaseCommand):
         )
 
         command_parser.add_argument(
-            "--set-archive", help="Input file to register as an archive metadata file to the catalogue.", metavar="FILE"
+            "--set-archive",
+            help="Input file to register as an archive metadata file to the catalogue.",
+            metavar="FILE",
         )
         command_parser.add_argument(
             "--get-archive",
             help="Output file to save the archive metadata file from the catalogue. Merge metadata file if there are multiple run numbers.",
             metavar="FILE",
         )
-        command_parser.add_argument("--remove-archive", help="Delete the archive metadata.", action="store_true")
+        command_parser.add_argument(
+            "--remove-archive", help="Delete the archive metadata.", action="store_true"
+        )
         command_parser.add_argument(
             "--archive-moved",
             help="When archive moved to a new location, move the metadata file and update the catalogue.",
@@ -99,10 +115,15 @@ class Experiments(BaseCommand):
             metavar="N",
         )
         command_parser.add_argument(
-            "--archive-extra-metadata", help="Extra metadata. A list of key=value pairs.", nargs="+", default={}
+            "--archive-extra-metadata",
+            help="Extra metadata. A list of key=value pairs.",
+            nargs="+",
+            default={},
         )
 
-        command_parser.add_argument("--overwrite", help="Overwrite if already exists.", action="store_true")
+        command_parser.add_argument(
+            "--overwrite", help="Overwrite if already exists.", action="store_true"
+        )
 
     def is_path(self, name_or_path):
         if not os.path.exists(name_or_path):
@@ -130,7 +151,13 @@ class Experiments(BaseCommand):
             overwrite=args.overwrite,
             extras=args.archive_extra_metadata,
         )
-        self.process_task(entry, args, "get_archive", run_number=args.run_number, platform=args.archive_platform)
+        self.process_task(
+            entry,
+            args,
+            "get_archive",
+            run_number=args.run_number,
+            platform=args.archive_platform,
+        )
         self.process_task(
             entry,
             args,
@@ -139,7 +166,13 @@ class Experiments(BaseCommand):
             platform=args.archive_platform,
             _skip_if_not_found=True,
         )
-        self.process_task(entry, args, "archive_moved", run_number=args.run_number, _skip_if_not_found=True)
+        self.process_task(
+            entry,
+            args,
+            "archive_moved",
+            run_number=args.run_number,
+            _skip_if_not_found=True,
+        )
         if args.url:
             print(entry.url)
 

@@ -12,8 +12,7 @@ import logging
 import os
 
 from anemoi.utils.checkpoints import load_metadata as load_checkpoint_metadata
-from anemoi.utils.remote.s3 import download
-from anemoi.utils.remote.s3 import upload
+from anemoi.utils.remote.s3 import download, upload
 
 from anemoi.registry.rest import RestItemList
 
@@ -41,7 +40,10 @@ class WeightCatalogueEntry(CatalogueEntry):
     main_key = "uuid"
 
     def add_location(self, platform, path):
-        self.patch([{"op": "add", "path": f"/locations/{platform}", "value": {"path": path}}], robust=True)
+        self.patch(
+            [{"op": "add", "path": f"/locations/{platform}", "value": {"path": path}}],
+            robust=True,
+        )
         return path
 
     def default_location(self, **kwargs):
@@ -101,7 +103,9 @@ class WeightCatalogueEntry(CatalogueEntry):
         uuid = metadata.get("uuid")
         if uuid is None:
             uuid = metadata["run_id"]
-            LOG.warning(f"Could not find 'uuid' in {path}, using 'run_id' instead: {uuid}")
+            LOG.warning(
+                f"Could not find 'uuid' in {path}, using 'run_id' instead: {uuid}"
+            )
 
         return cls(
             uuid,

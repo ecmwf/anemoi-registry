@@ -15,7 +15,7 @@
 > \[!IMPORTANT\]
 > This software is **Incubating** and subject to ECMWF's guidelines on [Software Maturity](https://github.com/ecmwf/codex/raw/refs/heads/main/Project%20Maturity).
 
-
+Registry for data-driven weather forecasts.
 
 ## Documentation
 
@@ -36,7 +36,7 @@ $ pip install anemoi-registry
 ## License
 
 ```
-Copyright , .
+Copyright 2024-2025, Anemoi Contributors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

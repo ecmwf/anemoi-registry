@@ -9,9 +9,15 @@
 
 
 def list_to_dict(lst):
-    assert isinstance(lst, (tuple, list)), f"lst must be a list. Got {lst} of type {type(lst)}."
+    assert isinstance(lst, (tuple, list)), (
+        f"lst must be a list. Got {lst} of type {type(lst)}."
+    )
     for x in lst:
-        assert isinstance(x, str), f"lst must be a list of strings. Got {x} of type {type(x)}."
+        assert isinstance(x, str), (
+            f"lst must be a list of strings. Got {x} of type {type(x)}."
+        )
         if "=" not in x:
-            raise ValueError(f"Invalid key-value pairs format '{x}', use 'key1=value1 key2=value2' list.")
+            raise ValueError(
+                f"Invalid key-value pairs format '{x}', use 'key1=value1 key2=value2' list."
+            )
     return {x.split("=")[0]: x.split("=")[1] for x in lst}

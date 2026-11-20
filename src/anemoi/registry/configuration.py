@@ -7,16 +7,13 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 
-# ruff: noqa: E402
 
 import importlib
 import logging
 import os
 from functools import cached_property
 
-from anemoi.utils.config import DotDict
-from anemoi.utils.config import load_any_dict_format
-from anemoi.utils.config import load_config
+from anemoi.utils.config import DotDict, load_any_dict_format, load_config
 
 from anemoi.registry.rest import Rest
 
@@ -40,7 +37,9 @@ def package_config(module_name, missing_ok=False):
 def token():
     """Retrieve the catalogue token from the environment or user config."""
     if os.environ.get("ANEMOI_CATALOGUE_TOKEN") is not None:
-        LOG.warning("Using catalogue token from environment variable ANEMOI_CATALOGUE_TOKEN.")
+        LOG.warning(
+            "Using catalogue token from environment variable ANEMOI_CATALOGUE_TOKEN."
+        )
         return os.environ["ANEMOI_CATALOGUE_TOKEN"]
     return load_config(secrets=["api_token"]).get("registry", {}).get("api_token")
 
@@ -60,12 +59,17 @@ class SingletonConfig:
             return url
 
         if env_var is not None:
-            LOG.warning("Using catalogue URL from environment variable ANEMOI_CATALOGUE: %s", env_var)
+            LOG.warning(
+                "Using catalogue URL from environment variable ANEMOI_CATALOGUE: %s",
+                env_var,
+            )
             return env_var
 
         url_from_user = self._url_from_user_config()
         if url_from_user is not None:
-            LOG.warning(f"Overriding default catalogue URL with {url_from_user} from user config.")
+            LOG.warning(
+                f"Overriding default catalogue URL with {url_from_user} from user config."
+            )
             return url_from_user
 
         return self.package_config["registry"]["catalogue"]
@@ -106,7 +110,10 @@ class SingletonConfig:
             if k in ["api_token", "api_url"]:  # use token
                 conf[k] = v
                 continue
-            if k in ["allow_delete", "allow_edit_entries"]:  # use these flags, to be removed
+            if k in [
+                "allow_delete",
+                "allow_edit_entries",
+            ]:  # use these flags, to be removed
                 conf[k] = v
                 LOG.warning(
                     f"Overriding default {k} with {v} from user config, these flags will disapppear in the future."
@@ -114,10 +121,8 @@ class SingletonConfig:
                 continue
             if v != conf.get(k):  # ignore other keys
                 LOG.warning(
-                    (
-                        f"Ignoring user config for {k}: {v} != {conf.get(k)}."
-                        " Please delete this entry from your config file."
-                    )
+                    f"Ignoring user config for {k}: {v} != {conf.get(k)}."
+                    " Please delete this entry from your config file."
                 )
         conf.pop("catalogue")
         conf.pop("test-catalogue")
@@ -128,7 +133,9 @@ class SingletonConfig:
         self._cache = conf
 
         if not with_secrets:
-            conf = DotDict({k: v if k != "api_token" else "***" for k, v in conf.items()})
+            conf = DotDict(
+                {k: v if k != "api_token" else "***" for k, v in conf.items()}
+            )
 
         return conf
 
@@ -159,12 +166,12 @@ except ImportError:  # pragma: no cover
 
 
 __all__ = [
-    "Weights",
-    "WeightsList",
-    "Experiment",
-    "ExperimentsList",
     "Dataset",
     "DatasetsList",
+    "Experiment",
+    "ExperimentsList",
     "Task",
     "TasksList",
+    "Weights",
+    "WeightsList",
 ]

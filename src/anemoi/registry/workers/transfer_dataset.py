@@ -32,7 +32,9 @@ class Progress:
         self.first_transfer_progress = None
         self.previous_progress = None
 
-    def __call__(self, number_of_files, total_size, total_transferred, transfering, **kwargs):
+    def __call__(
+        self, number_of_files, total_size, total_transferred, transfering, **kwargs
+    ):
         now = datetime.datetime.utcnow()
 
         if self.latest is not None and (now - self.latest).seconds < self.frequency:
@@ -48,7 +50,9 @@ class Progress:
             total_transferred=total_transferred,
             transfering=transfering,
             timestamp=timestamp,
-            percentage=100 * total_transferred / total_size if total_size and transfering else 0,
+            percentage=100 * total_transferred / total_size
+            if total_size and transfering
+            else 0,
             **kwargs,
         )
 
@@ -146,10 +150,14 @@ class TransferDatasetWorker(Worker):
         LOG.info(f"Target path: {target_path}")
 
         if source_path.startswith("s3://"):
-            source_path = source_path + "/" if not source_path.endswith("/") else source_path
+            source_path = (
+                source_path + "/" if not source_path.endswith("/") else source_path
+            )
 
         if self.dry_run:
-            LOG.warning(f"Would tranfer {source_path} to {target_path} but this is only a dry run.")
+            LOG.warning(
+                f"Would tranfer {source_path} to {target_path} but this is only a dry run."
+            )
             return
 
         progress = Progress(task, frequency=10)
@@ -171,19 +179,31 @@ class TransferDatasetWorker(Worker):
     def parse_task(cls, task):
         assert task.record["action"] == "transfer-dataset", task.record["action"]
 
-        destination, source, dataset = super().parse_task(task, "destination", "source", "dataset")
+        destination, source, dataset = super().parse_task(
+            task, "destination", "source", "dataset"
+        )
 
         if "/" in destination:
-            raise ValueError(f"Destination {destination} must not contain '/', this is a platform name")
+            raise ValueError(
+                f"Destination {destination} must not contain '/', this is a platform name"
+            )
         if "." in destination:
-            raise ValueError(f"Destination {destination} must not contain '.', this is a platform name")
+            raise ValueError(
+                f"Destination {destination} must not contain '.', this is a platform name"
+            )
 
         if "/" in source:
-            raise ValueError(f"Source {source} must not contain '/', this is a platform name")
+            raise ValueError(
+                f"Source {source} must not contain '/', this is a platform name"
+            )
         if "." in source:
-            raise ValueError(f"Source {source} must not contain '.', this is a platform name")
+            raise ValueError(
+                f"Source {source} must not contain '.', this is a platform name"
+            )
 
         if "." in dataset:
-            raise ValueError(f"The dataset {dataset} must not contain a '.', this is the name of the dataset.")
+            raise ValueError(
+                f"The dataset {dataset} must not contain a '.', this is the name of the dataset."
+            )
 
         return destination, source, dataset
