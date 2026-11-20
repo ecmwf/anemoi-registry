@@ -244,8 +244,8 @@ class DatasetCatalogueEntry(CatalogueEntry):
                 metadata["statistics"] = dict(mean=[], stdev=[], minimum=[], maximum=[])
 
         if "shape" in metadata:
-            assert tuple(metadata["shape"]) == z.data.shape, (metadata["shape"], z.data.shape)
-        metadata["shape"] = z.data.shape
+            assert tuple(metadata["shape"]) == z["data"].shape, (metadata["shape"], z["data"].shape)
+        metadata["shape"] = z["data"].shape
 
         if "dtype" in metadata:
             assert metadata["dtype"] == str(ds.dtype), (metadata["dtype"], ds.dtype)

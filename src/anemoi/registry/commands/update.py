@@ -245,8 +245,9 @@ def catalogue_from_recipe_file(path, *, workdir, dry_run, force, update, ignore,
 
                 run_task("init", recipe=path, path=tmp, overwrite=True)
 
-                with open(f"{tmp}/.zattrs") as f:
-                    attrs = yaml.safe_load(f)
+                import zarr
+
+                attrs = zarr.open(tmp, mode="r").attrs.asdict()
 
                 new_value = attrs.get(new_key)
                 if new_value is None:
